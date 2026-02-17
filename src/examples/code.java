@@ -1,8 +1,12 @@
 class App {
     void Main() {
         int x = 0;
-        int b = 1;
-        
+        {
+            {
+                int b = 1;
+            }
+        }
+
         while (true) {
             if (x == 9) {
                 x++;

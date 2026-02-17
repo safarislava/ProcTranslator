@@ -12,12 +12,12 @@ pub enum SyntaxNode {
     Line { value: String },
     Scope,
     File,
-    Empty
+    Empty,
 }
 
 pub struct SyntaxTree {
-    node: SyntaxNode,
-    children: Vec<SyntaxTree>,
+    pub node: SyntaxNode,
+    pub children: Vec<SyntaxTree>,
 }
 
 impl SyntaxTree {
@@ -36,75 +36,63 @@ pub fn parse_syntax_tree(raw_code: &str) -> Result<SyntaxTree, Box<dyn Error>> {
     let class_pattern = Regex::new(r"^class\s+(\w+)")?;
 
     let sentences = parse_sentences(raw_code)?;
-    let mut tree_stack: Vec<SyntaxTree> = vec![ SyntaxTree::new(SyntaxNode::File) ];
+    let mut tree_stack: Vec<SyntaxTree> = vec![SyntaxTree::new(SyntaxNode::File)];
+    let mut expect_body = false;
 
     for sentence in sentences.iter() {
         if sentence == "{" {
-            if let Some(top) = tree_stack.last() {
-                match &top.node {
-                    SyntaxNode::If { .. } |
-                    SyntaxNode::ElseIf { .. } |
-                    SyntaxNode::Else |
-                    SyntaxNode::While { .. } |
-                    SyntaxNode::For { .. } |
-                    SyntaxNode::Function { .. } |
-                    SyntaxNode::Class { .. } => {
-                        continue;
-                    }
-                    _ => {
-                        tree_stack.push(SyntaxTree::new(SyntaxNode::Scope));
-                    }
-                }
+            if expect_body {
+                expect_body = false;
+            } else {
+                tree_stack.push(SyntaxTree::new(SyntaxNode::Scope));
             }
-        }
-        else if sentence == "}" {
+        } else if sentence == "}" {
             if tree_stack.len() < 2 {
                 return Err("Unmatched closing bracket".into());
             }
             let current_tree = tree_stack.pop().unwrap();
             tree_stack.last_mut().unwrap().children.push(current_tree);
-        }
-        else if let Some(captures) = if_pattern.captures(sentence) {
+        } else if let Some(captures) = if_pattern.captures(sentence) {
             let condition = captures.get(1).unwrap().as_str().to_string();
             tree_stack.push(SyntaxTree::new(SyntaxNode::If { condition }));
-        }
-        else if let Some(captures) = else_if_pattern.captures(sentence) {
+            expect_body = true;
+        } else if let Some(captures) = else_if_pattern.captures(sentence) {
             let condition = captures.get(1).unwrap().as_str().to_string();
             tree_stack.push(SyntaxTree::new(SyntaxNode::ElseIf { condition }));
-        }
-        else if let Some(captures) = else_pattern.captures(sentence) {
+            expect_body = true;
+        } else if else_pattern.is_match(sentence) {
             tree_stack.push(SyntaxTree::new(SyntaxNode::Else));
-        }
-        else if let Some(captures) = while_pattern.captures(sentence) {
+            expect_body = true;
+        } else if let Some(captures) = while_pattern.captures(sentence) {
             let condition = captures.get(1).unwrap().as_str().to_string();
             tree_stack.push(SyntaxTree::new(SyntaxNode::While { condition }));
-        }
-        else if let Some(captures) = for_pattern.captures(sentence) {
+            expect_body = true;
+        } else if let Some(captures) = for_pattern.captures(sentence) {
             let condition = captures.get(1).unwrap().as_str().to_string();
             tree_stack.push(SyntaxTree::new(SyntaxNode::For { condition }));
-        }
-        else if let Some(captures) = function_pattern.captures(sentence) {
-            let result_type = captures.get(1).map(|m| m.as_str()).unwrap_or("").to_string();
+            expect_body = true;
+        } else if let Some(captures) = function_pattern.captures(sentence) {
+            let result_type = captures.get(1).map(|m| m.as_str()).unwrap_or("void").to_string();
             let name = captures.get(2).map(|m| m.as_str()).unwrap_or("").to_string();
             let arguments = captures.get(3).map(|m| m.as_str()).unwrap_or("").to_string();
-            tree_stack.push(SyntaxTree::new(SyntaxNode::Function { result_type, name, arguments }));
-        }
-        else if let Some(captures) = class_pattern.captures(sentence) {
+            tree_stack.push(SyntaxTree::new(SyntaxNode::Function { result_type, name, arguments, }));
+            expect_body = true;
+        } else if let Some(captures) = class_pattern.captures(sentence) {
             let name = captures.get(1).unwrap().as_str().to_string();
             tree_stack.push(SyntaxTree::new(SyntaxNode::Class { name }));
-        }
-        else if sentence.ends_with(';') {
+            expect_body = true;
+        } else if sentence.ends_with(';') {
             let value = sentence.trim_end_matches(';').trim().to_string();
-            tree_stack.last_mut().unwrap()
-                .children.push(SyntaxTree::new(SyntaxNode::Line { value }));
-        }
-        else if !sentence.trim().is_empty() {
-            return Err(From::from("Empty sentence"));
-        }
-        else {
-            return Err(From::from("Unknown syntax"));
+            tree_stack.last_mut().unwrap().children.push(SyntaxTree::new(SyntaxNode::Line { value }));
+        } else {
+            return Err(From::from("Wrong syntax"));
         }
     }
+
+    if tree_stack.len() != 1 {
+        return Err("Unclosed brackets".into());
+    }
+
     tree_stack.pop().ok_or_else(|| "Syntax tree is empty".into())
 }
 
@@ -121,7 +109,7 @@ fn parse_sentences(raw_code: &str) -> Result<Vec<String>, Box<dyn Error>> {
             }
             ')' => {
                 if depth == 0 {
-                    return Err(From::from("Unmatched closing bracket"));
+                    return Err("Unmatched closing bracket".into());
                 }
                 depth -= 1;
                 token.push(c);
@@ -158,16 +146,15 @@ fn parse_sentences(raw_code: &str) -> Result<Vec<String>, Box<dyn Error>> {
 }
 
 pub fn find_main_fn(tree: &SyntaxTree) -> Result<&SyntaxTree, Box<dyn Error>> {
-    if let SyntaxNode::Function { result_type, name, arguments} = &tree.node {
+    if let SyntaxNode::Function { name, .. } = &tree.node {
         if name == "Main" {
-            return Ok(tree)
+            return Ok(tree);
         }
     }
     for child in &tree.children {
-        match find_main_fn(child) {
-            Ok(tree) => return Ok(tree),
-            Err(_) => continue,
+        if let Ok(found) = find_main_fn(child) {
+            return Ok(found);
         }
     }
-    Err(From::from("Not found"))
+    Err("Main function not found".into())
 }
