@@ -1,0 +1,1 @@
+// analyze Tree node, find all new variables

@@ -1,6 +1,8 @@
 class App {
-    public static void Main() {
+    void Main() {
         int x = 0;
+        int b = 1;
+        
         while (true) {
             if (x == 9) {
                 x++;
@@ -10,6 +12,11 @@ class App {
             }
             x += 3;
         }
+
+        for (int i = 0; i < 10; i++) {
+            x += 2;
+        }
+
         return x;
     }
 }
