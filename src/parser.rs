@@ -12,7 +12,6 @@ pub enum SyntaxNode {
     Line { value: String },
     Scope,
     File,
-    Empty,
 }
 
 pub struct SyntaxTree {
@@ -43,48 +42,59 @@ pub fn parse_syntax_tree(raw_code: &str) -> Result<SyntaxTree, Box<dyn Error>> {
         if sentence == "{" {
             if expect_body {
                 expect_body = false;
-            } else {
+            } 
+            else {
                 tree_stack.push(SyntaxTree::new(SyntaxNode::Scope));
             }
-        } else if sentence == "}" {
+        } 
+        else if sentence == "}" {
             if tree_stack.len() < 2 {
                 return Err("Unmatched closing bracket".into());
             }
             let current_tree = tree_stack.pop().unwrap();
             tree_stack.last_mut().unwrap().children.push(current_tree);
-        } else if let Some(captures) = if_pattern.captures(sentence) {
+        } 
+        else if let Some(captures) = if_pattern.captures(sentence) {
             let condition = captures.get(1).unwrap().as_str().to_string();
             tree_stack.push(SyntaxTree::new(SyntaxNode::If { condition }));
             expect_body = true;
-        } else if let Some(captures) = else_if_pattern.captures(sentence) {
+        } 
+        else if let Some(captures) = else_if_pattern.captures(sentence) {
             let condition = captures.get(1).unwrap().as_str().to_string();
             tree_stack.push(SyntaxTree::new(SyntaxNode::ElseIf { condition }));
             expect_body = true;
-        } else if else_pattern.is_match(sentence) {
+        } 
+        else if else_pattern.is_match(sentence) {
             tree_stack.push(SyntaxTree::new(SyntaxNode::Else));
             expect_body = true;
-        } else if let Some(captures) = while_pattern.captures(sentence) {
+        } 
+        else if let Some(captures) = while_pattern.captures(sentence) {
             let condition = captures.get(1).unwrap().as_str().to_string();
             tree_stack.push(SyntaxTree::new(SyntaxNode::While { condition }));
             expect_body = true;
-        } else if let Some(captures) = for_pattern.captures(sentence) {
+        } 
+        else if let Some(captures) = for_pattern.captures(sentence) {
             let condition = captures.get(1).unwrap().as_str().to_string();
             tree_stack.push(SyntaxTree::new(SyntaxNode::For { condition }));
             expect_body = true;
-        } else if let Some(captures) = function_pattern.captures(sentence) {
+        } 
+        else if let Some(captures) = function_pattern.captures(sentence) {
             let result_type = captures.get(1).map(|m| m.as_str()).unwrap_or("void").to_string();
             let name = captures.get(2).map(|m| m.as_str()).unwrap_or("").to_string();
             let arguments = captures.get(3).map(|m| m.as_str()).unwrap_or("").to_string();
             tree_stack.push(SyntaxTree::new(SyntaxNode::Function { result_type, name, arguments, }));
             expect_body = true;
-        } else if let Some(captures) = class_pattern.captures(sentence) {
+        } 
+        else if let Some(captures) = class_pattern.captures(sentence) {
             let name = captures.get(1).unwrap().as_str().to_string();
             tree_stack.push(SyntaxTree::new(SyntaxNode::Class { name }));
             expect_body = true;
-        } else if sentence.ends_with(';') {
+        } 
+        else if sentence.ends_with(';') {
             let value = sentence.trim_end_matches(';').trim().to_string();
             tree_stack.last_mut().unwrap().children.push(SyntaxTree::new(SyntaxNode::Line { value }));
-        } else {
+        } 
+        else {
             return Err(From::from("Wrong syntax"));
         }
     }

@@ -9,7 +9,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let content = fs::read_to_string(file_path)?;
 
     let syntax_tree = parser::parse_syntax_tree(&content)?;
-    let main_fn = parser::find_main_fn(&syntax_tree)?;
+    let bin = translator::translate_to_bin(syntax_tree);
 
     Ok(())
 }
