@@ -1,9 +1,14 @@
-use crate::analyzer::Var;
 use crate::common::BoxError;
 use crate::expression::{parse_expression, Expression};
 use crate::parser::{SyntaxNode, SyntaxTree};
 
 type DeclarationInfo = (String, String, Option<Expression>);
+
+#[derive(Debug, Clone)]
+pub struct Var {
+    pub name: String,
+    pub typ: String,
+}
 
 #[derive(Debug, Clone)]
 pub enum ASN {
@@ -14,8 +19,8 @@ pub enum ASN {
     For { initializer: Option<Initializer>, condition: Expression, increment: Option<Expression> },
     Function { result_type: String, name: String, arguments: Vec<Var> },
     Class { name: String },
-    Expression { value: Expression },
-    Declaration { typ: String, name: String, value: Option<Expression> },
+    Expression { expression: Expression },
+    Declaration { typ: String, name: String, expression: Option<Expression> },
     Return { value: Option<Expression> },
     Break,
     Continue,
@@ -187,9 +192,9 @@ pub fn build(tree: SyntaxTree) -> Result<AST, BoxError> {
                 AST::new(asm)
             }
             else if let Some((typ, name, expr)) = parse_declaration(value.clone())? {
-                AST::new(ASN::Declaration { typ, name, value: expr })
+                AST::new(ASN::Declaration { typ, name, expression: expr })
             } else {
-                AST::new(ASN::Expression { value: parse_expression(value)? })
+                AST::new(ASN::Expression { expression: parse_expression(value)? })
             }
         }
         SyntaxNode::Function { result_type, name, arguments } => {

@@ -43,7 +43,7 @@ impl Lexer {
         ch
     }
 
-    fn skip_ws(&mut self) {
+    fn skip_whitespaces(&mut self) {
         while let Some(ch) = self.peek() {
             if ch.is_whitespace() {
                 self.advance();
@@ -54,7 +54,7 @@ impl Lexer {
     }
 
     fn next_token(&mut self) -> Result<Token, BoxError> {
-        self.skip_ws();
+        self.skip_whitespaces();
         match self.peek() {
             None => Ok(Token::EOF),
             Some(ch) if ch.is_ascii_digit() => {
@@ -82,10 +82,10 @@ impl Lexer {
                 }
                 Ok(Token::Str(s))
             }
-            Some(ch) if ch.is_alphabetic() || ch == '_' => {
+            Some(ch) if ch.is_alphabetic() => {
                 let mut id = String::new();
                 while let Some(c) = self.peek() {
-                    if c.is_alphanumeric() || c == '_' {
+                    if c.is_alphanumeric() {
                         id.push(c);
                         self.advance();
                     } else {
@@ -124,9 +124,9 @@ impl Lexer {
     fn tokenize(&mut self) -> Result<Vec<Token>, BoxError> {
         let mut tokens = Vec::new();
         loop {
-            let tok = self.next_token()?;
-            let is_eof = tok == Token::EOF;
-            tokens.push(tok);
+            let token = self.next_token()?;
+            let is_eof = token == Token::EOF;
+            tokens.push(token);
             if is_eof {
                 break;
             }
@@ -145,26 +145,26 @@ impl Parser {
         Self { tokens, pos: 0 }
     }
 
-    fn cur(&self) -> &Token {
+    fn current(&self) -> &Token {
         self.tokens.get(self.pos).unwrap_or(&Token::EOF)
     }
 
     fn advance(&mut self) -> &Token {
         self.pos += 1;
-        self.cur()
+        self.current()
     }
 
     fn parse(&mut self) -> Result<Expression, BoxError> {
         let expr = self.parse_assignment()?;
-        if *self.cur() != Token::EOF {
-            return Err(format!("Unexpected token: {:?}", self.cur()).into());
+        if *self.current() != Token::EOF {
+            return Err(format!("Unexpected token: {:?}", self.current()).into());
         }
         Ok(expr)
     }
 
     fn parse_assignment(&mut self) -> Result<Expression, BoxError> {
         let left = self.parse_or()?;
-        if let Token::Op(op) = self.cur() && ["=", "+=", "-=", "*=", "/="].contains(&op.as_str()) {
+        if let Token::Op(op) = self.current() && ["=", "+=", "-=", "*=", "/="].contains(&op.as_str()) {
             let op_name = op.clone();
             self.advance();
             let right = self.parse_assignment()?;
@@ -205,7 +205,7 @@ impl Parser {
         F: Fn(&mut Self) -> Result<Expression, BoxError>,
     {
         let mut left = next(self)?;
-        while let Token::Op(op) = self.cur() {
+        while let Token::Op(op) = self.current() {
             if ops.contains(&op.as_str()) {
                 let op_name = op.clone();
                 self.advance();
@@ -219,11 +219,11 @@ impl Parser {
     }
 
     fn parse_unary(&mut self) -> Result<Expression, BoxError> {
-        match self.cur() {
+        match self.current() {
             Token::Op(op) if op == "++" || op == "--" => {
                 let op_name = op.clone();
                 self.advance();
-                if let Token::Id(name) = self.cur() {
+                if let Token::Id(name) = self.current() {
                     let var_name = name.clone();
                     self.advance();
                     return Ok(if op_name == "++" {
@@ -249,7 +249,7 @@ impl Parser {
 
         let primary = self.parse_primary()?;
 
-        match self.cur() {
+        match self.current() {
             Token::Op(op) if op == "++" || op == "--" => {
                 if let Expression::Variable { name } = primary {
                     let op_name = op.clone();
@@ -267,7 +267,7 @@ impl Parser {
     }
 
     fn parse_primary(&mut self) -> Result<Expression, BoxError> {
-        match self.cur().clone() {
+        match self.current().clone() {
             Token::Num(v) => {
                 self.advance();
                 Ok(Expression::Literal { value: v })
@@ -280,12 +280,12 @@ impl Parser {
             }
             Token::Id(name) => {
                 self.advance();
-                if *self.cur() == Token::LParen {
+                if *self.current() == Token::LParen {
                     self.advance();
                     let mut args = Vec::new();
-                    if *self.cur() != Token::RParen {
+                    if *self.current() != Token::RParen {
                         args.push(self.parse_assignment()?);
-                        while *self.cur() == Token::Comma {
+                        while *self.current() == Token::Comma {
                             self.advance();
                             args.push(self.parse_assignment()?);
                         }
@@ -302,7 +302,7 @@ impl Parser {
                 self.advance();
                 Ok(expr)
             }
-            _ => Err(format!("Unexpected token: {:?}", self.cur()).into()),
+            _ => Err(format!("Unexpected token: {:?}", self.current()).into()),
         }
     }
 }
