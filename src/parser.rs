@@ -1,5 +1,5 @@
-use std::error::Error;
 use regex::Regex;
+use crate::common::BoxError;
 
 pub enum SyntaxNode {
     If { condition: String },
@@ -25,7 +25,7 @@ impl SyntaxTree {
     }
 }
 
-pub fn parse_syntax_tree(raw_code: &str) -> Result<SyntaxTree, Box<dyn Error>> {
+pub fn parse_syntax_tree(raw_code: &str) -> Result<SyntaxTree, BoxError> {
     let if_pattern = Regex::new(r"^if\s*\((.+)\)")?;
     let else_if_pattern = Regex::new(r"^else\s+if\s*\((.+)\)")?;
     let else_pattern = Regex::new(r"^else")?;
@@ -95,7 +95,7 @@ pub fn parse_syntax_tree(raw_code: &str) -> Result<SyntaxTree, Box<dyn Error>> {
             tree_stack.last_mut().unwrap().children.push(SyntaxTree::new(SyntaxNode::Line { value }));
         } 
         else {
-            return Err(From::from("Wrong syntax"));
+            return Err("Wrong syntax".into());
         }
     }
 
@@ -106,7 +106,7 @@ pub fn parse_syntax_tree(raw_code: &str) -> Result<SyntaxTree, Box<dyn Error>> {
     tree_stack.pop().ok_or_else(|| "Syntax tree is empty".into())
 }
 
-fn parse_sentences(raw_code: &str) -> Result<Vec<String>, Box<dyn Error>> {
+fn parse_sentences(raw_code: &str) -> Result<Vec<String>, BoxError> {
     let mut sentences = vec![];
     let mut token = String::new();
     let mut depth = 0;
@@ -153,18 +153,4 @@ fn parse_sentences(raw_code: &str) -> Result<Vec<String>, Box<dyn Error>> {
     }
 
     Ok(sentences)
-}
-
-pub fn find_main_fn(tree: &SyntaxTree) -> Result<&SyntaxTree, Box<dyn Error>> {
-    if let SyntaxNode::Function { name, .. } = &tree.node {
-        if name == "Main" {
-            return Ok(tree);
-        }
-    }
-    for child in &tree.children {
-        if let Ok(found) = find_main_fn(child) {
-            return Ok(found);
-        }
-    }
-    Err("Main function not found".into())
 }

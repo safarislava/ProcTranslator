@@ -1,15 +1,22 @@
 mod parser;
+mod analyzer;
 mod translator;
+mod ast;
+mod expression;
+mod common;
+mod ir;
 
 use std::fs;
-use std::error::Error;
+use crate::common::BoxError;
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<(), BoxError> {
     let file_path = "/Users/safarislava/Documents/Projects/ProcessorModel/src/examples/code.java";
     let content = fs::read_to_string(file_path)?;
 
     let syntax_tree = parser::parse_syntax_tree(&content)?;
-    let bin = translator::translate_to_bin(syntax_tree);
+    let ast = ast::build(syntax_tree)?;
+
+    analyzer::semantic_analyze(&ast)?;
 
     Ok(())
 }

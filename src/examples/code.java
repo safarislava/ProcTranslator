@@ -1,4 +1,8 @@
 class App {
+    int f(int x) {
+        return x + 5;
+    }
+
     void Main() {
         int x = 0;
         {
@@ -14,7 +18,7 @@ class App {
             else if (x == 10) {
                 break;
             }
-            x += 3;
+            x = f(x + 1);
         }
 
         for (int i = 0; i < 10; i++) {
