@@ -25,6 +25,6 @@ class App {
             x += 2;
         }
 
-        return x;
+        return;
     }
 }

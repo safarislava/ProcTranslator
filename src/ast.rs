@@ -16,7 +16,7 @@ pub enum ASN {
     ElseIf { condition: Expression },
     Else,
     While { condition: Expression },
-    For { initializer: Option<Initializer>, condition: Expression, increment: Option<Expression> },
+    For { initializer: Option<Initializer>, condition: Option<Expression>, increment: Option<Expression> },
     Function { result_type: String, name: String, arguments: Vec<Var> },
     Class { name: String },
     Expression { expression: Expression },
@@ -150,9 +150,9 @@ fn build_for_loop(condition: String, body_children: Vec<AST>) -> Result<AST, Box
     };
     
     let condition = if parts[1].is_empty() {
-        Expression::Literal { value: "true".to_string() }
+        None
     } else {
-        parse_expression(parts[1].to_string())?
+        Some(parse_expression(parts[1].to_string())?)
     };
     
     let increment = if parts[2].is_empty() {

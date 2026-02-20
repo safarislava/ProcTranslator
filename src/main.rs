@@ -1,6 +1,5 @@
 mod parser;
 mod analyzer;
-mod translator;
 mod ast;
 mod expression;
 mod common;

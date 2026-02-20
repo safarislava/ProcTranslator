@@ -15,6 +15,7 @@ pub enum Expression {
 enum Token {
     Num(String),
     Str(String),
+    Bool(String),
     Id(String),
     Op(String),
     LParen,
@@ -92,7 +93,10 @@ impl Lexer {
                         break;
                     }
                 }
-                Ok(Token::Id(id))
+                match id.as_str() {
+                    "true" | "false" => Ok(Token::Bool(id)),
+                    _ => Ok(Token::Id(id)),
+                }
             }
             Some('(') => {
                 self.advance();
@@ -268,16 +272,24 @@ impl Parser {
 
     fn parse_primary(&mut self) -> Result<Expression, BoxError> {
         match self.current().clone() {
+
             Token::Num(v) => {
                 self.advance();
                 Ok(Expression::Literal { value: v })
             }
+
             Token::Str(v) => {
                 self.advance();
                 Ok(Expression::Literal {
                     value: format!("\"{}\"", v),
                 })
             }
+
+            Token::Bool(v) => { 
+                self.advance();
+                Ok(Expression::Literal { value: v })
+            }
+
             Token::Id(name) => {
                 self.advance();
                 if *self.current() == Token::LParen {
@@ -296,12 +308,14 @@ impl Parser {
                     Ok(Expression::Variable { name })
                 }
             }
+
             Token::LParen => {
                 self.advance();
                 let expr = self.parse_assignment()?;
                 self.advance();
                 Ok(expr)
             }
+
             _ => Err(format!("Unexpected token: {:?}", self.current()).into()),
         }
     }
