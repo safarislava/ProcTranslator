@@ -36,8 +36,8 @@ pub struct AST {
 
 #[derive(Debug, Clone)]
 pub enum Initializer {
-    Declaration { typ: String, name: String, value: Option<Expression> },
-    Expression { value: Expression },
+    Declaration { typ: String, name: String, expression: Option<Expression> },
+    Expression { expression: Expression },
 }
 
 impl AST {
@@ -143,10 +143,10 @@ fn build_for_loop(condition: String, body_children: Vec<AST>) -> Result<AST, Box
     let initializer = if parts[0].is_empty() {
         None
     } else if let Some((typ, name, init_value)) = parse_declaration(parts[0].to_string())? {
-        Some(Initializer::Declaration { typ, name, value: init_value })
+        Some(Initializer::Declaration { typ, name, expression: init_value })
     } else {
         let expr = parse_expression(parts[0].to_string())?;
-        Some(Initializer::Expression { value: expr })
+        Some(Initializer::Expression { expression: expr })
     };
     
     let condition = if parts[1].is_empty() {

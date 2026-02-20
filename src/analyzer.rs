@@ -44,10 +44,10 @@ impl SemanticTable {
 
                 if let Some(init) = initializer {
                     match init {
-                        Initializer::Declaration { typ, name, value: option_expr } => {
-                            self.check_declaration(typ, name, option_expr)?;
+                        Initializer::Declaration { typ, name, expression } => {
+                            self.check_declaration(typ, name, expression)?;
                         }
-                        Initializer::Expression { value } => {
+                        Initializer::Expression { expression: value } => {
                             self.check_expression(value)?;
                         }
                     }
@@ -90,8 +90,8 @@ impl SemanticTable {
             ASN::Expression { expression } => {
                 self.check_expression(expression)?;
             }
-            ASN::Declaration { typ, name, expression: option_expr } => {
-                self.check_declaration(typ, name, option_expr)?;
+            ASN::Declaration { typ, name, expression } => {
+                self.check_declaration(typ, name, expression)?;
             }
             ASN::Return { value } => {
                 let function = self.stacktrace.iter().rev().find(|ctx| matches!(ctx, ASN::Function { .. }));
@@ -174,11 +174,11 @@ impl SemanticTable {
         Ok(())
     }
 
-    fn check_declaration(&mut self, typ: &String, name: &String, option_expr: &Option<Expression>) -> Result<(), BoxError> {
+    fn check_declaration(&mut self, typ: &String, name: &String, expression: &Option<Expression>) -> Result<(), BoxError> {
         if self.scopes.last().unwrap().contains_key(name) {
             return Err("Variable already declared in this scope".into());
         }
-        if let Some(expression) = option_expr {
+        if let Some(expression) = expression {
             let expression_type = self.check_expression(expression)?;
             if expression_type != *typ {
                 return Err("Type mismatch in declaration".into());

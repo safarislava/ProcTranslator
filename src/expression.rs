@@ -90,8 +90,8 @@ impl Parser {
     fn new(tokens: Vec<Token>) -> Self { Self { tokens, pos: 0 } }
     fn parse(&mut self) -> Result<Expression, BoxError> { self.parse_expression(0) }
 
-    fn parse_expression(&mut self, min_bp: u8) -> Result<Expression, BoxError> {
-        let mut lhs = {
+    fn parse_expression(&mut self, min_power: u8) -> Result<Expression, BoxError> {
+        let mut left = {
             let token = self.tokens.get(self.pos).cloned().unwrap_or(Token::EOF);
             match token {
                 Token::Num(v) => {
@@ -160,20 +160,20 @@ impl Parser {
                 Token::Op(ref op) if !["++", "--"].contains(&op.as_str()) => op.clone(),
                 _ => break,
             };
-            let (l_bp, r_bp) = Self::binding_power(&op)?;
-            if l_bp < min_bp { break; }
+            let (left_power, right_power) = Self::binding_power(&op)?;
+            if left_power < min_power { break; }
             self.pos += 1;
-            let rhs = self.parse_expression(r_bp)?;
+            let right = self.parse_expression(right_power)?;
             if op == "=" {
-                if let Expression::Variable { name } = lhs {
-                    lhs = Expression::Assign { name, value: Box::new(rhs) };
+                if let Expression::Variable { name } = left {
+                    left = Expression::Assign { name, value: Box::new(right) };
                 } else { return Err("Left side of assignment must be variable".into()); }
             } else {
-                lhs = Expression::BinaryOp { left: Box::new(lhs), op, right: Box::new(rhs) };
+                left = Expression::BinaryOp { left: Box::new(left), op, right: Box::new(right) };
             }
         }
 
-        Ok(lhs)
+        Ok(left)
     }
 
     fn binding_power(op: &str) -> Result<(u8, u8), BoxError> {
