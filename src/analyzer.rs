@@ -6,12 +6,12 @@ use crate::expression::Expression;
 struct SemanticTable {
     scopes: Vec<HashMap<String, String>>,
     functions: HashMap<String, (String, Vec<String>)>,
-    context_stack: Vec<ASN>,
+    stacktrace: Vec<ASN>,
 }
 
 impl SemanticTable {
     pub fn new() -> Self {
-        SemanticTable { scopes: vec![], functions: HashMap::new(), context_stack: vec![],}
+        SemanticTable { scopes: vec![], functions: HashMap::new(), stacktrace: vec![],}
     }
 
     fn find_var(&self, name: &str) -> Option<&String> {
@@ -31,15 +31,15 @@ impl SemanticTable {
                 if expression_type != "bool" {
                     return Err("Condition must be bool".into());
                 }
-                self.context_stack.push(ast.node.clone());
+                self.stacktrace.push(ast.node.clone());
                 self.scopes.push(HashMap::new());
             }
             ASN::Else => {
-                self.context_stack.push(ast.node.clone());
+                self.stacktrace.push(ast.node.clone());
                 self.scopes.push(HashMap::new());
             }
             ASN::For { initializer, condition, increment } => {
-                self.context_stack.push(ast.node.clone());
+                self.stacktrace.push(ast.node.clone());
                 self.scopes.push(HashMap::new());
 
                 if let Some(init) = initializer {
@@ -63,7 +63,7 @@ impl SemanticTable {
                 }
             }
             ASN::Function { result_type, name, arguments } => {
-                match self.context_stack.last() {
+                match self.stacktrace.last() {
                     Some(ASN::File) | Some(ASN::Class { .. }) => {}
                     _ => return Err("Function can only be declared inside file or class".into())
                 }
@@ -73,7 +73,7 @@ impl SemanticTable {
                 let arg_types = arguments.iter().map(|v| v.typ.clone()).collect();
                 self.functions.insert(name.clone(), (result_type.clone(), arg_types));
 
-                self.context_stack.push(ast.node.clone());
+                self.stacktrace.push(ast.node.clone());
                 self.scopes.push(HashMap::new());
 
                 for arg in arguments {
@@ -81,10 +81,10 @@ impl SemanticTable {
                 }
             }
             ASN::Class { .. } => {
-                if !matches!(self.context_stack.last(), Some(ASN::File)) {
+                if !matches!(self.stacktrace.last(), Some(ASN::File)) {
                     return Err("Class can only be declared inside file".into());
                 }
-                self.context_stack.push(ast.node.clone());
+                self.stacktrace.push(ast.node.clone());
                 self.scopes.push(HashMap::new());
             }
             ASN::Expression { expression } => {
@@ -94,7 +94,7 @@ impl SemanticTable {
                 self.check_declaration(typ, name, option_expr)?;
             }
             ASN::Return { value } => {
-                let function = self.context_stack.iter().rev().find(|ctx| matches!(ctx, ASN::Function { .. }));
+                let function = self.stacktrace.iter().rev().find(|ctx| matches!(ctx, ASN::Function { .. }));
                 let result_type = match function {
                     Some(ASN::Function { result_type, .. }) => result_type,
                     _ => return Err("Return outside of function".into()),
@@ -115,25 +115,25 @@ impl SemanticTable {
                 }
             }
             ASN::Break => {
-                if !self.context_stack.iter().rev().any(|n| matches!(n, ASN::While { .. } | ASN::For { .. })) {
+                if !self.stacktrace.iter().rev().any(|n| matches!(n, ASN::While { .. } | ASN::For { .. })) {
                     return Err("Break can only be declared inside loop".into());
                 }
             }
             ASN::Continue => {
-                if !self.context_stack.iter().rev().any(|n| matches!(n, ASN::While { .. } | ASN::For { .. })) {
+                if !self.stacktrace.iter().rev().any(|n| matches!(n, ASN::While { .. } | ASN::For { .. })) {
                     return Err("Continue can only be declared inside loop".into());
                 }
             }
             ASN::Scope => {
-                if matches!(self.context_stack.last(), Some(ASN::File)) ||
-                    matches!(self.context_stack.last(), Some(ASN::Class { .. })) {
+                if matches!(self.stacktrace.last(), Some(ASN::File)) ||
+                    matches!(self.stacktrace.last(), Some(ASN::Class { .. })) {
                     return Err("Class cannot be declared into file and class".into());
                 }
-                self.context_stack.push(ast.node.clone());
+                self.stacktrace.push(ast.node.clone());
                 self.scopes.push(HashMap::new());
             }
             ASN::File => {
-                self.context_stack.push(ast.node.clone());
+                self.stacktrace.push(ast.node.clone());
                 self.scopes.push(HashMap::new());
             }
         }
@@ -165,7 +165,7 @@ impl SemanticTable {
             | ASN::Else
             | ASN::While { .. }
             | ASN::For { .. } => {
-                self.context_stack.pop();
+                self.stacktrace.pop();
                 self.scopes.pop();
             }
             _ => {}
@@ -190,7 +190,7 @@ impl SemanticTable {
 
     fn check_expression(&self, expression: &Expression) -> Result<String, BoxError> {
         match expression {
-            Expression::Literal { value } => {
+            Expression::Literal(value) => {
                 Self::get_literal_type(value)
             }
             Expression::BinaryOp { left, op, right } => {

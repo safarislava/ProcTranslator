@@ -2,7 +2,7 @@ use crate::common::BoxError;
 
 #[derive(Debug, Clone)]
 pub enum Expression {
-    Literal { value: String },
+    Literal(String),
     Variable { name: String },
     BinaryOp { left: Box<Expression>, op: String, right: Box<Expression> },
     FunctionCall { name: String, arguments: Vec<Expression> },
@@ -30,110 +30,52 @@ struct Lexer {
 }
 
 impl Lexer {
-    fn new(input: &str) -> Self {
-        Self { chars: input.chars().collect(), pos: 0, }
+    fn new(input: &str) -> Self { Self { chars: input.chars().collect(), pos: 0 } }
+    fn peek(&self) -> Option<char> { self.chars.get(self.pos).copied() }
+    fn advance(&mut self) -> Option<char> { let ch = self.peek(); self.pos += 1; ch }
+    fn skip_whitespace(&mut self) {
+        while matches!(self.peek(), Some(c) if c.is_whitespace()) { self.advance(); }
     }
 
-    fn peek(&self) -> Option<char> {
-        self.chars.get(self.pos).copied()
-    }
-
-    fn advance(&mut self) -> Option<char> {
-        let ch = self.peek();
-        self.pos += 1;
-        ch
-    }
-
-    fn skip_whitespaces(&mut self) {
-        while let Some(ch) = self.peek() {
-            if ch.is_whitespace() {
-                self.advance();
-            } else {
-                break;
-            }
+    fn read_while<F>(&mut self, cond: F) -> String where F: Fn(char) -> bool {
+        let mut s = String::new();
+        while let Some(c) = self.peek() {
+            if cond(c) { s.push(c); self.advance(); } else { break; }
         }
+        s
     }
 
     fn next_token(&mut self) -> Result<Token, BoxError> {
-        self.skip_whitespaces();
+        self.skip_whitespace();
         match self.peek() {
             None => Ok(Token::EOF),
-            Some(ch) if ch.is_ascii_digit() => {
-                let mut num = String::new();
-                while let Some(c) = self.peek() {
-                    if c.is_ascii_digit() || c == '.' {
-                        num.push(c);
-                        self.advance();
-                    } else {
-                        break;
-                    }
-                }
-                Ok(Token::Num(num))
-            }
+            Some(c) if c.is_ascii_digit() =>
+                Ok(Token::Num(self.read_while(|c| c.is_ascii_digit() || c == '.'))),
             Some('"') => {
                 self.advance();
-                let mut s = String::new();
-                while let Some(c) = self.peek() {
-                    if c == '"' {
-                        self.advance();
-                        break;
-                    }
-                    s.push(c);
-                    self.advance();
-                }
-                Ok(Token::Str(s))
+                let s = self.read_while(|c| c != '"');
+                self.advance(); Ok(Token::Str(s))
             }
-            Some(ch) if ch.is_alphabetic() => {
-                let mut id = String::new();
-                while let Some(c) = self.peek() {
-                    if c.is_alphanumeric() {
-                        id.push(c);
-                        self.advance();
-                    } else {
-                        break;
-                    }
-                }
+            Some(c) if c.is_alphabetic() => {
+                let id = self.read_while(|c| c.is_alphanumeric());
                 match id.as_str() {
                     "true" | "false" => Ok(Token::Bool(id)),
-                    _ => Ok(Token::Id(id)),
+                    _ => Ok(Token::Id(id))
                 }
             }
-            Some('(') => {
-                self.advance();
-                Ok(Token::LParen)
-            }
-            Some(')') => {
-                self.advance();
-                Ok(Token::RParen)
-            }
-            Some(',') => {
-                self.advance();
-                Ok(Token::Comma)
-            }
-            Some(_) => {
-                let mut op = String::new();
-                while let Some(c) = self.peek() {
-                    if "+-*/%=<>!&|".contains(c) {
-                        op.push(c);
-                        self.advance();
-                    } else {
-                        break;
-                    }
-                }
-                Ok(Token::Op(op))
-            }
+            Some('(') => { self.advance(); Ok(Token::LParen) }
+            Some(')') => { self.advance(); Ok(Token::RParen) }
+            Some(',') => { self.advance(); Ok(Token::Comma) }
+            Some(_) => Ok(Token::Op(self.read_while(|c| "+-*/%=<>!&|".contains(c)))),
         }
     }
 
     fn tokenize(&mut self) -> Result<Vec<Token>, BoxError> {
-        let mut tokens = Vec::new();
+        let mut tokens = vec![];
         loop {
             let token = self.next_token()?;
-            let is_eof = token == Token::EOF;
-            tokens.push(token);
-            if is_eof {
-                break;
-            }
+            tokens.push(token.clone());
+            if token == Token::EOF { break; }
         }
         Ok(tokens)
     }
@@ -145,179 +87,107 @@ struct Parser {
 }
 
 impl Parser {
-    fn new(tokens: Vec<Token>) -> Self {
-        Self { tokens, pos: 0 }
-    }
+    fn new(tokens: Vec<Token>) -> Self { Self { tokens, pos: 0 } }
+    fn parse(&mut self) -> Result<Expression, BoxError> { self.parse_expression(0) }
 
-    fn current(&self) -> &Token {
-        self.tokens.get(self.pos).unwrap_or(&Token::EOF)
-    }
-
-    fn advance(&mut self) -> &Token {
-        self.pos += 1;
-        self.current()
-    }
-
-    fn parse(&mut self) -> Result<Expression, BoxError> {
-        let expr = self.parse_assignment()?;
-        if *self.current() != Token::EOF {
-            return Err(format!("Unexpected token: {:?}", self.current()).into());
-        }
-        Ok(expr)
-    }
-
-    fn parse_assignment(&mut self) -> Result<Expression, BoxError> {
-        let left = self.parse_or()?;
-        if let Token::Op(op) = self.current() && ["=", "+=", "-=", "*=", "/="].contains(&op.as_str()) {
-            let op_name = op.clone();
-            self.advance();
-            let right = self.parse_assignment()?;
-            if op_name == "=" && let Expression::Variable { name } = left {
-                return Ok(Expression::Assign { name, value: Box::new(right) });
-            }
-            return Ok(Expression::BinaryOp { left: Box::new(left), op: op_name, right: Box::new(right) });
-        }
-        Ok(left)
-    }
-
-    fn parse_or(&mut self) -> Result<Expression, BoxError> {
-        self.bin_op(Self::parse_and, &["||"])
-    }
-
-    fn parse_and(&mut self) -> Result<Expression, BoxError> {
-        self.bin_op(Self::parse_equality, &["&&"])
-    }
-
-    fn parse_equality(&mut self) -> Result<Expression, BoxError> {
-        self.bin_op(Self::parse_comparison, &["==", "!="])
-    }
-
-    fn parse_comparison(&mut self) -> Result<Expression, BoxError> {
-        self.bin_op(Self::parse_additive, &["<", ">", "<=", ">="])
-    }
-
-    fn parse_additive(&mut self) -> Result<Expression, BoxError> {
-        self.bin_op(Self::parse_multiplicative, &["+", "-"])
-    }
-
-    fn parse_multiplicative(&mut self) -> Result<Expression, BoxError> {
-        self.bin_op(Self::parse_unary, &["*", "/", "%"])
-    }
-
-    fn bin_op<F>(&mut self, next: F, ops: &[&str]) -> Result<Expression, BoxError>
-    where
-        F: Fn(&mut Self) -> Result<Expression, BoxError>,
-    {
-        let mut left = next(self)?;
-        while let Token::Op(op) = self.current() {
-            if ops.contains(&op.as_str()) {
-                let op_name = op.clone();
-                self.advance();
-                let right = next(self)?;
-                left = Expression::BinaryOp { left: Box::new(left), op: op_name, right: Box::new(right) };
-            } else {
-                break;
-            }
-        }
-        Ok(left)
-    }
-
-    fn parse_unary(&mut self) -> Result<Expression, BoxError> {
-        match self.current() {
-            Token::Op(op) if op == "++" || op == "--" => {
-                let op_name = op.clone();
-                self.advance();
-                if let Token::Id(name) = self.current() {
-                    let var_name = name.clone();
-                    self.advance();
-                    return Ok(if op_name == "++" {
-                        Expression::Increment { name: var_name, postfix: false }
-                    } else {
-                        Expression::Decrement { name: var_name, postfix: false }
-                    });
+    fn parse_expression(&mut self, min_bp: u8) -> Result<Expression, BoxError> {
+        let mut lhs = {
+            let token = self.tokens.get(self.pos).cloned().unwrap_or(Token::EOF);
+            match token {
+                Token::Num(v) => {
+                    self.pos += 1;
+                    Expression::Literal(v)
                 }
-                return Err(format!("Expected variable after '{}'", op_name).into());
-            }
-            Token::Op(op) if op == "-" || op == "!" => {
-                let op_name = op.clone();
-                self.advance();
-                let operand = self.parse_unary()?;
-                return Ok(Expression::BinaryOp {
-                    left: Box::new(Expression::Literal { value: "0".into() }),
-                    op: op_name,
-                    right: Box::new(operand),
-                });
-            }
-            _ => {}
-        }
-
-        let primary = self.parse_primary()?;
-
-        match self.current() {
-            Token::Op(op) if op == "++" || op == "--" => {
-                if let Expression::Variable { name } = primary {
-                    let op_name = op.clone();
-                    self.advance();
-                    return Ok(if op_name == "++" {
-                        Expression::Increment { name, postfix: true }
-                    } else {
-                        Expression::Decrement { name, postfix: true }
-                    });
+                Token::Str(v) => {
+                    self.pos += 1;
+                    Expression::Literal(format!("\"{}\"", v))
                 }
-            }
-            _ => {}
-        }
-        Ok(primary)
-    }
-
-    fn parse_primary(&mut self) -> Result<Expression, BoxError> {
-        match self.current().clone() {
-
-            Token::Num(v) => {
-                self.advance();
-                Ok(Expression::Literal { value: v })
-            }
-
-            Token::Str(v) => {
-                self.advance();
-                Ok(Expression::Literal {
-                    value: format!("\"{}\"", v),
-                })
-            }
-
-            Token::Bool(v) => { 
-                self.advance();
-                Ok(Expression::Literal { value: v })
-            }
-
-            Token::Id(name) => {
-                self.advance();
-                if *self.current() == Token::LParen {
-                    self.advance();
-                    let mut args = Vec::new();
-                    if *self.current() != Token::RParen {
-                        args.push(self.parse_assignment()?);
-                        while *self.current() == Token::Comma {
-                            self.advance();
-                            args.push(self.parse_assignment()?);
+                Token::Bool(v) => {
+                    self.pos += 1;
+                    Expression::Literal(v)
+                }
+                Token::Id(name) => {
+                    self.pos += 1;
+                    if self.tokens.get(self.pos) == Some(&Token::LParen) {
+                        self.pos += 1;
+                        let mut args = Vec::new();
+                        while self.tokens.get(self.pos) != Some(&Token::RParen) {
+                            args.push(self.parse_expression(0)?);
+                            if self.tokens.get(self.pos) == Some(&Token::Comma) {
+                                self.pos += 1;
+                            }
                         }
+                        self.pos += 1;
+                        Expression::FunctionCall { name, arguments: args }
+                    } else {
+                        Expression::Variable { name }
                     }
-                    self.advance();
-                    Ok(Expression::FunctionCall { name, arguments: args })
-                } else {
-                    Ok(Expression::Variable { name })
                 }
+                Token::Op(op) if op == "++" || op == "--" => {
+                    let op_name = op.clone(); self.pos += 1;
+                    if let Token::Id(name) = self.tokens.get(self.pos).cloned().unwrap_or(Token::EOF) {
+                        self.pos += 1;
+                        match op_name.as_str() {
+                            "++" => Expression::Increment { name, postfix: false },
+                            _ => Expression::Decrement { name, postfix: false },
+                        }
+                    } else {
+                        return Err(format!("Expected variable after '{}'", op_name).into());
+                    }
+                }
+                Token::Op(op) if op == "-" || op == "!" => {
+                    let op_name = op.clone(); self.pos += 1;
+                    let right = self.parse_expression(10)?;
+                    Expression::BinaryOp {
+                        left: Box::new(Expression::Literal("0".into())),
+                        op: op_name,
+                        right: Box::new(right)
+                    }
+                }
+                Token::LParen => {
+                    self.pos += 1;
+                    let expression = self.parse_expression(0)?;
+                    self.pos += 1;
+                    expression
+                }
+                _ => return Err(format!("Unexpected token: {:?}", token).into()),
             }
+        };
 
-            Token::LParen => {
-                self.advance();
-                let expr = self.parse_assignment()?;
-                self.advance();
-                Ok(expr)
+        loop {
+            let token = self.tokens.get(self.pos).cloned().unwrap_or(Token::EOF);
+            let op = match token {
+                Token::Op(ref op) if !["++", "--"].contains(&op.as_str()) => op.clone(),
+                _ => break,
+            };
+            let (l_bp, r_bp) = Self::binding_power(&op)?;
+            if l_bp < min_bp { break; }
+            self.pos += 1;
+            let rhs = self.parse_expression(r_bp)?;
+            if op == "=" {
+                if let Expression::Variable { name } = lhs {
+                    lhs = Expression::Assign { name, value: Box::new(rhs) };
+                } else { return Err("Left side of assignment must be variable".into()); }
+            } else {
+                lhs = Expression::BinaryOp { left: Box::new(lhs), op, right: Box::new(rhs) };
             }
-
-            _ => Err(format!("Unexpected token: {:?}", self.current()).into()),
         }
+
+        Ok(lhs)
+    }
+
+    fn binding_power(op: &str) -> Result<(u8, u8), BoxError> {
+        let bp = match op {
+            "=" | "+=" | "-=" | "*=" | "/=" => (1, 2),
+            "||" => (3, 4),
+            "&&" => (5, 6),
+            "==" | "!=" => (7, 8),
+            "<" | "<=" | ">" | ">=" => (9, 10),
+            "+" | "-" => (11, 12),
+            "*" | "/" | "%" => (13, 14),
+            _ => return Err(format!("Unknown operator '{}'", op).into()),
+        };
+        Ok(bp)
     }
 }
 
