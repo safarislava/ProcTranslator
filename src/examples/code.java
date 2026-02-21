@@ -5,10 +5,22 @@ class App {
 
     void Main() {
         int x = 0;
-        {
-            {
-                int b = 1;
+        int b = 1;
+
+
+        if (x > b) {
+            if (x + 1 > b) {
+            
             }
+            else {
+            
+            }
+        }
+        else if (x < b) {
+
+        }
+        else {
+
         }
 
         while (true) {

@@ -76,7 +76,7 @@ fn parse_statement_keyword(value: &str) -> Option<ASN> {
         if rest.is_empty() {
             return Some(ASN::Return { value: None });
         } else {
-            return match parse_expression(rest.to_string()) {
+            return match parse_expression(rest) {
                 Ok(expr) => Some(ASN::Return { value: Some(expr) }),
                 Err(_) => None,
             }
@@ -122,7 +122,7 @@ fn parse_declaration(raw_code: String) -> Result<Option<DeclarationInfo>, BoxErr
         let value = if value_expr.is_empty() {
             None
         } else {
-            Some(parse_expression(value_expr.to_string())?)
+            Some(parse_expression(value_expr)?)
         };
         Ok(Some((typ, name, value)))
     } else {
@@ -145,20 +145,20 @@ fn build_for_loop(condition: String, body_children: Vec<AST>) -> Result<AST, Box
     } else if let Some((typ, name, init_value)) = parse_declaration(parts[0].to_string())? {
         Some(Initializer::Declaration { typ, name, expression: init_value })
     } else {
-        let expr = parse_expression(parts[0].to_string())?;
+        let expr = parse_expression(parts[0])?;
         Some(Initializer::Expression { expression: expr })
     };
     
     let condition = if parts[1].is_empty() {
         None
     } else {
-        Some(parse_expression(parts[1].to_string())?)
+        Some(parse_expression(parts[1])?)
     };
     
     let increment = if parts[2].is_empty() {
         None
     } else {
-        Some(parse_expression(parts[2].to_string())?)
+        Some(parse_expression(parts[2])?)
     };
 
     Ok(AST::with_children(ASN::For { initializer, condition, increment }, body_children ))
@@ -173,16 +173,16 @@ pub fn build(tree: SyntaxTree) -> Result<AST, BoxError> {
 
     let ast = match tree.node {
         SyntaxNode::If { condition } => AST::with_children(
-            ASN::If { condition: parse_expression(condition)? },
+            ASN::If { condition: parse_expression(&condition)? },
             processed_children,
         ),
         SyntaxNode::ElseIf { condition } => AST::with_children(
-            ASN::ElseIf { condition: parse_expression(condition)? },
+            ASN::ElseIf { condition: parse_expression(&condition)? },
             processed_children,
         ),
         SyntaxNode::Else => AST::with_children(ASN::Else, processed_children),
         SyntaxNode::While { condition } => AST::with_children(
-            ASN::While { condition: parse_expression(condition)? },
+            ASN::While { condition: parse_expression(&condition)? },
             processed_children,
         ),
         SyntaxNode::For { condition } => 
@@ -194,7 +194,7 @@ pub fn build(tree: SyntaxTree) -> Result<AST, BoxError> {
             else if let Some((typ, name, expr)) = parse_declaration(value.clone())? {
                 AST::new(ASN::Declaration { typ, name, expression: expr })
             } else {
-                AST::new(ASN::Expression { expression: parse_expression(value)? })
+                AST::new(ASN::Expression { expression: parse_expression(&value)? })
             }
         }
         SyntaxNode::Function { result_type, name, arguments } => {

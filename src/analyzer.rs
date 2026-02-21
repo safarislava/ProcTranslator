@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use crate::common::BoxError;
 use crate::ast::{AST, ASN, Initializer};
-use crate::expression::Expression;
+use crate::expression::{Expression, Operator};
 
 struct SemanticTable {
     scopes: Vec<HashMap<String, String>>,
@@ -236,6 +236,19 @@ impl SemanticTable {
                     Err(format!("Variable with name {name} doesn't exist").into())
                 }
             }
+            Expression::Negate { expression } => {
+                let typ = self.check_expression(expression)?;
+                if typ != "int" || typ != "float" {
+                    return Err("Unsupported negation".into());
+                }
+                Ok(typ)
+            }
+            Expression::Not { expression } => {
+                if self.check_expression(expression)? != "bool" {
+                    return Err("Unsupported negation".into());
+                }
+                Ok("bool".to_string())
+            }
         }
     }
 
@@ -273,8 +286,10 @@ impl SemanticTable {
         value.parse::<bool>().is_ok()
     }
 
-    fn is_compering_binary_op(op: &str) -> bool {
-        op == "==" || op == "!=" || op == "<" || op == "<=" || op == ">" || op == ">="
+    fn is_compering_binary_op(op: &Operator) -> bool {
+        *op == Operator::Equal || *op == Operator::NotEqual ||
+            *op == Operator::Less || *op == Operator::LessEqual || 
+            *op == Operator::Greater || *op == Operator::GreaterEqual
     }
 }
 
