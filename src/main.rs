@@ -9,7 +9,7 @@ use std::fs;
 use crate::common::BoxError;
 
 fn main() -> Result<(), BoxError> {
-    let file_path = "/Users/safarislava/Documents/Projects/ProcTranslator/src/examples/code.java";
+    let file_path = "/Users/safarislava/Documents/Projects/ProcTranslator/src/examples/code-classes.java";
     let content = fs::read_to_string(file_path)?;
 
     let syntax_tree = parser::parse_syntax_tree(&content)?;

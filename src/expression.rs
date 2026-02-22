@@ -4,7 +4,7 @@ use std::vec::IntoIter;
 use crate::common::BoxError;
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Operator {
+pub enum BinaryOperator {
     Assign,
     AssignAdd,
     AssignSub,
@@ -18,28 +18,29 @@ pub enum Operator {
     LessEqual,
     Greater,
     GreaterEqual,
-    Not,
     Plus,
     Minus,
     Multiply,
     Divide,
     Modulo,
-    Negate,
-    Increment,
-    Decrement,
 }
 
 #[derive(Debug, Clone)]
 pub enum Expression {
     Literal(String),
     Variable { name: String },
-    BinaryOp { left: Box<Expression>, op: Operator, right: Box<Expression> },
+    BinaryOp { left: Box<Expression>, op: BinaryOperator, right: Box<Expression> },
     FunctionCall { name: String, arguments: Vec<Expression> },
+    MethodCall { object: Box<Expression>, name: String, arguments: Vec<Expression> },
     Assign { name: String, value: Box<Expression> },
-    Increment { name: String },
-    Decrement { name: String },
+    AssignField { object: Box<Expression>, name: String, value: Box<Expression> },
+    Increment { expression: Box<Expression>, postfix: bool },
+    Decrement { expression: Box<Expression>, postfix: bool },
     Negate { expression: Box<Expression> },
     Not { expression: Box<Expression> },
+    New { class_name: String, arguments: Vec<Expression> },
+    Field { object: Box<Expression>, name: String },
+    This,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -52,6 +53,7 @@ enum Token {
     LParen,
     RParen,
     Comma,
+    Dot
 }
 
 struct Lexer<'a> {
@@ -59,9 +61,7 @@ struct Lexer<'a> {
 }
 
 impl<'a> Lexer<'a> {
-    fn new(input: &'a str) -> Self {
-        Self { chars: input.chars().peekable() }
-    }
+    fn new(input: &'a str) -> Self { Self { chars: input.chars().peekable() } }
 
     fn skip_whitespace(&mut self) {
         while let Some(&c) = self.chars.peek() {
@@ -102,8 +102,8 @@ impl<'a> Lexer<'a> {
                 self.chars.next();
                 Token::Str(s)
             }
-            c if c.is_alphabetic() => {
-                let id = self.read_while(|c| c.is_alphanumeric());
+            c if c.is_alphabetic() || c == '_' => {
+                let id = self.read_while(|c| c.is_alphanumeric() || c == '_');
                 match id.as_str() {
                     "true" | "false" => Token::Bool(id),
                     _ => Token::Id(id),
@@ -112,7 +112,15 @@ impl<'a> Lexer<'a> {
             '(' => { self.chars.next(); Token::LParen }
             ')' => { self.chars.next(); Token::RParen }
             ',' => { self.chars.next(); Token::Comma }
-            _ => Token::Op(self.read_while(|c| "+-*/%=<>!&|".contains(c))),
+            '.' => { self.chars.next(); Token::Dot }
+            _ => {
+                let op = self.read_while(|c| "+-*/%=<>!&|".contains(c));
+                if op.is_empty() {
+                    self.chars.next();
+                    return self.next_token();
+                }
+                Token::Op(op)
+            }
         };
 
         Ok(Some(token))
@@ -120,9 +128,7 @@ impl<'a> Lexer<'a> {
 
     fn tokenize(&mut self) -> Result<Vec<Token>, BoxError> {
         let mut tokens = vec![];
-        while let Some(token) = self.next_token()? {
-            tokens.push(token);
-        }
+        while let Some(token) = self.next_token()? { tokens.push(token); }
         Ok(tokens)
     }
 }
@@ -136,145 +142,193 @@ impl Parser {
         Self { tokens: tokens.into_iter().peekable() }
     }
 
-    fn parse(&mut self) -> Result<Expression, BoxError> {
-        self.parse_expression(0)
+    fn is_changeable(expr: &Expression) -> bool {
+        matches!(expr, Expression::Variable { .. } | Expression::Field { .. })
     }
 
     fn parse_expression(&mut self, min_order: u8) -> Result<Expression, BoxError> {
-        let token = self.tokens.next().ok_or("Unexpected end of expression")?;
+        let mut left = self.parse_primary()?;
 
-        let mut left = match token {
-            Token::Num(v) => Expression::Literal(v),
-            Token::Str(v) => Expression::Literal(format!("\"{}\"", v)),
-            Token::Bool(v) => Expression::Literal(v),
-            Token::Id(name) => {
+        loop {
+            let next = self.tokens.peek().cloned();
+
+            if let Some(Token::Dot) = next {
+                self.tokens.next();
+                let member = match self.tokens.next() {
+                    Some(Token::Id(id)) => id,
+                    _ => return Err("Expected identifier after '.'".into()),
+                };
+
                 if let Some(Token::LParen) = self.tokens.peek() {
                     self.tokens.next();
-                    let mut args = Vec::new();
+                    let args = self.parse_arguments()?;
+                    left = Expression::MethodCall { object: Box::new(left), name: member, arguments: args };
+                } else {
+                    left = Expression::Field { object: Box::new(left), name: member };
+                }
+                continue;
+            }
 
-                    while let Some(token) = self.tokens.peek() {
-                        if token == &Token::RParen { break; }
-                        args.push(self.parse_expression(0)?);
-                        if let Some(Token::Comma) = self.tokens.peek() {
-                            self.tokens.next();
+            if let Some(Token::Op(op)) = next.as_ref() && (op == "++" || op == "--") {
+                let op_str = op.clone();
+                self.tokens.next();
+
+                if Self::is_changeable(&left) {
+                    left = if op_str == "++" {
+                        Expression::Increment { expression: Box::new(left), postfix: true }
+                    } else {
+                        Expression::Decrement { expression: Box::new(left), postfix: true }
+                    };
+                } else {
+                    return Err(format!("Operator '{}' can only be applied to a variable", op_str).into());
+                }
+                continue;
+            }
+
+            if let Some(Token::Op(op_str)) = next {
+                let op = Self::link_binary_operator(&op_str)?;
+                let (left_order, right_order) = Self::binding_order(&op);
+                if left_order < min_order { 
+                    break; 
+                }
+                self.tokens.next();
+
+                let right = self.parse_expression(right_order)?;
+
+                left = match op {
+                    BinaryOperator::Assign => {
+                        if !Self::is_changeable(&left) { return Err("Invalid assignment target".into()); }
+                        match left {
+                            Expression::Variable { name } =>
+                                Expression::Assign { name, value: Box::new(right) },
+                            Expression::Field { object, name: member } =>
+                                Expression::AssignField { object, name: member, value: Box::new(right) },
+                            _ => unreachable!()
                         }
-                    }
-                    if self.tokens.next() != Some(Token::RParen) {
-                        return Err("Expected ')' after function arguments".into());
-                    }
-                    Expression::FunctionCall { name, arguments: args }
-                } else {
-                    Expression::Variable { name }
-                }
-            }
-            Token::Op(op) if op == "++" || op == "--" => {
-                if let Some(Token::Id(name)) = self.tokens.next() {
-                    match op.as_str() {
-                        "++" => Expression::Increment { name },
-                        _ => Expression::Decrement { name },
-                    }
-                } else {
-                    return Err(format!("Expected variable after '{}'", op).into());
-                }
-            }
-            Token::Op(op) if op == "-" => {
-                let right = self.parse_expression(10)?;
-                Expression::Negate { expression: Box::new(right) }
-            }
-            Token::Op(op) if op == "!" => {
-                let right = self.parse_expression(10)?;
-                Expression::Not { expression: Box::new(right) }
-            }
-            Token::LParen => {
-                let expression = self.parse_expression(0)?;
-                if self.tokens.next() != Some(Token::RParen) {
-                    return Err("Expected ')'".into());
-                }
-                expression
-            }
-            _ => return Err(format!("Unexpected token: {:?}", token).into()),
-        };
-
-        while let Some(Token::Op(op)) = self.tokens.peek() {
-            if op == "++" || op == "--" {
-                break;
-            }
-
-            let op = Self::link_binary_operator(op)?;
-            let (left_order, right_order) = Self::binding_order(op)?;
-            if left_order < min_order {
-                break;
-            }
-
-            let op = if let Some(Token::Op(op)) = self.tokens.next() {
-                Self::link_binary_operator(&op)? 
-            } else { 
-                unreachable!() 
-            };
-
-            let right = self.parse_expression(right_order)?;
-
-            if op == Operator::Assign {
-                if let Expression::Variable { name } = left {
-                    left = Expression::Assign { name, value: Box::new(right) };
-                } else {
-                    return Err("Left side of assignment must be variable".into());
-                }
+                    },
+                    _ => Expression::BinaryOp { left: Box::new(left), op, right: Box::new(right) },
+                };
             } else {
-                left = Expression::BinaryOp { left: Box::new(left), op, right: Box::new(right) };
+                break;
             }
         }
-
         Ok(left)
     }
+
+    fn parse_primary(&mut self) -> Result<Expression, BoxError> {
+        let token = self.tokens.next().ok_or("Unexpected end of expression")?;
+        match token {
+            Token::Num(v) => Ok(Expression::Literal(v)),
+            Token::Str(v) => Ok(Expression::Literal(format!("\"{}\"", v))),
+            Token::Bool(v) => Ok(Expression::Literal(v)),
+            Token::Id(id) => match id.as_str() {
+                "this" => Ok(Expression::This),
+                "new" => {
+                    let class_name = match self.tokens.next() {
+                        Some(Token::Id(name)) => name,
+                        _ => return Err("Expected class name after 'new'".into()),
+                    };
+                    let arguments = if let Some(Token::LParen) = self.tokens.peek() {
+                        self.tokens.next();
+                        self.parse_arguments()?
+                    } else { 
+                        vec![] 
+                    };
+                    Ok(Expression::New { class_name, arguments })
+                }
+                name => {
+                    if let Some(Token::LParen) = self.tokens.peek() {
+                        self.tokens.next();
+                        let args = self.parse_arguments()?;
+                        Ok(Expression::FunctionCall { name: name.to_string(), arguments: args })
+                    } else {
+                        Ok(Expression::Variable { name: name.to_string() })
+                    }
+                }
+            },
+            Token::LParen => {
+                let expr = self.parse_expression(0)?;
+                if self.tokens.next() != Some(Token::RParen) { return Err("Expected ')'".into()); }
+                Ok(expr)
+            }
+            Token::Op(op) if op == "++" || op == "--" => {
+                let target = self.parse_primary()?;
+                if Self::is_changeable(&target) {
+                    Ok(if op == "++" {
+                        Expression::Increment { expression: Box::new(target), postfix: false }
+                    } else {
+                        Expression::Decrement { expression: Box::new(target), postfix: false }
+                    })
+                } else {
+                    Err(format!("Operator '{}' can only be applied to a variable or field", op).into())
+                }
+            }
+            _ => Err(format!("Unexpected token: {:?}", token).into()),
+        }
+    }
+
+    fn parse_arguments(&mut self) -> Result<Vec<Expression>, BoxError> {
+        let mut args = vec![];
+        if let Some(Token::RParen) = self.tokens.peek() {
+            self.tokens.next();
+            return Ok(args);
+        }
+        loop {
+            args.push(self.parse_expression(0)?);
+            match self.tokens.next() {
+                Some(Token::Comma) => continue,
+                Some(Token::RParen) => break,
+                _ => return Err("Expected ',' or ')' in arguments".into()),
+            }
+        }
+        Ok(args)
+    }
     
-    fn link_binary_operator(op: &str) -> Result<Operator, BoxError> {
+    fn link_binary_operator(op: &str) -> Result<BinaryOperator, BoxError> {
         match op {
-            "=" => Ok(Operator::Assign),
-            "+=" => Ok(Operator::AssignAdd),
-            "-=" => Ok(Operator::AssignSub),
-            "*=" => Ok(Operator::AssignMul),
-            "/=" => Ok(Operator::AssignDiv),
-            "||" => Ok(Operator::Or),
-            "&&" => Ok(Operator::And),
-            "==" => Ok(Operator::Equal),
-            "!=" => Ok(Operator::NotEqual),
-            "<" => Ok(Operator::Less),
-            "<=" => Ok(Operator::LessEqual),
-            ">" => Ok(Operator::Greater),
-            ">=" => Ok(Operator::GreaterEqual),
-            "+" => Ok(Operator::Plus),
-            "-" => Ok(Operator::Minus),
-            "*" => Ok(Operator::Multiply),
-            "/" => Ok(Operator::Divide),
-            "%" => Ok(Operator::Modulo),
+            "=" => Ok(BinaryOperator::Assign),
+            "+=" => Ok(BinaryOperator::AssignAdd),
+            "-=" => Ok(BinaryOperator::AssignSub),
+            "*=" => Ok(BinaryOperator::AssignMul),
+            "/=" => Ok(BinaryOperator::AssignDiv),
+            "||" => Ok(BinaryOperator::Or),
+            "&&" => Ok(BinaryOperator::And),
+            "==" => Ok(BinaryOperator::Equal),
+            "!=" => Ok(BinaryOperator::NotEqual),
+            "<" => Ok(BinaryOperator::Less),
+            "<=" => Ok(BinaryOperator::LessEqual),
+            ">" => Ok(BinaryOperator::Greater),
+            ">=" => Ok(BinaryOperator::GreaterEqual),
+            "+" => Ok(BinaryOperator::Plus),
+            "-" => Ok(BinaryOperator::Minus),
+            "*" => Ok(BinaryOperator::Multiply),
+            "/" => Ok(BinaryOperator::Divide),
+            "%" => Ok(BinaryOperator::Modulo),
             _ => Err("Unknown binary operator".into()),
         }
     }
 
-    fn binding_order(op: Operator) -> Result<(u8, u8), BoxError> {
+    fn binding_order(op: &BinaryOperator) -> (u8, u8) {
         match op {
-            Operator::Assign | 
-            Operator::AssignAdd | Operator::AssignSub | 
-            Operator::AssignMul | Operator::AssignDiv => Ok((1, 2)),
-            Operator::Or => Ok((3, 4)),
-            Operator::And => Ok((5, 6)),
-            Operator::Equal | Operator::NotEqual => Ok((7, 8)),
-            Operator::Less | Operator::LessEqual | 
-            Operator::Greater | Operator::GreaterEqual => Ok((9, 10)),
-            Operator::Plus | Operator::Minus => Ok((11, 12)),
-            Operator::Multiply | Operator::Divide | Operator::Modulo => Ok((13, 14)),
-            _ => Err(format!("Unknown operator: {:?}", op).into()),
+            BinaryOperator::Assign | 
+            BinaryOperator::AssignAdd | BinaryOperator::AssignSub | 
+            BinaryOperator::AssignMul | BinaryOperator::AssignDiv => (1, 2),
+            BinaryOperator::Or => (3, 4),
+            BinaryOperator::And => (5, 6),
+            BinaryOperator::Equal | BinaryOperator::NotEqual => (7, 8),
+            BinaryOperator::Less | BinaryOperator::LessEqual | 
+            BinaryOperator::Greater | BinaryOperator::GreaterEqual => (9, 10),
+            BinaryOperator::Plus | BinaryOperator::Minus => (11, 12),
+            BinaryOperator::Multiply | BinaryOperator::Divide | BinaryOperator::Modulo => (13, 14)
         }
     }
 }
 
 pub fn parse_expression(raw_code: &str) -> Result<Expression, BoxError> {
-    if raw_code.trim().is_empty() {
-        return Err("Empty expression".into());
-    }
-    let mut lexer = Lexer::new(raw_code);
+    let trimmed = raw_code.trim().trim_end_matches(';');
+    if trimmed.is_empty() { return Err("Empty expression".into()); }
+    let mut lexer = Lexer::new(trimmed);
     let tokens = lexer.tokenize()?;
     let mut parser = Parser::new(tokens);
-    parser.parse()
+    parser.parse_expression(0)
 }

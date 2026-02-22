@@ -30,7 +30,7 @@ class App {
             else if (x == 10) {
                 break;
             }
-            x = f(x + 1);
+            x = this.f(x + 1);
         }
 
         for (int i = 0; i < 10; i++) {

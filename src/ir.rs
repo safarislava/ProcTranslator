@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use crate::ast::{Initializer, ASN, AST};
 use crate::common::BoxError;
-use crate::expression::{Expression, Operator};
+use crate::expression::{Expression, BinaryOperator};
 
 fn simplify(ast: AST) -> Result<AST, BoxError> {
     let AST { node, children } = ast;
@@ -65,21 +65,27 @@ fn build_if_tree(mut current_node: AST, iter: &mut std::iter::Peekable<impl Iter
 }
 
 pub type BlockId = usize;
-pub type ValueId = usize;
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Register(pub usize);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct StackSlot(pub usize);
 
 #[derive(Debug, Clone)]
 pub enum Operand {
-    Value(ValueId),
+    Value(Register),
     Constant(String),
     Void,
 }
 
 #[derive(Debug, Clone)]
 pub enum IrInstruction {
-    LoadConst { dest: ValueId, value: String },
-    BinaryOp { dest: ValueId, left: Operand, op: Operator, right: Operand },
-    Call { dest: Option<ValueId>, name: String, arguments: Vec<Operand> },
-    Phi { dest: ValueId, incoming: Vec<(BlockId, Operand)> },
+    LoadConst { dest: Register, value: String },
+    BinaryOp { dest: Register, left: Operand, op: BinaryOperator, right: Operand },
+    Call { dest: Option<Register>, name: String, arguments: Vec<Operand> },
+    StackAlloc { slot: StackSlot },
+    Store { slot: StackSlot, value: Operand },
+    Load { dest: Register, slot: StackSlot },
 }
 
 #[derive(Debug, Clone)]
@@ -111,20 +117,35 @@ pub struct CFG {
 pub struct IrContext {
     pub blocks: Vec<BasicBlock>,
     current_block: Option<BlockId>,
-    value_counter: usize,
-    vars: HashMap<String, ValueId>,
+    reg_counter: usize,
+    slot_counter: usize,
+    scopes: Vec<HashMap<String, StackSlot>>,
+    functions: HashMap<String, BasicBlock>,
 }
 
 impl IrContext {
     pub fn new() -> Self {
         let entry_block = BasicBlock::new(0);
-        IrContext { value_counter: 0, blocks: vec![entry_block], current_block: Some(0), vars: HashMap::new() }
+        IrContext {
+            reg_counter: 0,
+            slot_counter: 0,
+            blocks: vec![entry_block],
+            current_block: Some(0),
+            scopes: vec![HashMap::new()],
+            functions: HashMap::new(),
+        }
     }
 
-    pub fn new_value(&mut self) -> ValueId {
-        let id = self.value_counter;
-        self.value_counter += 1;
-        id
+    pub fn new_reg(&mut self) -> Register {
+        let id = self.reg_counter;
+        self.reg_counter += 1;
+        Register(id)
+    }
+
+    pub fn new_slot(&mut self) -> StackSlot {
+        let id = self.slot_counter;
+        self.slot_counter += 1;
+        StackSlot(id)
     }
 
     pub fn create_block(&mut self) -> BlockId {
@@ -137,48 +158,71 @@ impl IrContext {
         self.current_block = Some(id);
     }
 
-    pub fn current_block(&self) -> BlockId {
-        self.current_block.expect("Not writing to any block!")
+    fn is_current_terminated(&self) -> bool {
+        if let Some(id) = self.current_block {
+            self.blocks[id].terminator.is_some()
+        } else {
+            true
+        }
     }
 
-    pub fn push_instruction(&mut self, instruction: IrInstruction) {
-        if let Some(block_id) = self.current_block {
+    pub fn emit(&mut self, instruction: IrInstruction) {
+        if let Some(block_id) = self.current_block && self.blocks[block_id].terminator.is_none() {
             self.blocks[block_id].instructions.push(instruction);
         }
     }
 
-    pub fn emit(&mut self, instr: IrInstruction) {
-        let block_id = self.current_block();
-        self.blocks[block_id].instructions.push(instr);
-    }
-
     pub fn emit_terminator(&mut self, term: Terminator) {
-        let source_block = self.current_block();
+        if let Some(source_block) = self.current_block {
+            if self.blocks[source_block].terminator.is_some() {
+                return;
+            }
 
-        match &term {
-            Terminator::Jump(target) => {
-                self.blocks[source_block].successors.push(*target);
-                self.blocks[*target].predecessors.push(source_block);
+            match &term {
+                Terminator::Jump(target) => {
+                    self.link_blocks(source_block, *target);
+                }
+                Terminator::Branch { true_block, false_block, .. } => {
+                    self.link_blocks(source_block, *true_block);
+                    self.link_blocks(source_block, *false_block);
+                }
+                Terminator::Return(_) => {}
             }
-            Terminator::Branch { true_block: true_target, false_block: false_target, .. } => {
-                self.blocks[source_block].successors.push(*true_target);
-                self.blocks[source_block].successors.push(*false_target);
-                self.blocks[*true_target].predecessors.push(source_block);
-                self.blocks[*false_target].predecessors.push(source_block);
-            }
-            Terminator::Return(_) => {}
+
+            self.blocks[source_block].terminator = Some(term);
+            self.current_block = None;
         }
-
-        self.blocks[source_block].terminator = Some(term);
-        self.current_block = None;
     }
 
-    pub fn write_var(&mut self, name: String, val: ValueId) {
-        self.vars.insert(name, val);
+    fn link_blocks(&mut self, from: BlockId, to: BlockId) {
+        self.blocks[from].successors.push(to);
+        self.blocks[to].predecessors.push(from);
     }
 
-    pub fn read_var(&mut self, name: &str) -> ValueId {
-        *self.vars.get(name).expect("Variable not defined")
+    pub fn enter_scope(&mut self) {
+        self.scopes.push(HashMap::new());
+    }
+
+    pub fn exit_scope(&mut self) {
+        self.scopes.pop();
+    }
+
+    pub fn declare_var(&mut self, name: String) -> StackSlot {
+        let slot = self.new_slot();
+        self.emit(IrInstruction::StackAlloc { slot });
+
+        let current_scope = self.scopes.last_mut().expect("No scope active");
+        current_scope.insert(name, slot);
+        slot
+    }
+
+    pub fn resolve_var_addr(&self, name: &str) -> Result<StackSlot, BoxError> {
+        for scope in self.scopes.iter().rev() {
+            if let Some(&slot) = scope.get(name) {
+                return Ok(slot);
+            }
+        }
+        Err(format!("Undefined variable: {}", name).into())
     }
 
     pub fn gen_statement(&mut self, ast: AST) -> Result<(), BoxError> {
@@ -190,6 +234,8 @@ impl IrContext {
                 let merge_block = self.create_block();
                 self.emit_terminator(Terminator::Branch { condition, true_block, false_block });
 
+                self.set_current_block(true_block);
+                self.enter_scope();
                 let mut else_node: Option<AST> = None;
                 self.set_current_block(true_block);
                 for child in ast.children {
@@ -199,17 +245,18 @@ impl IrContext {
                         self.gen_statement(child)?;
                     }
                 }
+                self.exit_scope();
                 self.emit_terminator(Terminator::Jump(merge_block));
 
                 self.set_current_block(false_block);
-                if let Some(else_node) = else_node {
-                    for child in else_node.children {
+                if let Some(node) = else_node {
+                    self.enter_scope();
+                    for child in node.children {
                         self.gen_statement(child)?;
                     }
+                    self.exit_scope();
                 }
-                if self.blocks[false_block].terminator.is_none() {
-                    self.emit_terminator(Terminator::Jump(merge_block));
-                }
+                self.emit_terminator(Terminator::Jump(merge_block));
 
                 self.set_current_block(merge_block);
             }
@@ -224,9 +271,11 @@ impl IrContext {
                 self.emit_terminator(Terminator::Branch { condition, true_block, false_block });
 
                 self.set_current_block(true_block);
+                self.enter_scope();
                 for child in ast.children {
                     self.gen_statement(child)?;
                 }
+                self.exit_scope();
                 self.emit_terminator(Terminator::Jump(condition_block));
 
                 self.set_current_block(false_block);
@@ -235,30 +284,31 @@ impl IrContext {
                 self.gen_expression(expression)?;
             }
             ASN::Declaration { name, expression, .. } => {
-                let operand = if let Some(expression) = expression {
-                    self.gen_expression(expression)?
+                let slot = self.declare_var(name);
+                let value = if let Some(expr) = expression {
+                    self.gen_expression(expr)?
                 } else {
                     Operand::Constant("0".into())
                 };
-                let value_id = match operand {
-                    Operand::Value(id) => id,
-                    Operand::Constant(c) => {
-                        let new_id = self.new_value();
-                        self.emit(IrInstruction::LoadConst { dest: new_id, value: c });
-                        new_id
-                    }
-                    Operand::Void => return Err("Cannot declare void".into(),),
-                };
-                self.write_var(name, value_id);
+
+                if !matches!(value, Operand::Void) {
+                    self.emit(IrInstruction::Store { slot, value });
+                }
             }
-            ASN::Function { result_type, name, arguments } => {
+            ASN::Callable { result_type, name, arguments } => {
 
             }
-            ASN::Class { .. } => {}
-            ASN::Return { .. } => {}
+            ASN::Class { name } => {}
+            ASN::Return { value } => {}
             ASN::Break => {}
             ASN::Continue => {}
-            ASN::Scope => {}
+            ASN::Scope => {
+                self.enter_scope();
+                for child in ast.children {
+                    self.gen_statement(child)?;
+                }
+                self.exit_scope();
+            }
             ASN::File => {}
             _ => return Err("Doesn't expect here".into())
         }
@@ -268,80 +318,131 @@ impl IrContext {
     pub fn gen_expression(&mut self, expression: Expression) -> Result<Operand, BoxError> {
         match expression {
             Expression::Literal(val) => {
-                let dest = self.new_value();
+                let dest = self.new_reg();
                 self.emit(IrInstruction::LoadConst { dest, value: val });
                 Ok(Operand::Value(dest))
             }
             Expression::Variable { name } => {
-                let val_id = self.read_var(&name);
-                Ok(Operand::Value(val_id))
+                let slot = self.resolve_var_addr(&name)?;
+                let dest = self.new_reg();
+                self.emit(IrInstruction::Load { dest, slot });
+                Ok(Operand::Value(dest))
             }
             Expression::BinaryOp { left, op, right } => {
                 let left = self.gen_expression(*left)?;
                 let right = self.gen_expression(*right)?;
-
-                let dest = self.new_value();
-
-                self.emit(IrInstruction::BinaryOp {dest, left, op, right});
-
+                let dest = self.new_reg();
+                self.emit(IrInstruction::BinaryOp { dest, left, op, right });
                 Ok(Operand::Value(dest))
             }
             Expression::FunctionCall { name, arguments } => {
-                let dest = self.new_value();
-                let mut operands = vec![];
-                for argument in arguments {
-                    operands.push(self.gen_expression(argument)?);
+                let mut args = Vec::new();
+                for arg in arguments {
+                    args.push(self.gen_expression(arg)?);
                 }
-                self.emit(IrInstruction::Call { dest: Some(dest), name, arguments: operands });
+                let dest = self.new_reg();
+                self.emit(IrInstruction::Call { dest: Some(dest), name, arguments: args });
                 Ok(Operand::Value(dest))
             }
             Expression::Assign { name, value } => {
-                let operand = self.gen_expression(*value)?;
-                let dest = match operand {
-                    Operand::Value(dest) => dest,
-                    Operand::Constant(c) => {
-                        let dest = self.new_value();
-                        self.emit(IrInstruction::LoadConst { dest, value: c });
-                        dest
-                    }
-                    Operand::Void => return Err("Cannot assign void".into(),),
-                };
-                self.write_var(name, dest);
+                let slot = self.resolve_var_addr(&name)?;
+                let value = self.gen_expression(*value)?;
+
+                if matches!(value, Operand::Void) {
+                    return Err("Cannot assign void value".into());
+                }
+
+                self.emit(IrInstruction::Store { slot, value });
                 Ok(Operand::Void)
             }
-            Expression::Increment { name } => {
-                let val_id = self.read_var(&name);
-                let dest = self.new_value();
-                let one_const = Operand::Constant("1".to_string());
-                self.emit(IrInstruction::BinaryOp {
-                    dest, left: Operand::Value(val_id), op: Operator::Plus, right: one_const });
-                self.write_var(name, dest);
-                Ok(Operand::Value(val_id))
+            Expression::Increment { expression, postfix } => {
+                match *expression {
+                    Expression::Variable { name } => {
+                        let slot = self.resolve_var_addr(&name)?;
+                        let old_val_reg = self.new_reg();
+                        self.emit(IrInstruction::Load { dest: old_val_reg, slot });
+
+                        let new_val_reg = self.new_reg();
+                        let one_const = Operand::Constant("1".to_string());
+                        self.emit(IrInstruction::BinaryOp {
+                            dest: new_val_reg,
+                            left: Operand::Value(old_val_reg),
+                            op: BinaryOperator::Plus,
+                            right: one_const,
+                        });
+                        self.emit(IrInstruction::Store { slot, value: Operand::Value(new_val_reg) });
+
+                        if postfix {
+                            Ok(Operand::Value(old_val_reg))
+                        } else {
+                            Ok(Operand::Value(new_val_reg))
+                        }
+                    }
+                    Expression::Field { object, name } => {
+                        todo!()
+                    }
+                    _ => Err("Cannot increment to a non-changeable expression".into())
+                }
             }
-            Expression::Decrement { name } => {
-                let val_id = self.read_var(&name);
-                let dest = self.new_value();
-                let one_const = Operand::Constant("1".to_string());
-                self.emit(IrInstruction::BinaryOp {
-                    dest, left: Operand::Value(val_id), op: Operator::Minus, right: one_const });
-                self.write_var(name, dest);
-                Ok(Operand::Value(val_id))
+            Expression::Decrement { expression, postfix } => {
+                match *expression {
+                    Expression::Variable { name } => {
+                        let slot = self.resolve_var_addr(&name)?;
+                        let old_val_reg = self.new_reg();
+                        self.emit(IrInstruction::Load { dest: old_val_reg, slot });
+
+                        let new_val_reg = self.new_reg();
+                        let one_const = Operand::Constant("1".to_string());
+                        self.emit(IrInstruction::BinaryOp {
+                            dest: new_val_reg,
+                            left: Operand::Value(old_val_reg),
+                            op: BinaryOperator::Minus,
+                            right: one_const,
+                        });
+                        self.emit(IrInstruction::Store { slot, value: Operand::Value(new_val_reg) });
+
+                        if postfix {
+                            Ok(Operand::Value(old_val_reg))
+                        } else {
+                            Ok(Operand::Value(new_val_reg))
+                        }
+                    }
+                    Expression::Field { object, name } => {
+                        todo!()
+                    }
+                    _ => Err("Cannot decrement to a non-changeable expression".into())
+                }
             }
             Expression::Negate { expression } => {
                 let operand = self.gen_expression(*expression)?;
-                let dest = self.new_value();
+                let dest = self.new_reg();
                 let zero_const = Operand::Constant("0".to_string());
                 self.emit(IrInstruction::BinaryOp {
-                    dest, left: zero_const, op: Operator::Minus, right: operand });
+                    dest, left: zero_const, op: BinaryOperator::Minus, right: operand });
                 Ok(Operand::Value(dest))
             }
             Expression::Not { expression } => {
                 let operand = self.gen_expression(*expression)?;
-                let dest = self.new_value();
+                let dest = self.new_reg();
                 let false_const = Operand::Constant("false".to_string());
                 self.emit(IrInstruction::BinaryOp {
-                    dest, left: operand, op: Operator::Equal, right: false_const});
+                    dest, left: operand, op: BinaryOperator::Equal, right: false_const});
                 Ok(Operand::Value(dest))
+            }
+            Expression::MethodCall { object, name, arguments } => {
+                todo!()
+            }
+            Expression::AssignField { object, name, value } => {
+                todo!()
+            }
+            Expression::New { class_name, arguments } => {
+                todo!()
+            }
+            Expression::Field { object, name } => {
+                todo!();
+            }
+            Expression::This => {
+                todo!()
             }
         }
     }
@@ -350,8 +451,9 @@ impl IrContext {
 pub fn compile(ast: AST) -> Result<CFG, BoxError> {
     let simple_ast = simplify(ast)?;
     let mut ctx = IrContext::new();
-    let entry_block = ctx.create_block();
-    ctx.set_current_block(entry_block);
     ctx.gen_statement(simple_ast)?;
-    Ok(CFG { blocks: ctx.blocks, entry_block })
+    if !ctx.is_current_terminated() {
+        ctx.emit_terminator(Terminator::Return(None));
+    }
+    Ok(CFG { blocks: ctx.blocks, entry_block: 0 })
 }

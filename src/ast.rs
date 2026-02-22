@@ -7,7 +7,17 @@ type DeclarationInfo = (String, String, Option<Expression>);
 #[derive(Debug, Clone)]
 pub struct Var {
     pub name: String,
-    pub typ: String,
+    pub typ: Type,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Type {
+    Void,
+    Int,
+    Float,
+    Bool,
+    Str,
+    Class(String),
 }
 
 #[derive(Debug, Clone)]
@@ -17,10 +27,10 @@ pub enum ASN {
     Else,
     While { condition: Expression },
     For { initializer: Option<Initializer>, condition: Option<Expression>, increment: Option<Expression> },
-    Function { result_type: String, name: String, arguments: Vec<Var> },
+    Callable { result_type: Type, name: String, arguments: Vec<Var> },
     Class { name: String },
     Expression { expression: Expression },
-    Declaration { typ: String, name: String, expression: Option<Expression> },
+    Declaration { typ: Type, name: String, expression: Option<Expression> },
     Return { value: Option<Expression> },
     Break,
     Continue,
@@ -36,7 +46,7 @@ pub struct AST {
 
 #[derive(Debug, Clone)]
 pub enum Initializer {
-    Declaration { typ: String, name: String, expression: Option<Expression> },
+    Declaration { typ: Type, name: String, expression: Option<Expression> },
     Expression { expression: Expression },
 }
 
@@ -49,8 +59,15 @@ impl AST {
     }
 }
 
-fn is_type_keyword(s: &str) -> bool {
-    matches!(s, "int" | "string" | "bool" | "float" | "double" | "char" | "void")
+fn parse_type(s: &str) -> Type {
+    match s.trim() {
+        "void" => Type::Void,
+        "int" => Type::Int,
+        "float" => Type::Float,
+        "str" => Type::Str,
+        "bool" => Type::Bool,
+        other => Type::Class(other.to_string()),
+    }
 }
 
 fn parse_var(arg: &str) -> Result<Var, BoxError> {
@@ -58,91 +75,86 @@ fn parse_var(arg: &str) -> Result<Var, BoxError> {
     if parts.len() != 2 {
         return Err(format!("Invalid variable declaration: '{arg}'").into());
     }
-    Ok(Var { typ: parts[0].to_string(), name: parts[1].to_string(), })
+    Ok(Var { typ: parse_type(parts[0]), name: parts[1].to_string(), })
 }
 
 fn parse_arguments(args_str: &str) -> Result<Vec<Var>, BoxError> {
-    if args_str.trim().is_empty() {
+    let trimmed = args_str.trim();
+    if trimmed.is_empty() {
         return Ok(vec![]);
     }
-    args_str.split(',').map(|s| parse_var(s.trim())).collect()
+    trimmed.split(',').map(|s| parse_var(s.trim())).collect()
 }
 
-fn parse_statement_keyword(value: &str) -> Option<ASN> {
-    let trimmed = value.trim();
+fn parse_statement_keyword(value: &str) -> Result<Option<ASN>, BoxError> {
+    let trimmed = value.trim().trim_end_matches(';');
 
-    if let Some(mut rest) = trimmed.strip_prefix("return") {
-        rest = rest.trim();
-        if rest.is_empty() {
-            return Some(ASN::Return { value: None });
-        } else {
-            return match parse_expression(rest) {
-                Ok(expr) => Some(ASN::Return { value: Some(expr) }),
-                Err(_) => None,
-            }
-        }
+    if trimmed == "return" {
+        return Ok(Some(ASN::Return { value: None }));
     }
 
-    if trimmed == "break" {
-        return Some(ASN::Break);
+    if let Some(stripped) = trimmed.strip_prefix("return ") {
+        let expr = parse_expression(stripped.trim())?;
+        return Ok(Some(ASN::Return { value: Some(expr) }));
     }
 
-    if trimmed == "continue" {
-        return Some(ASN::Continue);
-    }
+    if trimmed == "break" { return Ok(Some(ASN::Break)); }
+    if trimmed == "continue" { return Ok(Some(ASN::Continue)); }
 
-    None
+    Ok(None)
 }
-
-fn parse_declaration(raw_code: String) -> Result<Option<DeclarationInfo>, BoxError> {
+fn parse_declaration(raw_code: &str) -> Result<Option<DeclarationInfo>, BoxError> {
     let code = raw_code.trim();
     if code.is_empty() {
         return Ok(None);
     }
 
-    let mut parts = code.splitn(2, char::is_whitespace);
-    let first = parts.next().unwrap_or("");
-
-    if !is_type_keyword(first) {
+    let parts: Vec<&str> = code.splitn(2, char::is_whitespace).collect();
+    if parts.len() < 2 {
         return Ok(None);
     }
 
-    let typ = first.to_string();
-    let rest = parts.next().ok_or("Missing variable name after type")?.trim();
-    if rest.is_empty() {
-        return Err("Missing variable name after type".into());
+    let first = parts[0];
+    let rest = parts[1].trim();
+
+    let is_primitive = matches!(first, "int" | "float" | "str" | "bool" | "void");
+    let is_class = first.chars().next().is_some_and(|c| c.is_uppercase());
+
+    if !is_primitive && !is_class {
+        return Ok(None);
     }
 
     if let Some(eq_pos) = rest.find('=') {
         let name = rest[..eq_pos].trim().to_string();
-        if name.is_empty() {
-            return Err("Empty variable name".into());
-        }
         let value_expr = rest[eq_pos + 1..].trim();
+
+        if name.is_empty() { return Ok(None); }
+
         let value = if value_expr.is_empty() {
             None
         } else {
             Some(parse_expression(value_expr)?)
         };
-        Ok(Some((typ, name, value)))
+        Ok(Some((first.to_string(), name, value)))
     } else {
         let name = rest.trim().to_string();
-        if name.is_empty() {
-            return Err("Empty variable name".into());
+        if name.contains('(') || name.is_empty() {
+            return Ok(None);
         }
-        Ok(Some((typ, name, None)))
+        Ok(Some((first.to_string(), name, None)))
     }
 }
 
 fn build_for_loop(condition: String, body_children: Vec<AST>) -> Result<AST, BoxError> {
     let parts: Vec<&str> = condition.split(';').map(|s| s.trim()).collect();
     if parts.len() != 3 {
-        return Err(format!("Invalid for loop format: expected, got: {condition}").into());
+        return Err(format!("Invalid for loop format: {}", condition).into());
     }
     
     let initializer = if parts[0].is_empty() {
         None
-    } else if let Some((typ, name, init_value)) = parse_declaration(parts[0].to_string())? {
+    } else if let Ok(Some((typ_str, name, init_value))) = parse_declaration(parts[0]) {
+        let typ = parse_type(&typ_str);
         Some(Initializer::Declaration { typ, name, expression: init_value })
     } else {
         let expr = parse_expression(parts[0])?;
@@ -165,11 +177,8 @@ fn build_for_loop(condition: String, body_children: Vec<AST>) -> Result<AST, Box
 }
 
 pub fn build(tree: SyntaxTree) -> Result<AST, BoxError> {
-    let processed_children: Vec<AST> = tree
-        .children
-        .into_iter()
-        .map(build)
-        .collect::<Result<Vec<_>, _>>()?;
+    let processed_children: Vec<AST> = tree.children
+        .into_iter().map(build).collect::<Result<Vec<_>, _>>()?;
 
     let ast = match tree.node {
         SyntaxNode::If { condition } => AST::with_children(
@@ -185,13 +194,13 @@ pub fn build(tree: SyntaxTree) -> Result<AST, BoxError> {
             ASN::While { condition: parse_expression(&condition)? },
             processed_children,
         ),
-        SyntaxNode::For { condition } => 
+        SyntaxNode::For { condition } =>
             build_for_loop(condition, processed_children)?,
         SyntaxNode::Line { value } => {
-            if let Some(asm) = parse_statement_keyword(&value) {
-                AST::new(asm)
-            }
-            else if let Some((typ, name, expr)) = parse_declaration(value.clone())? {
+            if let Some(asn) = parse_statement_keyword(&value)? {
+                AST::new(asn)
+            } else if let Ok(Some((typ_str, name, expr))) = parse_declaration(&value) {
+                let typ = parse_type(&typ_str);
                 AST::new(ASN::Declaration { typ, name, expression: expr })
             } else {
                 AST::new(ASN::Expression { expression: parse_expression(&value)? })
@@ -199,7 +208,8 @@ pub fn build(tree: SyntaxTree) -> Result<AST, BoxError> {
         }
         SyntaxNode::Function { result_type, name, arguments } => {
             let args = parse_arguments(&arguments)?;
-            AST::with_children(ASN::Function { result_type, name, arguments: args }, processed_children)
+            let result_type = parse_type(&result_type);
+            AST::with_children(ASN::Callable { result_type, name, arguments: args }, processed_children)
         }
         SyntaxNode::Class { name } => AST::with_children(ASN::Class { name }, processed_children),
         SyntaxNode::Scope => AST::with_children(ASN::Scope, processed_children),
