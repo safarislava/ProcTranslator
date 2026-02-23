@@ -10,10 +10,10 @@ class App {
 
         if (x > b) {
             if (x + 1 > b) {
-            
+
             }
             else {
-            
+
             }
         }
         else if (x < b) {
@@ -33,7 +33,7 @@ class App {
             x = this.f(x + 1);
         }
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 2; i < 10; i++) {
             x += 2;
         }
 

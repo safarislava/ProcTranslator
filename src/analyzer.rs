@@ -1,9 +1,8 @@
 use std::collections::HashMap;
-use crate::common::BoxError;
-use crate::ast::{AST, ASN, Initializer, Type};
-use crate::expression::{Expression, BinaryOperator};
+use crate::common::{BoxError, RawAST, RawExpression, Type, TypedAST, TypedExpression, ASN};
+use crate::expression::{BinaryOperator, Expression};
 
-type FunctionMap = HashMap<String, (Type, Vec<Type>)>;
+type FunctionInfo = (Type, Vec<Type>);
 
 #[derive(Debug, Clone)]
 struct ClassInfo {
@@ -19,26 +18,24 @@ impl ClassInfo {
 
 struct SemanticTable {
     scopes: Vec<HashMap<String, Type>>,
-    functions: FunctionMap,
+    stacktrace: Vec<ASN<RawExpression>>,
+    functions: HashMap<String, FunctionInfo>,
     classes: HashMap<String, ClassInfo>,
-    stacktrace: Vec<ASN>,
 }
 
 impl SemanticTable {
     pub fn new() -> Self {
         SemanticTable {
             scopes: vec![HashMap::new()],
+            stacktrace: vec![],
             functions: HashMap::new(),
             classes: HashMap::new(),
-            stacktrace: vec![],
         }
     }
 
     fn find_var(&self, name: &str) -> Option<&Type> {
         for scope in self.scopes.iter().rev() {
-            if let Some(typ) = scope.get(name) {
-                return Some(typ);
-            }
+            if let Some(typ) = scope.get(name) { return Some(typ); }
         }
         None
     }
@@ -52,7 +49,7 @@ impl SemanticTable {
         None
     }
 
-    fn collect_definitions(&mut self, ast: &AST) -> Result<(), BoxError> {
+    fn collect_definitions(&mut self, ast: &RawAST) -> Result<(), BoxError> {
         match &ast.node {
             ASN::Class { name } => {
                 if self.classes.contains_key(name) {
@@ -93,190 +90,272 @@ impl SemanticTable {
         Ok(())
     }
 
-    fn check(&mut self, ast: &AST) -> Result<(), BoxError> {
+    pub fn analyze(&mut self, ast: &RawAST) -> Result<TypedAST, BoxError> {
         self.stacktrace.push(ast.node.clone());
 
-        match &ast.node {
-            ASN::If { condition } | ASN::ElseIf { condition } | ASN::While { condition } => {
-                if self.check_expression(condition)? != Type::Bool {
-                    return Err("Condition must be bool".into());
-                }
+        let (typed_node, typed_children) = match &ast.node {
+            ASN::If { condition } => {
+                let typed_condition = self.analyze_expression(condition)?;
+                if typed_condition.get_type() != Type::Bool { return Err("Condition must be bool".into()); }
                 self.scopes.push(HashMap::new());
-                self.check_children(ast)?;
+                let children = self.analyze_children(&ast.children)?;
                 self.scopes.pop();
+                (ASN::If { condition: typed_condition }, children)
+            }
+            ASN::ElseIf { condition } => {
+                let typed_condition = self.analyze_expression(condition)?;
+                if typed_condition.get_type() != Type::Bool { return Err("Condition must be bool".into()); }
+                self.scopes.push(HashMap::new());
+                let children = self.analyze_children(&ast.children)?;
+                self.scopes.pop();
+                (ASN::ElseIf { condition: typed_condition }, children)
+            }
+            ASN::While { condition } => {
+                let typed_condition = self.analyze_expression(condition)?;
+                if typed_condition.get_type() != Type::Bool { return Err("Condition must be bool".into()); }
+                self.scopes.push(HashMap::new());
+                let children = self.analyze_children(&ast.children)?;
+                self.scopes.pop();
+                (ASN::While { condition: typed_condition }, children)
             }
             ASN::For { initializer, condition, increment } => {
                 self.scopes.push(HashMap::new());
-                if let Some(init) = initializer {
-                    match init {
-                        Initializer::Declaration { typ, name, expression } => self.check_declaration(typ, name, expression)?,
-                        Initializer::Expression { expression } => { self.check_expression(expression)?; }
-                    }
-                }
-                if let Some(cond) = condition && self.check_expression(cond)? != Type::Bool {
-                    return Err("For condition must be bool".into());
-                }
-                if let Some(inc) = increment { self.check_expression(inc)?; }
-                self.check_children(ast)?;
+                let typed_initializer = match initializer {
+                    Some(asn) => match *asn.clone() {
+                        ASN::Expression { expression } => {
+                            let typed_expression = self.analyze_expression(&expression)?;
+                            Some(Box::new(ASN::Expression { expression: typed_expression }))
+                        }
+                        ASN::Declaration { typ, name,  expression } => {
+                            let typed_expression = match expression {
+                                Some(expression) => Some(self.analyze_expression(&expression)?),
+                                None => None,
+                            };
+                            self.analyze_declaration(&typ, &name, &typed_expression)?;
+                            Some(Box::new(ASN::Declaration { typ: typ.clone(), name: name.clone(), expression: typed_expression }))
+                        }
+                        _ => return Err("For initializer can be only expression or declaration".into()),
+                    },
+                    None => None,
+                };
+
+
+                let typed_condition = match condition {
+                    Some(cond) => {
+                        let typed_cond = self.analyze_expression(cond)?;
+                        if typed_cond.get_type() != Type::Bool { return Err("For condition must be bool".into()); }
+                        Some(typed_cond)
+                    },
+                    None => None,
+                };
+                let typed_increment = match increment {
+                    Some(inc) => Some(self.analyze_expression(inc)?),
+                    None => None,
+                };
+                let children = self.analyze_children(&ast.children)?;
                 self.scopes.pop();
+                (ASN::For { initializer: typed_initializer, condition: typed_condition, increment: typed_increment }, children)
             }
-            ASN::Callable { arguments, .. } => {
+            ASN::Callable { result_type, name, arguments } => {
                 self.scopes.push(HashMap::new());
                 for arg in arguments {
                     self.scopes.last_mut().unwrap().insert(arg.name.clone(), arg.typ.clone());
                 }
-                self.check_children(ast)?;
+                let children = self.analyze_children(&ast.children)?;
                 self.scopes.pop();
+                (ASN::Callable { result_type: result_type.clone(), name: name.clone(), arguments: arguments.clone() }, children)
             }
-            ASN::Class { .. } | ASN::File | ASN::Scope | ASN::Else => {
+            ASN::Class { name } => {
                 self.scopes.push(HashMap::new());
-                self.check_children(ast)?;
-                self.scopes.pop();
-            }
-            ASN::Expression { expression } => { self.check_expression(expression)?; }
-            ASN::Declaration { typ, name, expression } => {
-                if !matches!(self.stacktrace.get(self.stacktrace.len() - 2), Some(ASN::Class { .. })) {
-                    self.check_declaration(typ, name, expression)?;
+                for child in &ast.children {
+                    if let ASN::Declaration { typ, name, expression } = &child.node {
+                        let typed_expr = match expression {
+                            Some(e) => Some(self.analyze_expression(e)?),
+                            None => None,
+                        };
+                        self.analyze_declaration(typ, name, &typed_expr)?;
+                    }
                 }
+
+                let mut typed_children = vec![];
+                for child in &ast.children {
+                    if !matches!(child.node, ASN::Declaration { .. }) {
+                        typed_children.push(self.analyze(child)?);
+                    } else if let ASN::Declaration { typ, name, expression } = &child.node {
+                        let typed_expr = match expression {
+                            Some(e) => Some(self.analyze_expression(e)?),
+                            None => None,
+                        };
+                        typed_children.push(TypedAST::new(ASN::Declaration { typ: typ.clone(), name: name.clone(), expression: typed_expr }));
+                    }
+                }
+                self.scopes.pop();
+                (ASN::Class { name: name.clone() }, typed_children)
+            }
+            ASN::File | ASN::Scope | ASN::Else => {
+                self.scopes.push(HashMap::new());
+                let children = self.analyze_children(&ast.children)?;
+                self.scopes.pop();
+                (ast.node.clone().map_expr(|_| unreachable!()), children)
+            }
+            ASN::Expression { expression } => {
+                let typed_expr = self.analyze_expression(expression)?;
+                (ASN::Expression { expression: typed_expr }, vec![])
+            }
+            ASN::Declaration { typ, name, expression } => {
+                let typed_expr = match expression {
+                    Some(e) => Some(self.analyze_expression(e)?),
+                    None => None,
+                };
+                if !matches!(self.stacktrace.get(self.stacktrace.len() - 2), Some(ASN::Class { .. })) {
+                    self.analyze_declaration(typ, name, &typed_expr)?;
+                }
+                (ASN::Declaration { typ: typ.clone(), name: name.clone(), expression: typed_expr }, vec![])
             }
             ASN::Return { value } => {
                 let func = self.stacktrace.iter().rev().find_map(|n| if let ASN::Callable { result_type, .. } = n { Some(result_type) } else { None })
                     .ok_or("Return outside function")?;
-                let val_type = if let Some(expr) = value { self.check_expression(expr)? } else { Type::Void };
+                let typed_value = match value {
+                    Some(expr) => Some(self.analyze_expression(expr)?),
+                    None => None
+                };
+                let val_type = typed_value.as_ref().map_or(Type::Void, |v| v.get_type());
                 if val_type != *func { return Err("Return type mismatch".into()); }
+                (ASN::Return { value: typed_value }, vec![])
             }
             ASN::Break | ASN::Continue => {
                 if !self.stacktrace.iter().any(|n| matches!(n, ASN::While { .. } | ASN::For { .. })) {
                     return Err("Jump outside loop".into());
                 }
+                (ast.node.clone().map_expr(|_| unreachable!()), vec![])
             }
-        }
+        };
 
         self.stacktrace.pop();
-        Ok(())
+        Ok(TypedAST::with_children(typed_node, typed_children))
     }
 
-    fn check_children(&mut self, ast: &AST) -> Result<(), BoxError> {
-        for child in &ast.children {
-            self.check(child)?;
+    fn analyze_children(&mut self, children: &[RawAST]) -> Result<Vec<TypedAST>, BoxError> {
+        let mut typed_children = vec![];
+        for child in children {
+            typed_children.push(self.analyze(child)?);
         }
-        Ok(())
+        Ok(typed_children)
     }
 
-    fn check_declaration(&mut self, typ: &Type, name: &str, expression: &Option<Expression>) -> Result<(), BoxError> {
+    fn analyze_declaration(&mut self, typ: &Type, name: &str, expression: &Option<TypedExpression>) -> Result<(), BoxError> {
         if let Type::Class(c) = typ && !self.classes.contains_key(c) {
             return Err(format!("Unknown type {}", c).into());
         }
-        if let Some(expr) = expression && self.check_expression(expr)? != *typ {
+        if let Some(expr) = expression && expr.get_type() != *typ {
             return Err("Declaration type mismatch".into());
         }
         self.scopes.last_mut().unwrap().insert(name.to_owned(), typ.clone());
         Ok(())
     }
 
-    fn check_expression(&self, expression: &Expression) -> Result<Type, BoxError> {
+    fn analyze_expression(&self, expression: &RawExpression) -> Result<TypedExpression, BoxError> {
         match expression {
-            Expression::Literal(v) => Self::get_literal_type(v),
-            Expression::Variable { name } => self.find_var(name).cloned().ok_or(format!("Undefined: {}", name).into()),
-            Expression::BinaryOp { left, op, right } => {
-                let lt = self.check_expression(left)?;
-                let rt = self.check_expression(right)?;
-                if lt != rt { return Err("Binary op type mismatch".into()); }
-                Ok(if Self::is_compering_binary_op(op) { Type::Bool } else { lt })
+            Expression::Literal { value, .. } => {
+                let typ = get_literal_type(value)?;
+                Ok(Expression::Literal { typ, value: value.clone() })
             }
-            Expression::FunctionCall { name, arguments } => {
+            Expression::Variable { name, .. } => {
+                let typ = self.find_var(name).cloned().ok_or(format!("Undefined: {}", name))?;
+                Ok(Expression::Variable { typ, name: name.clone() })
+            }
+            Expression::BinaryOp { left, op, right, .. } => {
+                let typed_left = self.analyze_expression(left)?;
+                let typed_right = self.analyze_expression(right)?;
+                let left_type = typed_left.get_type();
+                let right_type = typed_right.get_type();
+                if left_type != right_type { return Err("Binary op type mismatch".into()); }
+                let result_type = if Self::is_compering_binary_op(op) { Type::Bool } else { left_type };
+                Ok(Expression::BinaryOp { typ: result_type, left: Box::new(typed_left), op: op.clone(), right: Box::new(typed_right) })
+            }
+            Expression::FunctionCall { name, arguments, .. } => {
                 let (ret, params) = self.functions.get(name).ok_or(format!("Func {} not found", name))?;
-                self.check_args(params, arguments)?;
-                Ok(ret.clone())
+                let typed_args = self.analyze_args(params, arguments)?;
+                Ok(Expression::FunctionCall { typ: ret.clone(), name: name.clone(), arguments: typed_args })
             }
-            Expression::MethodCall { object, name: method, arguments } => {
-                let obj_type = self.check_expression(object)?;
-                if let Type::Class(c_name) = obj_type {
+            Expression::MethodCall { object, name: method, arguments, .. } => {
+                let typed_object = self.analyze_expression(object)?;
+                if let Type::Class(c_name) = typed_object.get_type() {
                     let class = self.classes.get(&c_name).ok_or("Class not found")?;
                     let (ret, params) = class.methods.get(method).ok_or(format!("Method {} not found in {}", method, c_name))?;
-                    self.check_args(params, arguments)?;
-                    Ok(ret.clone())
+                    let typed_args = self.analyze_args(params, arguments)?;
+                    Ok(Expression::MethodCall { typ: ret.clone(), object: Box::new(typed_object), name: method.clone(), arguments: typed_args })
                 } else { Err("Method call on non-object".into()) }
             }
-            Expression::Field { object, name: member } => {
-                let obj_type = self.check_expression(object)?;
-                if let Type::Class(c_name) = obj_type {
+            Expression::Field { object, name: member, .. } => {
+                let typed_object = self.analyze_expression(object)?;
+                if let Type::Class(c_name) = typed_object.get_type() {
                     let class = self.classes.get(&c_name).ok_or("Class not found")?;
-                    class.fields.get(member).cloned().ok_or(format!("Field {} not found", member).into())
+                    let field_type = class.fields.get(member).cloned().ok_or(format!("Field {} not found", member))?;
+                    Ok(Expression::Field { typ: field_type, object: Box::new(typed_object), name: member.clone() })
                 } else { Err("Field access on non-object".into()) }
             }
-            Expression::Assign { name, value } => {
-                let var_t = self.find_var(name).ok_or(format!("Undefined {}", name))?.clone();
-                if var_t != self.check_expression(value)? { return Err("Assign type mismatch".into()); }
-                Ok(var_t)
+            Expression::Assign { name, value, .. } => {
+                let var_type = self.find_var(name).ok_or(format!("Undefined {}", name))?.clone();
+                let typed_value = self.analyze_expression(value)?;
+                if var_type != typed_value.get_type() { return Err("Assign type mismatch".into()); }
+                Ok(Expression::Assign { typ: var_type, name: name.clone(), value: Box::new(typed_value) })
             }
-            Expression::AssignField { object, name: member, value } => {
-                let obj_t = self.check_expression(object)?;
-                if let Type::Class(c) = obj_t {
-                    let field_t = self.classes.get(&c).unwrap().fields.get(member).ok_or("Field not found")?.clone();
-                    if field_t != self.check_expression(value)? { return Err("Field assign mismatch".into()); }
-                    Ok(field_t)
+            Expression::AssignField { object, name: member, value, .. } => {
+                let typed_object = self.analyze_expression(object)?;
+                let typed_value = self.analyze_expression(value)?;
+                if let Type::Class(c) = typed_object.get_type() {
+                    let field_type = self.classes.get(&c).unwrap().fields.get(member).ok_or("Field not found")?.clone();
+                    if field_type != typed_value.get_type() { return Err("Field assign mismatch".into()); }
+                    Ok(Expression::AssignField { typ: field_type, object: Box::new(typed_object), name: member.clone(), value: Box::new(typed_value) })
                 } else { Err("Not an object".into()) }
             }
-            Expression::Increment { expression , ..} |
-            Expression::Decrement { expression, .. } => {
-                match **expression {
-                    Expression::Variable { .. } | Expression::Field { .. } => {}
-                    _ => return Err("Increment/Decrement can only be applied to a variable or field".into())
+            Expression::Increment { expression, postfix, ..} |
+            Expression::Decrement { expression, postfix, .. } => {
+                let typed_expr = self.analyze_expression(expression)?;
+                if !matches!(typed_expr, Expression::Variable { .. } | Expression::Field { .. }) {
+                    return Err("Increment/Decrement can only be applied to a variable or field".into());
                 }
+                let typ = typed_expr.get_type();
+                if typ != Type::Int && typ != Type::Float { return Err(format!("Operator ++/-- cannot be applied to type {:?}", typ).into()); }
 
-                let typ = self.check_expression(expression)?;
-                if typ != Type::Int && typ != Type::Float {
-                    return Err(format!("Operator ++/-- cannot be applied to type {:?}", typ).into());
+                if matches!(expression.as_ref(), Expression::Increment { .. }) {
+                    Ok(Expression::Increment { typ: typ.clone(), expression: Box::new(typed_expr), postfix: *postfix })
+                } else {
+                    Ok(Expression::Decrement { typ: typ.clone(), expression: Box::new(typed_expr), postfix: *postfix })
                 }
-                Ok(typ.clone())
             }
-            Expression::Negate { expression } => {
-                let t = self.check_expression(expression)?;
+            Expression::Negate { expression, .. } => {
+                let typed_expr = self.analyze_expression(expression)?;
+                let t = typed_expr.get_type();
                 if t != Type::Int && t != Type::Float { return Err("Need numeric for minus".into()); }
-                Ok(t)
+                Ok(Expression::Negate { typ: t, expression: Box::new(typed_expr) })
             }
-            Expression::Not { expression } => {
-                if self.check_expression(expression)? != Type::Bool { return Err("Need bool for !".into()); }
-                Ok(Type::Bool)
+            Expression::Not { expression, .. } => {
+                let typed_expr = self.analyze_expression(expression)?;
+                if typed_expr.get_type() != Type::Bool { return Err("Need bool for !".into()); }
+                Ok(Expression::Not { typ: Type::Bool, expression: Box::new(typed_expr) })
             }
             Expression::New { class_name, .. } => {
                 if !self.classes.contains_key(class_name) { return Err("Unknown class".into()); }
-                Ok(Type::Class(class_name.clone()))
+                Ok(Expression::New { typ: Type::Class(class_name.clone()), class_name: class_name.clone() })
             }
-            Expression::This => {
-                let c = self.current_class_context().ok_or("'this' outside class")?;
-                Ok(Type::Class(c))
+            Expression::This { .. } => {
+                let class_name = self.current_class_context().ok_or("'this' outside class")?;
+                Ok(Expression::This { typ: Type::Class(class_name) })
             }
         }
     }
 
-    fn check_args(&self, params: &[Type], args: &[Expression]) -> Result<(), BoxError> {
-        if params.len() != args.len() {
-            return Err("Arg count mismatch".into());
-        }
+    fn analyze_args(&self, params: &[Type], args: &[RawExpression]) -> Result<Vec<TypedExpression>, BoxError> {
+        if params.len() != args.len() { return Err("Arg count mismatch".into()); }
+        let mut typed_args = Vec::new();
         for (p, a) in params.iter().zip(args) {
-            if *p != self.check_expression(a)? {
-                return Err("Arg type mismatch".into());
-            }
+            let typed_a = self.analyze_expression(a)?;
+            if *p != typed_a.get_type() { return Err("Arg type mismatch".into()); }
+            typed_args.push(typed_a);
         }
-        Ok(())
-    }
-
-    fn get_literal_type(value: &str) -> Result<Type, BoxError> {
-        if value.parse::<bool>().is_ok() {
-            Ok(Type::Bool)
-        } else if value.parse::<i64>().is_ok() {
-            Ok(Type::Int)
-        } else if value.parse::<f64>().is_ok() {
-            Ok(Type::Float)
-        }
-        else if value.starts_with('"') && value.ends_with('"') {
-            Ok(Type::Str)
-        }
-        else {
-            Err("Unknown literal type".into())
-        }
+        Ok(typed_args)
     }
 
     fn is_compering_binary_op(op: &BinaryOperator) -> bool {
@@ -284,9 +363,49 @@ impl SemanticTable {
     }
 }
 
-pub fn semantic_analyze(ast: &AST) -> Result<(), BoxError> {
+impl<E> ASN<E> {
+    fn map_expr<F, T>(self, f: F) -> ASN<T> where F: Fn(E) -> T + Copy {
+        match self {
+            ASN::If { condition } => ASN::If { condition: f(condition) },
+            ASN::ElseIf { condition } => ASN::ElseIf { condition: f(condition) },
+            ASN::Else => ASN::Else,
+            ASN::While { condition } => ASN::While { condition: f(condition) },
+            ASN::Expression { expression } => ASN::Expression { expression: f(expression) },
+            ASN::Declaration { typ, name, expression } => ASN::Declaration {
+                typ,
+                name,
+                expression: expression.map(f)
+            },
+            ASN::Return { value } => ASN::Return { value: value.map(f) },
+            ASN::Break => ASN::Break,
+            ASN::Continue => ASN::Continue,
+            ASN::Scope => ASN::Scope,
+            ASN::File => ASN::File,
+            ASN::For { initializer, condition, increment } => ASN::For {
+                initializer: initializer.map(|asn| Box::new((*asn).map_expr(f))),
+                condition: condition.map(f),
+                increment: increment.map(f)
+            },
+            ASN::Callable { result_type, name, arguments } => ASN::Callable {
+                result_type,
+                name,
+                arguments
+            },
+            ASN::Class { name } => ASN::Class { name },
+        }
+    }
+}
+
+pub fn get_literal_type(value: &str) -> Result<Type, BoxError> {
+    if value.parse::<bool>().is_ok() { Ok(Type::Bool) }
+    else if value.parse::<i64>().is_ok() { Ok(Type::Int) }
+    else if value.parse::<f64>().is_ok() { Ok(Type::Float) }
+    else if value.starts_with('"') && value.ends_with('"') { Ok(Type::Str) }
+    else { Err(format!("Unknown literal type for value: {}", value).into()) }
+}
+
+pub fn semantic_analyze(ast: RawAST) -> Result<TypedAST, BoxError> {
     let mut table = SemanticTable::new();
-    table.collect_definitions(ast)?;
-    table.check(ast)?;
-    Ok(())
+    table.collect_definitions(&ast)?;
+    table.analyze(&ast)
 }

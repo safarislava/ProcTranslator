@@ -1,7 +1,7 @@
 use std::iter::Peekable;
 use std::str::Chars;
 use std::vec::IntoIter;
-use crate::common::BoxError;
+use crate::common::{BoxError, RawExpression};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum BinaryOperator {
@@ -26,34 +26,49 @@ pub enum BinaryOperator {
 }
 
 #[derive(Debug, Clone)]
-pub enum Expression {
-    Literal(String),
-    Variable { name: String },
-    BinaryOp { left: Box<Expression>, op: BinaryOperator, right: Box<Expression> },
-    FunctionCall { name: String, arguments: Vec<Expression> },
-    MethodCall { object: Box<Expression>, name: String, arguments: Vec<Expression> },
-    Assign { name: String, value: Box<Expression> },
-    AssignField { object: Box<Expression>, name: String, value: Box<Expression> },
-    Increment { expression: Box<Expression>, postfix: bool },
-    Decrement { expression: Box<Expression>, postfix: bool },
-    Negate { expression: Box<Expression> },
-    Not { expression: Box<Expression> },
-    New { class_name: String, arguments: Vec<Expression> },
-    Field { object: Box<Expression>, name: String },
-    This,
+pub enum Expression<T> {
+    Literal { typ: T, value: String },
+    Variable { typ: T, name: String },
+    BinaryOp { typ: T, left: Box<Expression<T>>, op: BinaryOperator, right: Box<Expression<T>> },
+    FunctionCall { typ: T, name: String, arguments: Vec<Expression<T>> },
+    MethodCall { typ: T, object: Box<Expression<T>>, name: String, arguments: Vec<Expression<T>> },
+    Assign { typ: T, name: String, value: Box<Expression<T>> },
+    AssignField { typ: T, object: Box<Expression<T>>, name: String, value: Box<Expression<T>> },
+    Increment { typ: T, expression: Box<Expression<T>>, postfix: bool },
+    Decrement { typ: T, expression: Box<Expression<T>>, postfix: bool },
+    Negate { typ: T, expression: Box<Expression<T>> },
+    Not { typ: T, expression: Box<Expression<T>> },
+    New { typ: T, class_name: String },
+    Field { typ: T, object: Box<Expression<T>>, name: String },
+    This { typ: T },
 }
+
+impl<T: Clone> Expression<T> {
+    pub fn get_type(&self) -> T {
+        match self {
+            Expression::Literal { typ, .. } => typ.clone(),
+            Expression::Variable { typ, .. } => typ.clone(),
+            Expression::BinaryOp { typ, .. } => typ.clone(),
+            Expression::FunctionCall { typ, .. } => typ.clone(),
+            Expression::MethodCall { typ, .. } => typ.clone(),
+            Expression::Assign { typ, .. } => typ.clone(),
+            Expression::AssignField { typ, .. } => typ.clone(),
+            Expression::Increment { typ, .. } => typ.clone(),
+            Expression::Decrement { typ, .. } => typ.clone(),
+            Expression::Negate { typ, .. } => typ.clone(),
+            Expression::Not { typ, .. } => typ.clone(),
+            Expression::New { typ, .. } => typ.clone(),
+            Expression::Field { typ, .. } => typ.clone(),
+            Expression::This { typ } => typ.clone(),
+        }
+    }
+}
+
 
 #[derive(Debug, Clone, PartialEq)]
 enum Token {
-    Num(String),
-    Str(String),
-    Bool(String),
-    Id(String),
-    Op(String),
-    LParen,
-    RParen,
-    Comma,
-    Dot
+    Num(String), Str(String), Bool(String), Id(String), Op(String),
+    LParen, RParen, Comma, Dot,
 }
 
 struct Lexer<'a> {
@@ -65,11 +80,7 @@ impl<'a> Lexer<'a> {
 
     fn skip_whitespace(&mut self) {
         while let Some(&c) = self.chars.peek() {
-            if c.is_whitespace() {
-                self.chars.next();
-            } else {
-                break;
-            }
+            if c.is_whitespace() { self.chars.next(); } else { break; }
         }
     }
 
@@ -79,9 +90,7 @@ impl<'a> Lexer<'a> {
             if cond(c) {
                 s.push(c);
                 self.chars.next();
-            } else {
-                break;
-            }
+            } else { break; }
         }
         s
     }
@@ -94,8 +103,7 @@ impl<'a> Lexer<'a> {
         };
 
         let token = match c {
-            c if c.is_ascii_digit() =>
-                Token::Num(self.read_while(|c| c.is_ascii_digit() || c == '.')),
+            c if c.is_ascii_digit() => Token::Num(self.read_while(|c| c.is_ascii_digit() || c == '.')),
             '"' => {
                 self.chars.next();
                 let s = self.read_while(|c| c != '"');
@@ -142,11 +150,11 @@ impl Parser {
         Self { tokens: tokens.into_iter().peekable() }
     }
 
-    fn is_changeable(expr: &Expression) -> bool {
+    fn is_changeable(expr: &RawExpression) -> bool {
         matches!(expr, Expression::Variable { .. } | Expression::Field { .. })
     }
 
-    fn parse_expression(&mut self, min_order: u8) -> Result<Expression, BoxError> {
+    fn parse_expression(&mut self, min_order: u8) -> Result<RawExpression, BoxError> {
         let mut left = self.parse_primary()?;
 
         loop {
@@ -162,9 +170,9 @@ impl Parser {
                 if let Some(Token::LParen) = self.tokens.peek() {
                     self.tokens.next();
                     let args = self.parse_arguments()?;
-                    left = Expression::MethodCall { object: Box::new(left), name: member, arguments: args };
+                    left = Expression::MethodCall { typ: (), object: Box::new(left), name: member, arguments: args };
                 } else {
-                    left = Expression::Field { object: Box::new(left), name: member };
+                    left = Expression::Field { typ: (), object: Box::new(left), name: member };
                 }
                 continue;
             }
@@ -175,9 +183,9 @@ impl Parser {
 
                 if Self::is_changeable(&left) {
                     left = if op_str == "++" {
-                        Expression::Increment { expression: Box::new(left), postfix: true }
+                        Expression::Increment { typ: (), expression: Box::new(left), postfix: true }
                     } else {
-                        Expression::Decrement { expression: Box::new(left), postfix: true }
+                        Expression::Decrement { typ: (), expression: Box::new(left), postfix: true }
                     };
                 } else {
                     return Err(format!("Operator '{}' can only be applied to a variable", op_str).into());
@@ -188,8 +196,8 @@ impl Parser {
             if let Some(Token::Op(op_str)) = next {
                 let op = Self::link_binary_operator(&op_str)?;
                 let (left_order, right_order) = Self::binding_order(&op);
-                if left_order < min_order { 
-                    break; 
+                if left_order < min_order {
+                    break;
                 }
                 self.tokens.next();
 
@@ -199,14 +207,14 @@ impl Parser {
                     BinaryOperator::Assign => {
                         if !Self::is_changeable(&left) { return Err("Invalid assignment target".into()); }
                         match left {
-                            Expression::Variable { name } =>
-                                Expression::Assign { name, value: Box::new(right) },
-                            Expression::Field { object, name: member } =>
-                                Expression::AssignField { object, name: member, value: Box::new(right) },
+                            Expression::Variable { name, .. } =>
+                                Expression::Assign { typ: (), name, value: Box::new(right) },
+                            Expression::Field { object, name: member, .. } =>
+                                Expression::AssignField { typ: (), object, name: member, value: Box::new(right) },
                             _ => unreachable!()
                         }
                     },
-                    _ => Expression::BinaryOp { left: Box::new(left), op, right: Box::new(right) },
+                    _ => Expression::BinaryOp { typ: (), left: Box::new(left), op, right: Box::new(right) },
                 };
             } else {
                 break;
@@ -215,34 +223,28 @@ impl Parser {
         Ok(left)
     }
 
-    fn parse_primary(&mut self) -> Result<Expression, BoxError> {
+    fn parse_primary(&mut self) -> Result<RawExpression, BoxError> {
         let token = self.tokens.next().ok_or("Unexpected end of expression")?;
         match token {
-            Token::Num(v) => Ok(Expression::Literal(v)),
-            Token::Str(v) => Ok(Expression::Literal(format!("\"{}\"", v))),
-            Token::Bool(v) => Ok(Expression::Literal(v)),
+            Token::Num(value) => Ok(Expression::Literal { typ: (), value } ),
+            Token::Str(value) => Ok(Expression::Literal { typ: (), value: format!("\"{}\"", value) }),
+            Token::Bool(value) => Ok(Expression::Literal { typ: (), value }),
             Token::Id(id) => match id.as_str() {
-                "this" => Ok(Expression::This),
+                "this" => Ok(Expression::This { typ: () }),
                 "new" => {
                     let class_name = match self.tokens.next() {
                         Some(Token::Id(name)) => name,
                         _ => return Err("Expected class name after 'new'".into()),
                     };
-                    let arguments = if let Some(Token::LParen) = self.tokens.peek() {
-                        self.tokens.next();
-                        self.parse_arguments()?
-                    } else { 
-                        vec![] 
-                    };
-                    Ok(Expression::New { class_name, arguments })
+                    Ok(Expression::New { typ: (), class_name })
                 }
                 name => {
                     if let Some(Token::LParen) = self.tokens.peek() {
                         self.tokens.next();
                         let args = self.parse_arguments()?;
-                        Ok(Expression::FunctionCall { name: name.to_string(), arguments: args })
+                        Ok(Expression::FunctionCall { typ: (), name: name.to_string(), arguments: args })
                     } else {
-                        Ok(Expression::Variable { name: name.to_string() })
+                        Ok(Expression::Variable { typ: (), name: name.to_string() })
                     }
                 }
             },
@@ -251,23 +253,36 @@ impl Parser {
                 if self.tokens.next() != Some(Token::RParen) { return Err("Expected ')'".into()); }
                 Ok(expr)
             }
-            Token::Op(op) if op == "++" || op == "--" => {
-                let target = self.parse_primary()?;
-                if Self::is_changeable(&target) {
-                    Ok(if op == "++" {
-                        Expression::Increment { expression: Box::new(target), postfix: false }
-                    } else {
-                        Expression::Decrement { expression: Box::new(target), postfix: false }
-                    })
-                } else {
-                    Err(format!("Operator '{}' can only be applied to a variable or field", op).into())
+            Token::Op(op) => {
+                match op.as_str() {
+                    "++" | "--" => {
+                        let target = self.parse_primary()?;
+                        if Self::is_changeable(&target) {
+                            Ok(if op == "++" {
+                                Expression::Increment { typ: (), expression: Box::new(target), postfix: false }
+                            } else {
+                                Expression::Decrement { typ: (), expression: Box::new(target), postfix: false }
+                            })
+                        } else {
+                            Err(format!("Operator '{}' can only be applied to a variable or field", op).into())
+                        }
+                    },
+                    "-" => {
+                        let expr = self.parse_expression(15)?; // Унарный минус имеет высокий приоритет
+                        Ok(Expression::Negate { typ: (), expression: Box::new(expr) })
+                    },
+                    "!" => {
+                        let expr = self.parse_expression(15)?; // Унарное отрицание
+                        Ok(Expression::Not { typ: (), expression: Box::new(expr) })
+                    }
+                    _ => Err(format!("Unexpected unary operator: {}", op).into())
                 }
-            }
+            },
             _ => Err(format!("Unexpected token: {:?}", token).into()),
         }
     }
 
-    fn parse_arguments(&mut self) -> Result<Vec<Expression>, BoxError> {
+    fn parse_arguments(&mut self) -> Result<Vec<RawExpression>, BoxError> {
         let mut args = vec![];
         if let Some(Token::RParen) = self.tokens.peek() {
             self.tokens.next();
@@ -283,48 +298,38 @@ impl Parser {
         }
         Ok(args)
     }
-    
+
     fn link_binary_operator(op: &str) -> Result<BinaryOperator, BoxError> {
         match op {
-            "=" => Ok(BinaryOperator::Assign),
-            "+=" => Ok(BinaryOperator::AssignAdd),
-            "-=" => Ok(BinaryOperator::AssignSub),
-            "*=" => Ok(BinaryOperator::AssignMul),
-            "/=" => Ok(BinaryOperator::AssignDiv),
-            "||" => Ok(BinaryOperator::Or),
-            "&&" => Ok(BinaryOperator::And),
-            "==" => Ok(BinaryOperator::Equal),
-            "!=" => Ok(BinaryOperator::NotEqual),
-            "<" => Ok(BinaryOperator::Less),
-            "<=" => Ok(BinaryOperator::LessEqual),
-            ">" => Ok(BinaryOperator::Greater),
-            ">=" => Ok(BinaryOperator::GreaterEqual),
-            "+" => Ok(BinaryOperator::Plus),
-            "-" => Ok(BinaryOperator::Minus),
-            "*" => Ok(BinaryOperator::Multiply),
-            "/" => Ok(BinaryOperator::Divide),
-            "%" => Ok(BinaryOperator::Modulo),
+            "=" => Ok(BinaryOperator::Assign), "+=" => Ok(BinaryOperator::AssignAdd),
+            "-=" => Ok(BinaryOperator::AssignSub), "*=" => Ok(BinaryOperator::AssignMul),
+            "/=" => Ok(BinaryOperator::AssignDiv), "||" => Ok(BinaryOperator::Or),
+            "&&" => Ok(BinaryOperator::And), "==" => Ok(BinaryOperator::Equal),
+            "!=" => Ok(BinaryOperator::NotEqual), "<" => Ok(BinaryOperator::Less),
+            "<=" => Ok(BinaryOperator::LessEqual), ">" => Ok(BinaryOperator::Greater),
+            ">=" => Ok(BinaryOperator::GreaterEqual), "+" => Ok(BinaryOperator::Plus),
+            "-" => Ok(BinaryOperator::Minus), "*" => Ok(BinaryOperator::Multiply),
+            "/" => Ok(BinaryOperator::Divide), "%" => Ok(BinaryOperator::Modulo),
             _ => Err("Unknown binary operator".into()),
         }
     }
 
     fn binding_order(op: &BinaryOperator) -> (u8, u8) {
         match op {
-            BinaryOperator::Assign | 
-            BinaryOperator::AssignAdd | BinaryOperator::AssignSub | 
+            BinaryOperator::Assign | BinaryOperator::AssignAdd | BinaryOperator::AssignSub |
             BinaryOperator::AssignMul | BinaryOperator::AssignDiv => (1, 2),
             BinaryOperator::Or => (3, 4),
             BinaryOperator::And => (5, 6),
             BinaryOperator::Equal | BinaryOperator::NotEqual => (7, 8),
-            BinaryOperator::Less | BinaryOperator::LessEqual | 
+            BinaryOperator::Less | BinaryOperator::LessEqual |
             BinaryOperator::Greater | BinaryOperator::GreaterEqual => (9, 10),
             BinaryOperator::Plus | BinaryOperator::Minus => (11, 12),
-            BinaryOperator::Multiply | BinaryOperator::Divide | BinaryOperator::Modulo => (13, 14)
+            BinaryOperator::Multiply | BinaryOperator::Divide | BinaryOperator::Modulo => (13, 14),
         }
     }
 }
 
-pub fn parse_expression(raw_code: &str) -> Result<Expression, BoxError> {
+pub fn parse_expression(raw_code: &str) -> Result<RawExpression, BoxError> {
     let trimmed = raw_code.trim().trim_end_matches(';');
     if trimmed.is_empty() { return Err("Empty expression".into()); }
     let mut lexer = Lexer::new(trimmed);

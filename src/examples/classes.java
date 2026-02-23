@@ -1,5 +1,5 @@
 class Node {
-    int counter = 0;
+    int counter = 5;
 
     int Increment() {
         return this.counter++;
