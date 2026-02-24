@@ -2,66 +2,6 @@ use std::collections::HashMap;
 use crate::common::{TypedAST, TypedExpression, ASN, Type};
 use crate::expression::BinaryOperator;
 
-fn simplify(ast: TypedAST) -> TypedAST {
-    let TypedAST { node, children } = ast;
-    let mut simplified_children = Vec::new();
-    let mut iter = children.into_iter().peekable();
-
-    while let Some(mut child) = iter.next() {
-        if let ASN::If { .. } = child.node {
-            child = build_if_tree(child, &mut iter);
-        }
-        simplified_children.push(simplify(child));
-    }
-
-    match node {
-        ASN::For { initializer, condition, increment } => {
-            let mut scope_children = Vec::new();
-
-            if let Some(init_box) = initializer {
-                let init_ast = TypedAST::new(*init_box);
-                scope_children.push(simplify(init_ast));
-            }
-
-            let mut while_body = simplified_children;
-            if let Some(inc) = increment {
-                while_body.push(TypedAST::new(ASN::Expression { expression: inc }));
-            }
-
-            let condition = condition.unwrap_or_else(||
-                TypedExpression::Literal { typ: Type::Bool, value: "true".into() }
-            );
-
-            let while_node = TypedAST::with_children(ASN::While { condition }, while_body);
-            scope_children.push(while_node);
-
-            TypedAST::with_children(ASN::Scope, scope_children)
-        }
-        other_node => TypedAST::with_children(other_node, simplified_children),
-    }
-}
-
-fn build_if_tree(mut current_node: TypedAST, iter: &mut std::iter::Peekable<impl Iterator<Item = TypedAST>>) -> TypedAST {
-    if let ASN::ElseIf { condition } = current_node.node {
-        current_node.node = ASN::If { condition };
-    }
-
-    match iter.peek().map(|typed_ast| &typed_ast.node) {
-        Some(ASN::ElseIf { .. }) => {
-            let next_node = iter.next().unwrap();
-            let nested_if = build_if_tree(next_node, iter);
-            current_node.children.push(TypedAST::with_children(ASN::Else, vec![nested_if]));
-        }
-        Some(ASN::Else) => {
-            let else_node = iter.next().unwrap();
-            current_node.children.push(else_node);
-        }
-        _ => {}
-    }
-
-    current_node
-}
-
 pub type BlockId = usize;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Register(pub usize);
@@ -80,7 +20,8 @@ pub enum Operand {
 pub enum IrInstruction {
     LoadConst { dest: Register, value: String },
     BinaryOp { dest: Register, left: Operand, op: BinaryOperator, right: Operand },
-    Call { dest: Option<Register>, name: String, arguments: Vec<Operand> },
+    Call { dest: Register, block: BlockId, arguments: Vec<Operand> },
+    LoadParam { dest: Register, index: usize },
 
     StackAlloc { slot: StackSlot },
     StackStore { slot: StackSlot, value: Operand },
@@ -315,11 +256,39 @@ impl IrContext {
                     self.emit(IrInstruction::StackStore { slot, value });
                 }
             }
-            ASN::Callable { result_type, name, arguments } => {
-                todo!()
+            ASN::Callable { name, arguments, .. } => {
+                let block_id = match &self.current_class {
+                    Some(current_class) => self.classes[current_class].methods[&name],
+                    None => self.functions[&name],
+                };
+
+                self.set_current_block(block_id);
+                self.enter_scope();
+
+                let mut param_offset = 0;
+                if self.current_class.is_some() {
+                    let reg = self.new_reg();
+                    self.emit(IrInstruction::LoadParam { dest: reg, index: 0 });
+                    self.this_register = Some(reg);
+                    param_offset = 1;
+                }
+
+                for (i, arg) in arguments.into_iter().enumerate() {
+                    let slot = self.declare_var(arg.name);
+                    let reg = self.new_reg();
+                    self.emit(IrInstruction::LoadParam { dest: reg, index: i + param_offset });
+                    self.emit(IrInstruction::StackStore { slot, value: Operand::Value(reg) });
+                }
+
+                for child in ast.children {
+                    self.gen_statement(child);
+                }
+
+                self.exit_scope();
+                self.this_register = None;
             }
             ASN::Class { name } => {
-                todo!()
+
             }
             ASN::Return { value } => {
                 todo!()
@@ -368,7 +337,8 @@ impl IrContext {
                     args.push(self.gen_expression(arg));
                 }
                 let dest = self.new_reg();
-                self.emit(IrInstruction::Call { dest: Some(dest), name, arguments: args });
+                let block = self.functions[&name];
+                self.emit(IrInstruction::Call { dest, block, arguments: args });
                 Operand::Value(dest)
             }
             TypedExpression::Assign { name, value, .. } => {
@@ -400,11 +370,29 @@ impl IrContext {
                     dest, left: operand, op: BinaryOperator::Equal, right: false_const});
                 Operand::Value(dest)
             }
-            TypedExpression::MethodCall { object, name, arguments, .. } => {
-                todo!()
+            TypedExpression::MethodCall { object, name, arguments, typ } => {
+                let object = self.gen_expression(*object);
+                let Type::Class(class_name) = typ else { unreachable!() };
+
+                let mut args = vec![object];
+                for arg in arguments {
+                    args.push(self.gen_expression(arg));
+                }
+
+                let block = self.classes[&class_name].methods[&name];
+                let dest = self.new_reg();
+                self.emit(IrInstruction::Call { dest, block, arguments: args });
+
+                Operand::Value(dest)
             }
-            TypedExpression::AssignField { object, name, value, .. } => {
-                todo!()
+            TypedExpression::AssignField { object, name, value, typ } => {
+                let object = self.gen_expression(*object);
+                let Type::Class(class_name) = typ else { unreachable!() };
+                let offset = self.classes[&class_name].fields[&name].1;
+                let value = self.gen_expression(*value);
+
+                self.emit(IrInstruction::PutField {object, offset, value});
+                Operand::Void
             }
             TypedExpression::New { class_name, ..} => {
                 let dest = self.new_reg();
@@ -421,17 +409,21 @@ impl IrContext {
                 object
             }
             TypedExpression::Field { object, name, typ } => {
-                let object_operand = self.gen_expression(*object);
+                let object = self.gen_expression(*object);
                 let Type::Class(class_name) = typ else { unreachable!() };
                 let offset = self.classes[&class_name].fields[&name].1;
 
                 let dest = self.new_reg();
-                self.emit(IrInstruction::GetField { dest, object: object_operand, offset });
+                self.emit(IrInstruction::GetField { dest, object, offset });
 
                 Operand::Value(dest)
             }
             TypedExpression::This { .. } => {
-                todo!()
+                if let Some(reg) = self.this_register {
+                    Operand::Value(reg)
+                } else {
+                    unreachable!()
+                }
             }
         }
     }
@@ -455,8 +447,25 @@ impl IrContext {
                     Operand::Value(new_val_reg)
                 }
             }
-            TypedExpression::Field { object, name, .. } => {
-                todo!()
+            TypedExpression::Field { object, name, typ } => {
+                let object = self.gen_expression(*object);
+                let Type::Class(class_name) = typ else { unreachable!() };
+                let offset = self.classes[&class_name].fields[&name].1;
+
+                let old_val_reg = self.new_reg();
+                self.emit(IrInstruction::GetField { dest: old_val_reg, object: object.clone(), offset });
+
+                let new_val_reg = self.new_reg();
+                let one_const = Operand::Constant("1".to_string());
+                self.emit(IrInstruction::BinaryOp {
+                    dest: new_val_reg, left: Operand::Value(old_val_reg), op, right: one_const, });
+                self.emit(IrInstruction::PutField {object,  offset, value: Operand::Value(new_val_reg)});
+
+                if postfix {
+                    Operand::Value(old_val_reg)
+                } else {
+                    Operand::Value(new_val_reg)
+                }
             }
             _ => unreachable!()
         }
@@ -499,10 +508,9 @@ impl IrContext {
 }
 
 pub fn compile(ast: TypedAST) -> CFG {
-    let simple_ast = simplify(ast);
     let mut ctx = IrContext::new();
-    ctx.scan_signatures(&simple_ast);
-    ctx.gen_statement(simple_ast);
+    ctx.scan_signatures(&ast);
+    ctx.gen_statement(ast);
     if !ctx.is_current_terminated() {
         ctx.emit_terminator(Terminator::Return(None));
     }

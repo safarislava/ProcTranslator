@@ -4,19 +4,24 @@ mod ast;
 mod expression;
 mod common;
 mod ir;
+mod simplifier;
+mod tests;
 
-use std::fs;
 use crate::common::BoxError;
 
 fn main() -> Result<(), BoxError> {
-    let file_path = "/Users/safarislava/Documents/Projects/ProcTranslator/src/examples/scopes.java";
-    let content = fs::read_to_string(file_path)?;
+    compile_file("/Users/safarislava/Documents/Projects/ProcTranslator/examples/correct/scopes.java")?;
+    Ok(())
+}
+
+fn compile_file(path: &str) -> Result<(), BoxError> {
+    let content = std::fs::read_to_string(path)?;
 
     let syntax_tree = parser::parse_syntax_tree(&content)?;
     let ast = ast::build(syntax_tree)?;
-    let typed_ast = analyzer::semantic_analyze(ast)?;
+    let simple_ast = simplifier::simplify(ast);
+    let typed_ast = analyzer::semantic_analyze(simple_ast)?;
 
     let cfg = ir::compile(typed_ast);
-
     Ok(())
 }

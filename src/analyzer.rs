@@ -102,14 +102,6 @@ impl SemanticTable {
                 self.scopes.pop();
                 (ASN::If { condition: typed_condition }, children)
             }
-            ASN::ElseIf { condition } => {
-                let typed_condition = self.analyze_expression(condition)?;
-                if typed_condition.get_type() != Type::Bool { return Err("Condition must be bool".into()); }
-                self.scopes.push(HashMap::new());
-                let children = self.analyze_children(&ast.children)?;
-                self.scopes.pop();
-                (ASN::ElseIf { condition: typed_condition }, children)
-            }
             ASN::While { condition } => {
                 let typed_condition = self.analyze_expression(condition)?;
                 if typed_condition.get_type() != Type::Bool { return Err("Condition must be bool".into()); }
@@ -118,44 +110,6 @@ impl SemanticTable {
                 self.scopes.pop();
                 (ASN::While { condition: typed_condition }, children)
             }
-            ASN::For { initializer, condition, increment } => {
-                self.scopes.push(HashMap::new());
-                let typed_initializer = match initializer {
-                    Some(asn) => match *asn.clone() {
-                        ASN::Expression { expression } => {
-                            let typed_expression = self.analyze_expression(&expression)?;
-                            Some(Box::new(ASN::Expression { expression: typed_expression }))
-                        }
-                        ASN::Declaration { typ, name,  expression } => {
-                            let typed_expression = match expression {
-                                Some(expression) => Some(self.analyze_expression(&expression)?),
-                                None => None,
-                            };
-                            self.analyze_declaration(&typ, &name, &typed_expression)?;
-                            Some(Box::new(ASN::Declaration { typ: typ.clone(), name: name.clone(), expression: typed_expression }))
-                        }
-                        _ => return Err("For initializer can be only expression or declaration".into()),
-                    },
-                    None => None,
-                };
-
-
-                let typed_condition = match condition {
-                    Some(cond) => {
-                        let typed_cond = self.analyze_expression(cond)?;
-                        if typed_cond.get_type() != Type::Bool { return Err("For condition must be bool".into()); }
-                        Some(typed_cond)
-                    },
-                    None => None,
-                };
-                let typed_increment = match increment {
-                    Some(inc) => Some(self.analyze_expression(inc)?),
-                    None => None,
-                };
-                let children = self.analyze_children(&ast.children)?;
-                self.scopes.pop();
-                (ASN::For { initializer: typed_initializer, condition: typed_condition, increment: typed_increment }, children)
-            }
             ASN::Callable { result_type, name, arguments } => {
                 self.scopes.push(HashMap::new());
                 for arg in arguments {
@@ -163,6 +117,10 @@ impl SemanticTable {
                 }
                 let children = self.analyze_children(&ast.children)?;
                 self.scopes.pop();
+
+                if !self.statements_guarantee_return(&children) {
+                    return Err(format!("Not all code paths return a value in function '{}'", name).into());
+                }
                 (ASN::Callable { result_type: result_type.clone(), name: name.clone(), arguments: arguments.clone() }, children)
             }
             ASN::Class { name } => {
@@ -213,14 +171,14 @@ impl SemanticTable {
                 (ASN::Declaration { typ: typ.clone(), name: name.clone(), expression: typed_expr }, vec![])
             }
             ASN::Return { value } => {
-                let func = self.stacktrace.iter().rev().find_map(|n| if let ASN::Callable { result_type, .. } = n { Some(result_type) } else { None })
-                    .ok_or("Return outside function")?;
+                let func_type = self.stacktrace.iter().rev().find_map(|n|
+                    if let ASN::Callable { result_type, .. } = n { Some(result_type) } else { None }).ok_or("Return outside function")?;
                 let typed_value = match value {
                     Some(expr) => Some(self.analyze_expression(expr)?),
                     None => None
                 };
                 let val_type = typed_value.as_ref().map_or(Type::Void, |v| v.get_type());
-                if val_type != *func { return Err("Return type mismatch".into()); }
+                if val_type != *func_type { return Err("Return type mismatch".into()); }
                 (ASN::Return { value: typed_value }, vec![])
             }
             ASN::Break | ASN::Continue => {
@@ -229,6 +187,7 @@ impl SemanticTable {
                 }
                 (ast.node.clone().map_expr(|_| unreachable!()), vec![])
             }
+            _ => unreachable!()
         };
 
         self.stacktrace.pop();
@@ -363,8 +322,30 @@ impl SemanticTable {
     }
 }
 
+impl SemanticTable {
+    fn statements_guarantee_return(&self, children: &[TypedAST]) -> bool {
+        if let Some(last_statement) = children.last() {
+            match &last_statement.node {
+                ASN::Return { .. } => true,
+                ASN::Scope => self.statements_guarantee_return(&last_statement.children),
+                ASN::If { .. } => {
+                    let else_node = last_statement.children.iter().find(|c| matches!(c.node, ASN::Else));
+                    if let Some(else_node) = else_node {
+                        let then_children: Vec<_> = last_statement.children
+                            .iter().filter(|c| !matches!(c.node, ASN::Else)).cloned().collect();
+                        self.statements_guarantee_return(&then_children) && self.statements_guarantee_return(&else_node.children)
+                    } else { false }
+                }
+                _ => false,
+            }
+        } else { false }
+    }
+}
+
+
 impl<E> ASN<E> {
-    fn map_expr<F, T>(self, f: F) -> ASN<T> where F: Fn(E) -> T + Copy {
+    fn map_expr<F, T>(self, f: F) -> ASN<T>
+    where F: Fn(E) -> T + Copy {
         match self {
             ASN::If { condition } => ASN::If { condition: f(condition) },
             ASN::ElseIf { condition } => ASN::ElseIf { condition: f(condition) },
