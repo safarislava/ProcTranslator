@@ -1,4 +1,7 @@
-use crate::common::{AbstractSyntaxNode, AbstractSyntaxTree, BoxError, RawAST, RawExpression, Type, TypedAST, TypedExpression};
+use crate::common::{
+    AbstractSyntaxNode, AbstractSyntaxTree, BoxError, RawAST, RawExpression, Type, TypedAST,
+    TypedExpression,
+};
 use crate::expression::{BinaryOperator, Expression};
 use std::collections::HashMap;
 
@@ -156,7 +159,11 @@ impl SemanticTable {
                 self.scopes.pop();
 
                 if !self.node_guarantees_return(ast) {
-                    return Err(format!("Not all code paths return a value in function '{}'", name).into());
+                    return Err(format!(
+                        "Not all code paths return a value in function '{}'",
+                        name
+                    )
+                    .into());
                 }
 
                 (
@@ -607,12 +614,10 @@ impl SemanticTable {
     fn node_guarantees_return<E>(&self, node: &AbstractSyntaxTree<E>) -> bool {
         match &node.node {
             AbstractSyntaxNode::Return { .. } => true,
-            AbstractSyntaxNode::If { .. } => {
-                self.if_guarantees_return(&node.children)
-            }
-            AbstractSyntaxNode::Scope |
-            AbstractSyntaxNode::While { .. } |
-            AbstractSyntaxNode::Callable { .. } => {
+            AbstractSyntaxNode::If { .. } => self.if_guarantees_return(&node.children),
+            AbstractSyntaxNode::Scope
+            | AbstractSyntaxNode::While { .. }
+            | AbstractSyntaxNode::Callable { .. } => {
                 node.children.iter().any(|c| self.node_guarantees_return(c))
             }
             _ => false,
@@ -620,24 +625,26 @@ impl SemanticTable {
     }
 
     fn if_guarantees_return<E>(&self, children: &[AbstractSyntaxTree<E>]) -> bool {
-        let else_node = children.iter().find(|c| {
-            matches!(c.node, AbstractSyntaxNode::Else)
-        });
+        let else_node = children
+            .iter()
+            .find(|c| matches!(c.node, AbstractSyntaxNode::Else));
 
         if else_node.is_none() {
             return false;
         }
 
-        let if_guarantees = children.iter().any(|c| !matches!(c.node, AbstractSyntaxNode::Else) && self.node_guarantees_return(c));
+        let if_guarantees = children
+            .iter()
+            .any(|c| !matches!(c.node, AbstractSyntaxNode::Else) && self.node_guarantees_return(c));
         let else_guarantees = self.else_guarantees_return(&else_node.unwrap().children);
 
         if_guarantees && else_guarantees
     }
 
     fn else_guarantees_return<E>(&self, children: &[AbstractSyntaxTree<E>]) -> bool {
-        let else_node = children.iter().find(|c| {
-            matches!(c.node, AbstractSyntaxNode::Else)
-        });
+        let else_node = children
+            .iter()
+            .find(|c| matches!(c.node, AbstractSyntaxNode::Else));
 
         match else_node {
             Some(else_node) => self.else_guarantees_return(&else_node.children),
