@@ -1,6 +1,4 @@
-use crate::common::{
-    AbstractSyntaxNode, BoxError, RawAST, RawExpression, Type, TypedAST, TypedExpression,
-};
+use crate::common::{AbstractSyntaxNode, AbstractSyntaxTree, BoxError, RawAST, RawExpression, Type, TypedAST, TypedExpression};
 use crate::expression::{BinaryOperator, Expression};
 use std::collections::HashMap;
 
@@ -157,13 +155,10 @@ impl SemanticTable {
                 let children = self.analyze_children(&ast.children)?;
                 self.scopes.pop();
 
-                if !self.statements_guarantee_return(&children) {
-                    return Err(format!(
-                        "Not all code paths return a value in function '{}'",
-                        name
-                    )
-                    .into());
+                if !self.node_guarantees_return(ast) {
+                    return Err(format!("Not all code paths return a value in function '{}'", name).into());
                 }
+
                 (
                     AbstractSyntaxNode::Callable {
                         result_type: result_type.clone(),
@@ -221,7 +216,13 @@ impl SemanticTable {
                 self.scopes.push(HashMap::new());
                 let children = self.analyze_children(&ast.children)?;
                 self.scopes.pop();
-                (ast.node.clone().map_expr(|_| unreachable!()), children)
+                let typed_node = match &ast.node {
+                    AbstractSyntaxNode::File => AbstractSyntaxNode::File,
+                    AbstractSyntaxNode::Scope => AbstractSyntaxNode::Scope,
+                    AbstractSyntaxNode::Else => AbstractSyntaxNode::Else,
+                    _ => unreachable!(),
+                };
+                (typed_node, children)
             }
             AbstractSyntaxNode::Expression { expression } => {
                 let typed_expr = self.analyze_expression(expression)?;
@@ -288,7 +289,12 @@ impl SemanticTable {
                 }) {
                     return Err("Jump outside loop".into());
                 }
-                (ast.node.clone().map_expr(|_| unreachable!()), vec![])
+                let typed_node = match &ast.node {
+                    AbstractSyntaxNode::Break => AbstractSyntaxNode::Break,
+                    AbstractSyntaxNode::Continue => AbstractSyntaxNode::Continue,
+                    _ => unreachable!(),
+                };
+                (typed_node, vec![])
             }
             _ => unreachable!(),
         };
@@ -598,93 +604,44 @@ impl SemanticTable {
 }
 
 impl SemanticTable {
-    fn statements_guarantee_return(&self, children: &[TypedAST]) -> bool {
-        if let Some(last_statement) = children.last() {
-            match &last_statement.node {
-                AbstractSyntaxNode::Return { .. } => true,
-                AbstractSyntaxNode::Scope => {
-                    self.statements_guarantee_return(&last_statement.children)
-                }
-                AbstractSyntaxNode::If { .. } => {
-                    let else_node = last_statement
-                        .children
-                        .iter()
-                        .find(|c| matches!(c.node, AbstractSyntaxNode::Else));
-                    if let Some(else_node) = else_node {
-                        let then_children: Vec<_> = last_statement
-                            .children
-                            .iter()
-                            .filter(|c| !matches!(c.node, AbstractSyntaxNode::Else))
-                            .cloned()
-                            .collect();
-                        self.statements_guarantee_return(&then_children)
-                            && self.statements_guarantee_return(&else_node.children)
-                    } else {
-                        false
-                    }
-                }
-                _ => false,
+    fn node_guarantees_return<E>(&self, node: &AbstractSyntaxTree<E>) -> bool {
+        match &node.node {
+            AbstractSyntaxNode::Return { .. } => true,
+            AbstractSyntaxNode::If { .. } => {
+                self.if_guarantees_return(&node.children)
             }
-        } else {
-            false
+            AbstractSyntaxNode::Scope |
+            AbstractSyntaxNode::While { .. } |
+            AbstractSyntaxNode::Callable { .. } => {
+                node.children.iter().any(|c| self.node_guarantees_return(c))
+            }
+            _ => false,
         }
     }
-}
 
-impl<E> AbstractSyntaxNode<E> {
-    fn map_expr<F, T>(self, f: F) -> AbstractSyntaxNode<T>
-    where
-        F: Fn(E) -> T + Copy,
-    {
-        match self {
-            AbstractSyntaxNode::If { condition } => AbstractSyntaxNode::If {
-                condition: f(condition),
-            },
-            AbstractSyntaxNode::ElseIf { condition } => AbstractSyntaxNode::ElseIf {
-                condition: f(condition),
-            },
-            AbstractSyntaxNode::Else => AbstractSyntaxNode::Else,
-            AbstractSyntaxNode::While { condition } => AbstractSyntaxNode::While {
-                condition: f(condition),
-            },
-            AbstractSyntaxNode::Expression { expression } => AbstractSyntaxNode::Expression {
-                expression: f(expression),
-            },
-            AbstractSyntaxNode::Declaration {
-                typ,
-                name,
-                expression,
-            } => AbstractSyntaxNode::Declaration {
-                typ,
-                name,
-                expression: expression.map(f),
-            },
-            AbstractSyntaxNode::Return { value } => AbstractSyntaxNode::Return {
-                value: value.map(f),
-            },
-            AbstractSyntaxNode::Break => AbstractSyntaxNode::Break,
-            AbstractSyntaxNode::Continue => AbstractSyntaxNode::Continue,
-            AbstractSyntaxNode::Scope => AbstractSyntaxNode::Scope,
-            AbstractSyntaxNode::File => AbstractSyntaxNode::File,
-            AbstractSyntaxNode::For {
-                initializer,
-                condition,
-                increment,
-            } => AbstractSyntaxNode::For {
-                initializer: initializer.map(|asn| Box::new((*asn).map_expr(f))),
-                condition: condition.map(f),
-                increment: increment.map(f),
-            },
-            AbstractSyntaxNode::Callable {
-                result_type,
-                name,
-                arguments,
-            } => AbstractSyntaxNode::Callable {
-                result_type,
-                name,
-                arguments,
-            },
-            AbstractSyntaxNode::Class { name } => AbstractSyntaxNode::Class { name },
+    fn if_guarantees_return<E>(&self, children: &[AbstractSyntaxTree<E>]) -> bool {
+        let else_node = children.iter().find(|c| {
+            matches!(c.node, AbstractSyntaxNode::Else)
+        });
+
+        if else_node.is_none() {
+            return false;
+        }
+
+        let if_guarantees = children.iter().any(|c| !matches!(c.node, AbstractSyntaxNode::Else) && self.node_guarantees_return(c));
+        let else_guarantees = self.else_guarantees_return(&else_node.unwrap().children);
+
+        if_guarantees && else_guarantees
+    }
+
+    fn else_guarantees_return<E>(&self, children: &[AbstractSyntaxTree<E>]) -> bool {
+        let else_node = children.iter().find(|c| {
+            matches!(c.node, AbstractSyntaxNode::Else)
+        });
+
+        match else_node {
+            Some(else_node) => self.else_guarantees_return(&else_node.children),
+            None => children.iter().any(|c| self.node_guarantees_return(c)),
         }
     }
 }
@@ -706,5 +663,15 @@ pub fn get_literal_type(value: &str) -> Result<Type, BoxError> {
 pub fn semantic_analyze(ast: RawAST) -> Result<TypedAST, BoxError> {
     let mut table = SemanticTable::new();
     table.collect_definitions(&ast)?;
+
+    if !table.functions.contains_key("Main")
+        && !table
+            .classes
+            .iter()
+            .any(|i| i.1.methods.contains_key("Main"))
+    {
+        return Err("Entry point 'Main' function not found".into());
+    }
+
     table.analyze(&ast)
 }

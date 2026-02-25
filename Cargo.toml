@@ -1,5 +1,5 @@
 [package]
-name = "ProcTranslator"
+name = "proc-translator"
 version = "0.1.0"
 edition = "2024"
 

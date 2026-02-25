@@ -142,11 +142,11 @@ fn build_for_loop(condition: String, body_children: Vec<RawAST>) -> Result<RawAS
     ))
 }
 
-pub fn build(tree: SyntaxTree) -> Result<RawAST, BoxError> {
+pub fn build_ast(tree: SyntaxTree) -> Result<RawAST, BoxError> {
     let processed_children: Vec<RawAST> = tree
         .children
         .into_iter()
-        .map(build)
+        .map(build_ast)
         .collect::<Result<Vec<_>, _>>()?;
     let ast = match tree.node {
         SyntaxNode::If { condition } => RawAST::with_children(

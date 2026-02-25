@@ -1,5 +1,0 @@
----
-source: src/tests.rs
-expression: error
----
-Undefined: b

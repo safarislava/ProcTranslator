@@ -1,5 +1,10 @@
 use crate::expression::Expression;
+use crate::ir::ControlFlowGraph;
+use crate::{analyzer, ast, ir, parser, simplifier};
 use std::error::Error;
+use std::fs::File;
+use std::io::Write;
+use std::path::Path;
 
 pub type BoxError = Box<dyn Error>;
 
@@ -88,3 +93,18 @@ impl<E> AbstractSyntaxTree<E> {
 
 pub type TypedExpression = Expression<Type>;
 pub type TypedAST = AbstractSyntaxTree<TypedExpression>;
+
+pub fn compile_to_ir(content: &str) -> Result<ControlFlowGraph, BoxError> {
+    let syntax_tree = parser::parse_syntax_tree(content)?;
+    let ast = ast::build_ast(syntax_tree)?;
+    let simple_ast = simplifier::simplify(ast);
+    let typed_ast = analyzer::semantic_analyze(simple_ast)?;
+    let cfg = ir::compile(typed_ast);
+    Ok(cfg)
+}
+
+pub fn dump_to_file(path: impl AsRef<Path>, value: String) -> std::io::Result<()> {
+    let mut file = File::create(path)?;
+    file.write_all(value.as_bytes())?;
+    Ok(())
+}
