@@ -3,7 +3,6 @@ image: rust:latest
 stages:
   - lint
   - test
-  - snapshots
 
 cache:
   key: "${CI_COMMIT_REF_SLUG}"
@@ -36,13 +35,3 @@ test:
     paths:
       - tests/snapshots/
     when: on_failure
-
-review-snapshots:
-  stage: snapshots
-  script:
-    - cargo install cargo-insta
-    - cargo insta test --review --unreferenced=delete
-    - git diff --exit-code tests/snapshots/ || echo "Snapshots changed! Review with: cargo insta review"
-  rules:
-    - if: $CI_MERGE_REQUEST_IID
-  allow_failure: true
