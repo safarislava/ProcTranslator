@@ -6,6 +6,7 @@ mod common;
 mod ir;
 mod simplifier;
 mod tests;
+mod printers;
 
 use crate::common::BoxError;
 
@@ -23,5 +24,6 @@ fn compile_file(path: &str) -> Result<(), BoxError> {
     let typed_ast = analyzer::semantic_analyze(simple_ast)?;
 
     let cfg = ir::compile(typed_ast);
+    cfg.dump_to_file("output/cfg.dot")?;
     Ok(())
 }

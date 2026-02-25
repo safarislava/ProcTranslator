@@ -80,22 +80,23 @@ struct IrContext {
     classes: HashMap<String, ClassInfo>,
     current_class: Option<String>,
     this_register: Option<Register>,
+    main_block: Option<BlockId>,
 }
 
 impl IrContext {
     pub fn new() -> Self {
-        let entry_block = BasicBlock::new(0);
         IrContext {
             reg_counter: 0,
             slot_counter: 0,
-            blocks: vec![entry_block],
-            current_block: Some(0),
+            blocks: vec![],
+            current_block: None,
             scopes: vec![HashMap::new()],
             loop_stack: Vec::new(),
             functions: HashMap::new(),
             classes: HashMap::new(),
             current_class: None,
             this_register: None,
+            main_block: None,
         }
     }
 
@@ -194,34 +195,70 @@ impl IrContext {
                 let condition = self.gen_expression(condition);
                 let true_block = self.create_block();
                 let false_block = self.create_block();
-                let merge_block = self.create_block();
                 self.emit_terminator(Terminator::Branch { condition, true_block, false_block });
 
                 self.set_current_block(true_block);
                 self.enter_scope();
-                let mut else_node: Option<TypedAST> = None;
-                self.set_current_block(true_block);
-                for child in ast.children {
+
+                let mut has_else = false;
+                let mut else_if_node: Option<TypedAST> = None;
+
+                for child in &ast.children {
                     if let ASN::Else = child.node {
-                        else_node = Some(child);
+                        has_else = true;
+                        if child.children.len() == 1 {
+                            if let ASN::If { .. } = child.children[0].node {
+                                else_if_node = Some(child.children[0].clone());
+                            }
+                        }
                     } else {
-                        self.gen_statement(child);
+                        self.gen_statement(child.clone());
                     }
                 }
                 self.exit_scope();
-                self.emit_terminator(Terminator::Jump(merge_block));
+
+                let true_terminated = self.is_current_terminated();
+                if !true_terminated {
+                    if else_if_node.is_some() || has_else {
+                        self.emit_terminator(Terminator::Jump(false_block));
+                    } else {
+                        let merge_block = self.create_block();
+                        self.emit_terminator(Terminator::Jump(merge_block));
+                        self.set_current_block(merge_block);
+                        return;
+                    }
+                }
 
                 self.set_current_block(false_block);
-                if let Some(node) = else_node {
+                if let Some(else_if) = else_if_node {
+                    self.gen_statement(else_if);
+                } else if has_else {
                     self.enter_scope();
-                    for child in node.children {
-                        self.gen_statement(child);
+                    for child in &ast.children {
+                        if let ASN::Else = child.node {
+                            for grandchild in &child.children {
+                                self.gen_statement(grandchild.clone());
+                            }
+                        }
                     }
                     self.exit_scope();
+                } else {
+                    if !true_terminated {
+                        let merge_block = self.create_block();
+                        self.emit_terminator(Terminator::Jump(merge_block));
+                        self.set_current_block(merge_block);
+                        return;
+                    }
                 }
-                self.emit_terminator(Terminator::Jump(merge_block));
 
-                self.set_current_block(merge_block);
+                let false_terminated = self.is_current_terminated();
+                if !true_terminated || !false_terminated {
+                    if !false_terminated {
+                        let merge_block = self.create_block();
+                        self.emit_terminator(Terminator::Jump(merge_block));
+                        self.set_current_block(merge_block);
+                    }
+                }
             }
             ASN::While { condition } => {
                 let condition_block = self.create_block();
@@ -512,7 +549,12 @@ impl IrContext {
                 for child in &ast.children {
                     match &child.node {
                         ASN::Callable { name, .. } => {
-                            class_info.methods.insert(name.clone(), self.create_block());
+                            let block_id = self.create_block();
+                            class_info.methods.insert(name.clone(), block_id);
+
+                            if name == "Main" {
+                                self.main_block = Some(block_id);
+                            }
                         }
                         ASN::Declaration { name, expression, .. } => {
                             class_info.fields.insert(name.clone(), (expression.clone(), field_counter));
@@ -526,6 +568,9 @@ impl IrContext {
             ASN::Callable { name, .. } => {
                 let block_id = self.create_block();
                 self.functions.insert(name.clone(), block_id);
+                if name == "Main" {
+                    self.main_block = Some(block_id);
+                }
             }
             _ => {}
         }
@@ -535,9 +580,10 @@ impl IrContext {
 pub fn compile(ast: TypedAST) -> CFG {
     let mut ctx = IrContext::new();
     ctx.scan_signatures(&ast);
+    let entry_block = ctx.main_block.unwrap();
     ctx.gen_statement(ast);
     if !ctx.is_current_terminated() {
         ctx.emit_terminator(Terminator::Return(None));
     }
-    CFG { blocks: ctx.blocks, entry_block: 0 }
+    CFG { blocks: ctx.blocks, entry_block }
 }

@@ -269,7 +269,15 @@ impl SemanticTable {
                     Ok(Expression::AssignField { typ: field_type, object: Box::new(typed_object), name: member.clone(), value: Box::new(typed_value) })
                 } else { Err("Not an object".into()) }
             }
-            Expression::Increment { expression, postfix, ..} |
+            Expression::Increment { expression, postfix, ..}  => {
+                let typed_expr = self.analyze_expression(expression)?;
+                if !matches!(typed_expr, Expression::Variable { .. } | Expression::Field { .. }) {
+                    return Err("Increment/Decrement can only be applied to a variable or field".into());
+                }
+                let typ = typed_expr.get_type();
+                if typ != Type::Int && typ != Type::Float { return Err(format!("Operator ++/-- cannot be applied to type {:?}", typ).into()); }
+                Ok(Expression::Increment { typ: typ.clone(), expression: Box::new(typed_expr), postfix: *postfix })
+            }
             Expression::Decrement { expression, postfix, .. } => {
                 let typed_expr = self.analyze_expression(expression)?;
                 if !matches!(typed_expr, Expression::Variable { .. } | Expression::Field { .. }) {
@@ -277,12 +285,7 @@ impl SemanticTable {
                 }
                 let typ = typed_expr.get_type();
                 if typ != Type::Int && typ != Type::Float { return Err(format!("Operator ++/-- cannot be applied to type {:?}", typ).into()); }
-
-                if matches!(expression.as_ref(), Expression::Increment { .. }) {
-                    Ok(Expression::Increment { typ: typ.clone(), expression: Box::new(typed_expr), postfix: *postfix })
-                } else {
-                    Ok(Expression::Decrement { typ: typ.clone(), expression: Box::new(typed_expr), postfix: *postfix })
-                }
+                Ok(Expression::Decrement { typ: typ.clone(), expression: Box::new(typed_expr), postfix: *postfix })
             }
             Expression::Negate { expression, .. } => {
                 let typed_expr = self.analyze_expression(expression)?;
