@@ -53,11 +53,6 @@ impl BasicBlock {
     }
 }
 
-pub struct CFG {
-    pub blocks: Vec<BasicBlock>,
-    pub entry_block: BlockId,
-}
-
 struct ClassInfo {
     pub fields: HashMap<String, (Option<TypedExpression>, usize)>,
     pub methods: HashMap<String, BlockId>,
@@ -575,6 +570,11 @@ impl IrContext {
             _ => {}
         }
     }
+}
+
+pub struct CFG {
+    pub blocks: Vec<BasicBlock>,
+    pub entry_block: BlockId,
 }
 
 pub fn compile(ast: TypedAST) -> CFG {
