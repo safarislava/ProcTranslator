@@ -1,0 +1,62 @@
+---
+source: src/tests.rs
+expression: "format!(\"{:#?}\", tree)"
+---
+SyntaxTree {
+    node: File,
+    children: [
+        SyntaxTree {
+            node: Class {
+                name: "App",
+            },
+            children: [
+                SyntaxTree {
+                    node: Function {
+                        result_type: "void",
+                        name: "Main",
+                        arguments: "",
+                    },
+                    children: [
+                        SyntaxTree {
+                            node: If {
+                                condition: "false",
+                            },
+                            children: [
+                                SyntaxTree {
+                                    node: Line {
+                                        value: "return",
+                                    },
+                                    children: [],
+                                },
+                            ],
+                        },
+                        SyntaxTree {
+                            node: ElseIf {
+                                condition: "false",
+                            },
+                            children: [
+                                SyntaxTree {
+                                    node: Line {
+                                        value: "return",
+                                    },
+                                    children: [],
+                                },
+                            ],
+                        },
+                        SyntaxTree {
+                            node: Else,
+                            children: [
+                                SyntaxTree {
+                                    node: Line {
+                                        value: "return",
+                                    },
+                                    children: [],
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        },
+    ],
+}

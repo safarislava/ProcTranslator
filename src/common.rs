@@ -20,6 +20,7 @@ pub enum Type {
 }
 
 pub type RawExpression = Expression<()>;
+
 pub type RawAST = AST<RawExpression>;
 
 #[derive(Debug, Clone)]

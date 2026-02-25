@@ -1,0 +1,129 @@
+---
+source: src/tests.rs
+expression: "format!(\"{:#?}\", tree)"
+---
+AST {
+    node: File,
+    children: [
+        AST {
+            node: Class {
+                name: "Node",
+            },
+            children: [
+                AST {
+                    node: Declaration {
+                        typ: Int,
+                        name: "counter",
+                        expression: Some(
+                            Literal {
+                                typ: Int,
+                                value: "5",
+                            },
+                        ),
+                    },
+                    children: [],
+                },
+                AST {
+                    node: Callable {
+                        result_type: Int,
+                        name: "Increment",
+                        arguments: [],
+                    },
+                    children: [
+                        AST {
+                            node: Return {
+                                value: Some(
+                                    Increment {
+                                        typ: Int,
+                                        expression: Field {
+                                            typ: Int,
+                                            object: This {
+                                                typ: Class(
+                                                    "Node",
+                                                ),
+                                            },
+                                            name: "counter",
+                                        },
+                                        postfix: true,
+                                    },
+                                ),
+                            },
+                            children: [],
+                        },
+                    ],
+                },
+            ],
+        },
+        AST {
+            node: Class {
+                name: "App",
+            },
+            children: [
+                AST {
+                    node: Callable {
+                        result_type: Void,
+                        name: "Main",
+                        arguments: [],
+                    },
+                    children: [
+                        AST {
+                            node: Declaration {
+                                typ: Class(
+                                    "Node",
+                                ),
+                                name: "node",
+                                expression: Some(
+                                    New {
+                                        typ: Class(
+                                            "Node",
+                                        ),
+                                        class_name: "Node",
+                                    },
+                                ),
+                            },
+                            children: [],
+                        },
+                        AST {
+                            node: Expression {
+                                expression: MethodCall {
+                                    typ: Int,
+                                    object: Variable {
+                                        typ: Class(
+                                            "Node",
+                                        ),
+                                        name: "node",
+                                    },
+                                    name: "Increment",
+                                    arguments: [],
+                                },
+                            },
+                            children: [],
+                        },
+                        AST {
+                            node: Expression {
+                                expression: MethodCall {
+                                    typ: Int,
+                                    object: Variable {
+                                        typ: Class(
+                                            "Node",
+                                        ),
+                                        name: "node",
+                                    },
+                                    name: "Increment",
+                                    arguments: [],
+                                },
+                            },
+                            children: [],
+                        },
+                        AST {
+                            node: Return {
+                                value: None,
+                            },
+                            children: [],
+                        },
+                    ],
+                },
+            ],
+        },
+    ],
+}

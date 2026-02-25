@@ -1,0 +1,73 @@
+---
+source: src/tests.rs
+expression: "format!(\"{:#?}\", simple_ast)"
+---
+AST {
+    node: File,
+    children: [
+        AST {
+            node: Class {
+                name: "App",
+            },
+            children: [
+                AST {
+                    node: Callable {
+                        result_type: Void,
+                        name: "Main",
+                        arguments: [],
+                    },
+                    children: [
+                        AST {
+                            node: If {
+                                condition: Literal {
+                                    typ: (),
+                                    value: "false",
+                                },
+                            },
+                            children: [
+                                AST {
+                                    node: Return {
+                                        value: None,
+                                    },
+                                    children: [],
+                                },
+                                AST {
+                                    node: Else,
+                                    children: [
+                                        AST {
+                                            node: If {
+                                                condition: Literal {
+                                                    typ: (),
+                                                    value: "false",
+                                                },
+                                            },
+                                            children: [
+                                                AST {
+                                                    node: Return {
+                                                        value: None,
+                                                    },
+                                                    children: [],
+                                                },
+                                                AST {
+                                                    node: Else,
+                                                    children: [
+                                                        AST {
+                                                            node: Return {
+                                                                value: None,
+                                                            },
+                                                            children: [],
+                                                        },
+                                                    ],
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        },
+    ],
+}

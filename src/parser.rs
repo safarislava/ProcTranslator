@@ -1,6 +1,7 @@
 use regex::Regex;
 use crate::common::BoxError;
 
+#[derive(Debug)]
 pub enum SyntaxNode {
     If { condition: String },
     ElseIf { condition: String },
@@ -14,6 +15,7 @@ pub enum SyntaxNode {
     File,
 }
 
+#[derive(Debug)]
 pub struct SyntaxTree {
     pub node: SyntaxNode,
     pub children: Vec<SyntaxTree>,

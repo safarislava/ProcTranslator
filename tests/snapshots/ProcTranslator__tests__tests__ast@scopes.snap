@@ -1,0 +1,310 @@
+---
+source: src/tests.rs
+expression: "format!(\"{:#?}\", tree)"
+---
+AST {
+    node: File,
+    children: [
+        AST {
+            node: Class {
+                name: "App",
+            },
+            children: [
+                AST {
+                    node: Callable {
+                        result_type: Int,
+                        name: "f",
+                        arguments: [
+                            Var {
+                                name: "x",
+                                typ: Int,
+                            },
+                        ],
+                    },
+                    children: [
+                        AST {
+                            node: Return {
+                                value: Some(
+                                    BinaryOp {
+                                        typ: (),
+                                        left: Variable {
+                                            typ: (),
+                                            name: "x",
+                                        },
+                                        op: Plus,
+                                        right: Literal {
+                                            typ: (),
+                                            value: "5",
+                                        },
+                                    },
+                                ),
+                            },
+                            children: [],
+                        },
+                    ],
+                },
+                AST {
+                    node: Callable {
+                        result_type: Void,
+                        name: "Main",
+                        arguments: [],
+                    },
+                    children: [
+                        AST {
+                            node: Declaration {
+                                typ: Int,
+                                name: "x",
+                                expression: Some(
+                                    Literal {
+                                        typ: (),
+                                        value: "0",
+                                    },
+                                ),
+                            },
+                            children: [],
+                        },
+                        AST {
+                            node: Declaration {
+                                typ: Int,
+                                name: "b",
+                                expression: Some(
+                                    Literal {
+                                        typ: (),
+                                        value: "1",
+                                    },
+                                ),
+                            },
+                            children: [],
+                        },
+                        AST {
+                            node: If {
+                                condition: BinaryOp {
+                                    typ: (),
+                                    left: Variable {
+                                        typ: (),
+                                        name: "x",
+                                    },
+                                    op: Greater,
+                                    right: Variable {
+                                        typ: (),
+                                        name: "b",
+                                    },
+                                },
+                            },
+                            children: [
+                                AST {
+                                    node: If {
+                                        condition: BinaryOp {
+                                            typ: (),
+                                            left: BinaryOp {
+                                                typ: (),
+                                                left: Variable {
+                                                    typ: (),
+                                                    name: "x",
+                                                },
+                                                op: Plus,
+                                                right: Literal {
+                                                    typ: (),
+                                                    value: "1",
+                                                },
+                                            },
+                                            op: Greater,
+                                            right: Variable {
+                                                typ: (),
+                                                name: "b",
+                                            },
+                                        },
+                                    },
+                                    children: [],
+                                },
+                                AST {
+                                    node: Else,
+                                    children: [],
+                                },
+                            ],
+                        },
+                        AST {
+                            node: ElseIf {
+                                condition: BinaryOp {
+                                    typ: (),
+                                    left: Variable {
+                                        typ: (),
+                                        name: "x",
+                                    },
+                                    op: Less,
+                                    right: Variable {
+                                        typ: (),
+                                        name: "b",
+                                    },
+                                },
+                            },
+                            children: [],
+                        },
+                        AST {
+                            node: Else,
+                            children: [],
+                        },
+                        AST {
+                            node: While {
+                                condition: Literal {
+                                    typ: (),
+                                    value: "true",
+                                },
+                            },
+                            children: [
+                                AST {
+                                    node: If {
+                                        condition: BinaryOp {
+                                            typ: (),
+                                            left: Variable {
+                                                typ: (),
+                                                name: "x",
+                                            },
+                                            op: Equal,
+                                            right: Literal {
+                                                typ: (),
+                                                value: "9",
+                                            },
+                                        },
+                                    },
+                                    children: [
+                                        AST {
+                                            node: Expression {
+                                                expression: Increment {
+                                                    typ: (),
+                                                    expression: Variable {
+                                                        typ: (),
+                                                        name: "x",
+                                                    },
+                                                    postfix: true,
+                                                },
+                                            },
+                                            children: [],
+                                        },
+                                    ],
+                                },
+                                AST {
+                                    node: ElseIf {
+                                        condition: BinaryOp {
+                                            typ: (),
+                                            left: Variable {
+                                                typ: (),
+                                                name: "x",
+                                            },
+                                            op: Equal,
+                                            right: Literal {
+                                                typ: (),
+                                                value: "10",
+                                            },
+                                        },
+                                    },
+                                    children: [
+                                        AST {
+                                            node: Break,
+                                            children: [],
+                                        },
+                                    ],
+                                },
+                                AST {
+                                    node: Expression {
+                                        expression: Assign {
+                                            typ: (),
+                                            name: "x",
+                                            value: MethodCall {
+                                                typ: (),
+                                                object: This {
+                                                    typ: (),
+                                                },
+                                                name: "f",
+                                                arguments: [
+                                                    BinaryOp {
+                                                        typ: (),
+                                                        left: Variable {
+                                                            typ: (),
+                                                            name: "x",
+                                                        },
+                                                        op: Plus,
+                                                        right: Literal {
+                                                            typ: (),
+                                                            value: "1",
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                        },
+                                    },
+                                    children: [],
+                                },
+                            ],
+                        },
+                        AST {
+                            node: For {
+                                initializer: Some(
+                                    Declaration {
+                                        typ: Int,
+                                        name: "i",
+                                        expression: Some(
+                                            Literal {
+                                                typ: (),
+                                                value: "2",
+                                            },
+                                        ),
+                                    },
+                                ),
+                                condition: Some(
+                                    BinaryOp {
+                                        typ: (),
+                                        left: Variable {
+                                            typ: (),
+                                            name: "i",
+                                        },
+                                        op: Less,
+                                        right: Literal {
+                                            typ: (),
+                                            value: "10",
+                                        },
+                                    },
+                                ),
+                                increment: Some(
+                                    Increment {
+                                        typ: (),
+                                        expression: Variable {
+                                            typ: (),
+                                            name: "i",
+                                        },
+                                        postfix: true,
+                                    },
+                                ),
+                            },
+                            children: [
+                                AST {
+                                    node: Expression {
+                                        expression: BinaryOp {
+                                            typ: (),
+                                            left: Variable {
+                                                typ: (),
+                                                name: "x",
+                                            },
+                                            op: AssignAdd,
+                                            right: Literal {
+                                                typ: (),
+                                                value: "2",
+                                            },
+                                        },
+                                    },
+                                    children: [],
+                                },
+                            ],
+                        },
+                        AST {
+                            node: Return {
+                                value: None,
+                            },
+                            children: [],
+                        },
+                    ],
+                },
+            ],
+        },
+    ],
+}

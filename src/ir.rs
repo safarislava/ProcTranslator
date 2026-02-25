@@ -39,6 +39,7 @@ pub enum Terminator {
     Return(Option<Operand>),
 }
 
+#[derive(Debug, Clone)]
 pub struct BasicBlock {
     pub id: BlockId,
     pub instructions: Vec<IrInstruction>,
@@ -572,6 +573,7 @@ impl IrContext {
     }
 }
 
+#[derive(Debug)]
 pub struct CFG {
     pub blocks: Vec<BasicBlock>,
     pub entry_block: BlockId,

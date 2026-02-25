@@ -1,41 +1,160 @@
 #[cfg(test)]
 mod tests {
-    use crate::compile_file;
+    use crate::compile_to_ir;
+    use insta::{assert_snapshot, Settings};
     use std::fs;
-    use crate::common::BoxError;
+    use std::env;
+    use crate::common::RawAST;
 
-    fn run_tests_in_dir(dir_path: &str, should_succeed: bool) -> Result<(), BoxError> {
-        println!("Running tests in: {}", dir_path);
-
-        for entry in fs::read_dir(dir_path)? {
-            let entry = entry?;
-            let path = entry.path();
-
-            if path.is_dir() || path.extension().and_then(|s| s.to_str()) != Some("java") {
-                continue;
-            }
-
-            let path_str = path.to_str().expect("Path should be valid UTF-8");
-            println!("  Testing file: {}", path_str);
-
-            let result = compile_file(path_str);
-
-            if should_succeed {
-                assert!(result.is_ok(), "Expected '{}' to compile successfully, but it failed with: {:?}", path_str, result.err());
-            } else {
-                assert!(result.is_err(), "Expected '{}' to fail compilation, but it succeeded.", path_str);
-            }
-        }
-        Ok(())
+    fn get_settings() -> Settings {
+        let mut settings = Settings::clone_current();
+        settings.set_snapshot_path("../tests/snapshots");
+        settings
     }
 
     #[test]
-    fn test_correct_examples() -> Result<(), BoxError> {
-        run_tests_in_dir("examples/correct", true)
+    fn test_correct_examples_snapshots() {
+        let settings = get_settings();
+        settings.bind(|| {
+            let manifest_dir = env!("CARGO_MANIFEST_DIR");
+            let pattern = format!("{}/examples/correct/*.java", manifest_dir);
+
+            glob::glob(&pattern).unwrap().for_each(|entry| {
+                let path = entry.unwrap();
+                let content = fs::read_to_string(&path).unwrap();
+                let result = compile_to_ir(&content);
+
+                assert!(result.is_ok(), "File {:?} should compile", path);
+
+                let cfg = result.unwrap();
+                // Добавляем префикс теста
+                let snapshot_name = format!("correct_cfg@{}", path.file_stem().unwrap().to_str().unwrap());
+                assert_snapshot!(snapshot_name, cfg.to_dot());
+            });
+        });
     }
 
     #[test]
-    fn test_incorrect_examples() -> Result<(), BoxError> {
-        run_tests_in_dir("examples/incorrect", false)
+    fn test_incorrect_examples_snapshots() {
+        let settings = get_settings();
+        settings.bind(|| {
+            let manifest_dir = env!("CARGO_MANIFEST_DIR");
+            let pattern = format!("{}/examples/incorrect/*.java", manifest_dir);
+
+            glob::glob(&pattern).unwrap().for_each(|entry| {
+                let path = entry.unwrap();
+                let content = fs::read_to_string(&path).unwrap();
+                let result = compile_to_ir(&content);
+
+                assert!(result.is_err(), "File {:?} should fail to compile", path);
+
+                let error = result.unwrap_err().to_string();
+                let snapshot_name = format!("incorrect_error@{}", path.file_stem().unwrap().to_str().unwrap());
+                assert_snapshot!(snapshot_name, error);
+            });
+        });
+    }
+
+    #[test]
+    fn test_parser_snapshots() {
+        let settings = get_settings();
+        settings.bind(|| {
+            let manifest_dir = env!("CARGO_MANIFEST_DIR");
+            let pattern = format!("{}/examples/correct/*.java", manifest_dir);
+
+            glob::glob(&pattern).unwrap().for_each(|entry| {
+                let path = entry.unwrap();
+                let content = fs::read_to_string(&path).unwrap();
+
+                let syntax_tree = crate::parser::parse_syntax_tree(&content);
+
+                match syntax_tree {
+                    Ok(tree) => {
+                        let snapshot_name = format!("parser@{}", path.file_stem().unwrap().to_str().unwrap());
+                        assert_snapshot!(snapshot_name, format!("{:#?}", tree));
+                    }
+                    Err(e) => {
+                        panic!("File {:?} should parse successfully: {}", path, e);
+                    }
+                }
+            });
+        });
+    }
+
+    #[test]
+    fn test_ast_snapshots() {
+        let settings = get_settings();
+        settings.bind(|| {
+            let manifest_dir = env!("CARGO_MANIFEST_DIR");
+            let pattern = format!("{}/examples/correct/*.java", manifest_dir);
+
+            glob::glob(&pattern).unwrap().for_each(|entry| {
+                let path = entry.unwrap();
+                let content = fs::read_to_string(&path).unwrap();
+
+                let syntax_tree = crate::parser::parse_syntax_tree(&content).unwrap();
+                let ast = crate::ast::build(syntax_tree);
+
+                match ast {
+                    Ok(tree) => {
+                        let snapshot_name = format!("ast@{}", path.file_stem().unwrap().to_str().unwrap());
+                        assert_snapshot!(snapshot_name, format!("{:#?}", tree));
+                    }
+                    Err(e) => {
+                        panic!("File {:?} should build AST successfully: {}", path, e);
+                    }
+                }
+            });
+        });
+    }
+
+    #[test]
+    fn test_simplified_ast_snapshots() {
+        let settings = get_settings();
+        settings.bind(|| {
+            let manifest_dir = env!("CARGO_MANIFEST_DIR");
+            let pattern = format!("{}/examples/correct/*.java", manifest_dir);
+
+            glob::glob(&pattern).unwrap().for_each(|entry| {
+                let path = entry.unwrap();
+                let content = fs::read_to_string(&path).unwrap();
+
+                let syntax_tree = crate::parser::parse_syntax_tree(&content).unwrap();
+                let ast = crate::ast::build(syntax_tree).unwrap();
+                let simple_ast: RawAST = crate::simplifier::simplify(ast);
+
+                let snapshot_name = format!("simplified_ast@{}", path.file_stem().unwrap().to_str().unwrap());
+                assert_snapshot!(snapshot_name, format!("{:#?}", simple_ast));
+            });
+        });
+    }
+
+    #[test]
+    fn test_semantic_analysis_snapshots() {
+        let settings = get_settings();
+        settings.bind(|| {
+            let manifest_dir = env!("CARGO_MANIFEST_DIR");
+            let pattern = format!("{}/examples/correct/*.java", manifest_dir);
+
+            glob::glob(&pattern).unwrap().for_each(|entry| {
+                let path = entry.unwrap();
+                let content = fs::read_to_string(&path).unwrap();
+
+                let syntax_tree = crate::parser::parse_syntax_tree(&content).unwrap();
+                let ast = crate::ast::build(syntax_tree).unwrap();
+                let simple_ast = crate::simplifier::simplify(ast);
+                let typed_ast = crate::analyzer::semantic_analyze(simple_ast);
+
+                match typed_ast {
+                    Ok(tree) => {
+                        let snapshot_name = format!("typed_ast@{}", path.file_stem().unwrap().to_str().unwrap());
+                        assert_snapshot!(snapshot_name, format!("{:#?}", tree));
+                    }
+                    Err(e) => {
+                        panic!("File {:?} should pass semantic analysis: {}", path, e);
+                    }
+                }
+            });
+        });
     }
 }

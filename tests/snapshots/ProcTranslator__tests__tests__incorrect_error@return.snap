@@ -1,0 +1,5 @@
+---
+source: src/tests.rs
+expression: error
+---
+Not all code paths return a value in function 'Main'
