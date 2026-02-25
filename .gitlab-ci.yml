@@ -15,7 +15,7 @@ cache:
     - target/
     - Cargo.lock
 
-.before_script:
+before_script:
   - rustup component add rustfmt clippy
 
 lint:
@@ -31,9 +31,7 @@ test:
   stage: test
   script:
     - cargo install cargo-insta --locked 2>/dev/null || true
-
     - CI=true cargo test -- --nocapture
-
     - cargo --version
     - rustc --version
   tags:
