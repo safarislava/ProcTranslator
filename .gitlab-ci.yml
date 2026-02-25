@@ -11,6 +11,9 @@ cache:
     - Cargo.lock
     - .cargo/
 
+.before_script:
+  - rustup component add rustfmt clippy
+
 lint:
   stage: lint
   script:
@@ -24,14 +27,11 @@ test:
   stage: test
   script:
     - cargo install cargo-insta --locked || true
-
     - CI=true cargo test -- --nocapture
-
-    - cargo --version
-    - rustc --version
   tags:
     - main
   artifacts:
     paths:
       - tests/snapshots/
     when: on_failure
+    expire_in: 1 week
