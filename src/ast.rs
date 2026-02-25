@@ -1,4 +1,4 @@
-use crate::common::{ASN, BoxError, RawAST, RawExpression, Type, Var};
+use crate::common::{AbstractSyntaxNode, BoxError, RawAST, RawExpression, Type, Var};
 use crate::expression::parse_expression;
 use crate::parser::{SyntaxNode, SyntaxTree};
 
@@ -34,22 +34,24 @@ fn parse_arguments(args_str: &str) -> Result<Vec<Var>, BoxError> {
     trimmed.split(',').map(|s| parse_var(s.trim())).collect()
 }
 
-fn parse_statement_keyword(value: &str) -> Result<Option<ASN<RawExpression>>, BoxError> {
+fn parse_statement_keyword(
+    value: &str,
+) -> Result<Option<AbstractSyntaxNode<RawExpression>>, BoxError> {
     let trimmed = value.trim().trim_end_matches(';');
 
     if trimmed == "return" {
-        return Ok(Some(ASN::Return { value: None }));
+        return Ok(Some(AbstractSyntaxNode::Return { value: None }));
     }
 
     if let Some(stripped) = trimmed.strip_prefix("return ") {
         let expr = parse_expression(stripped.trim())?;
-        return Ok(Some(ASN::Return { value: Some(expr) }));
+        return Ok(Some(AbstractSyntaxNode::Return { value: Some(expr) }));
     }
     if trimmed == "break" {
-        return Ok(Some(ASN::Break));
+        return Ok(Some(AbstractSyntaxNode::Break));
     }
     if trimmed == "continue" {
-        return Ok(Some(ASN::Continue));
+        return Ok(Some(AbstractSyntaxNode::Continue));
     }
     Ok(None)
 }
@@ -106,14 +108,16 @@ fn build_for_loop(condition: String, body_children: Vec<RawAST>) -> Result<RawAS
         None
     } else if let Ok(Some((typ_str, name, init_value))) = parse_declaration(parts[0]) {
         let typ = parse_type(&typ_str);
-        Some(Box::new(ASN::Declaration {
+        Some(Box::new(AbstractSyntaxNode::Declaration {
             typ,
             name,
             expression: init_value,
         }))
     } else {
         let expr = parse_expression(parts[0])?;
-        Some(Box::new(ASN::Expression { expression: expr }))
+        Some(Box::new(AbstractSyntaxNode::Expression {
+            expression: expr,
+        }))
     };
 
     let condition = if parts[1].is_empty() {
@@ -129,7 +133,7 @@ fn build_for_loop(condition: String, body_children: Vec<RawAST>) -> Result<RawAS
     };
 
     Ok(RawAST::with_children(
-        ASN::For {
+        AbstractSyntaxNode::For {
             initializer,
             condition,
             increment,
@@ -146,20 +150,20 @@ pub fn build(tree: SyntaxTree) -> Result<RawAST, BoxError> {
         .collect::<Result<Vec<_>, _>>()?;
     let ast = match tree.node {
         SyntaxNode::If { condition } => RawAST::with_children(
-            ASN::If {
+            AbstractSyntaxNode::If {
                 condition: parse_expression(&condition)?,
             },
             processed_children,
         ),
         SyntaxNode::ElseIf { condition } => RawAST::with_children(
-            ASN::ElseIf {
+            AbstractSyntaxNode::ElseIf {
                 condition: parse_expression(&condition)?,
             },
             processed_children,
         ),
-        SyntaxNode::Else => RawAST::with_children(ASN::Else, processed_children),
+        SyntaxNode::Else => RawAST::with_children(AbstractSyntaxNode::Else, processed_children),
         SyntaxNode::While { condition } => RawAST::with_children(
-            ASN::While {
+            AbstractSyntaxNode::While {
                 condition: parse_expression(&condition)?,
             },
             processed_children,
@@ -170,13 +174,13 @@ pub fn build(tree: SyntaxTree) -> Result<RawAST, BoxError> {
                 RawAST::new(asn)
             } else if let Ok(Some((typ_str, name, expr))) = parse_declaration(&value) {
                 let typ = parse_type(&typ_str);
-                RawAST::new(ASN::Declaration {
+                RawAST::new(AbstractSyntaxNode::Declaration {
                     typ,
                     name,
                     expression: expr,
                 })
             } else {
-                RawAST::new(ASN::Expression {
+                RawAST::new(AbstractSyntaxNode::Expression {
                     expression: parse_expression(&value)?,
                 })
             }
@@ -189,7 +193,7 @@ pub fn build(tree: SyntaxTree) -> Result<RawAST, BoxError> {
             let args = parse_arguments(&arguments)?;
             let result_type = parse_type(&result_type);
             RawAST::with_children(
-                ASN::Callable {
+                AbstractSyntaxNode::Callable {
                     result_type,
                     name,
                     arguments: args,
@@ -198,10 +202,10 @@ pub fn build(tree: SyntaxTree) -> Result<RawAST, BoxError> {
             )
         }
         SyntaxNode::Class { name } => {
-            RawAST::with_children(ASN::Class { name }, processed_children)
+            RawAST::with_children(AbstractSyntaxNode::Class { name }, processed_children)
         }
-        SyntaxNode::Scope => RawAST::with_children(ASN::Scope, processed_children),
-        SyntaxNode::File => RawAST::with_children(ASN::File, processed_children),
+        SyntaxNode::Scope => RawAST::with_children(AbstractSyntaxNode::Scope, processed_children),
+        SyntaxNode::File => RawAST::with_children(AbstractSyntaxNode::File, processed_children),
     };
     Ok(ast)
 }

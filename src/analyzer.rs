@@ -1,4 +1,6 @@
-use crate::common::{ASN, BoxError, RawAST, RawExpression, Type, TypedAST, TypedExpression};
+use crate::common::{
+    AbstractSyntaxNode, BoxError, RawAST, RawExpression, Type, TypedAST, TypedExpression,
+};
 use crate::expression::{BinaryOperator, Expression};
 use std::collections::HashMap;
 
@@ -21,7 +23,7 @@ impl ClassInfo {
 
 struct SemanticTable {
     scopes: Vec<HashMap<String, Type>>,
-    stacktrace: Vec<ASN<RawExpression>>,
+    stacktrace: Vec<AbstractSyntaxNode<RawExpression>>,
     functions: HashMap<String, FunctionInfo>,
     classes: HashMap<String, ClassInfo>,
 }
@@ -47,7 +49,7 @@ impl SemanticTable {
 
     fn current_class_context(&self) -> Option<String> {
         for node in self.stacktrace.iter().rev() {
-            if let ASN::Class { name } = node {
+            if let AbstractSyntaxNode::Class { name } = node {
                 return Some(name.clone());
             }
         }
@@ -56,7 +58,7 @@ impl SemanticTable {
 
     fn collect_definitions(&mut self, ast: &RawAST) -> Result<(), BoxError> {
         match &ast.node {
-            ASN::Class { name } => {
+            AbstractSyntaxNode::Class { name } => {
                 if self.classes.contains_key(name) {
                     return Err(format!("Class '{}' already exists", name).into());
                 }
@@ -67,7 +69,7 @@ impl SemanticTable {
                 }
                 self.stacktrace.pop();
             }
-            ASN::Callable {
+            AbstractSyntaxNode::Callable {
                 result_type,
                 name,
                 arguments,
@@ -83,15 +85,18 @@ impl SemanticTable {
                         .insert(name.clone(), (result_type.clone(), arg_types));
                 }
             }
-            ASN::Declaration { typ, name, .. } => {
+            AbstractSyntaxNode::Declaration { typ, name, .. } => {
                 if let Some(class_name) = self.current_class_context()
-                    && matches!(self.stacktrace.last(), Some(ASN::Class { .. }))
+                    && matches!(
+                        self.stacktrace.last(),
+                        Some(AbstractSyntaxNode::Class { .. })
+                    )
                 {
                     let class_info = self.classes.get_mut(&class_name).unwrap();
                     class_info.fields.insert(name.clone(), typ.clone());
                 }
             }
-            ASN::File | ASN::Scope => {
+            AbstractSyntaxNode::File | AbstractSyntaxNode::Scope => {
                 self.stacktrace.push(ast.node.clone());
                 for child in &ast.children {
                     self.collect_definitions(child)?;
@@ -107,7 +112,7 @@ impl SemanticTable {
         self.stacktrace.push(ast.node.clone());
 
         let (typed_node, typed_children) = match &ast.node {
-            ASN::If { condition } => {
+            AbstractSyntaxNode::If { condition } => {
                 let typed_condition = self.analyze_expression(condition)?;
                 if typed_condition.get_type() != Type::Bool {
                     return Err("Condition must be bool".into());
@@ -116,13 +121,13 @@ impl SemanticTable {
                 let children = self.analyze_children(&ast.children)?;
                 self.scopes.pop();
                 (
-                    ASN::If {
+                    AbstractSyntaxNode::If {
                         condition: typed_condition,
                     },
                     children,
                 )
             }
-            ASN::While { condition } => {
+            AbstractSyntaxNode::While { condition } => {
                 let typed_condition = self.analyze_expression(condition)?;
                 if typed_condition.get_type() != Type::Bool {
                     return Err("Condition must be bool".into());
@@ -131,13 +136,13 @@ impl SemanticTable {
                 let children = self.analyze_children(&ast.children)?;
                 self.scopes.pop();
                 (
-                    ASN::While {
+                    AbstractSyntaxNode::While {
                         condition: typed_condition,
                     },
                     children,
                 )
             }
-            ASN::Callable {
+            AbstractSyntaxNode::Callable {
                 result_type,
                 name,
                 arguments,
@@ -160,7 +165,7 @@ impl SemanticTable {
                     .into());
                 }
                 (
-                    ASN::Callable {
+                    AbstractSyntaxNode::Callable {
                         result_type: result_type.clone(),
                         name: name.clone(),
                         arguments: arguments.clone(),
@@ -168,10 +173,10 @@ impl SemanticTable {
                     children,
                 )
             }
-            ASN::Class { name } => {
+            AbstractSyntaxNode::Class { name } => {
                 self.scopes.push(HashMap::new());
                 for child in &ast.children {
-                    if let ASN::Declaration {
+                    if let AbstractSyntaxNode::Declaration {
                         typ,
                         name,
                         expression,
@@ -187,9 +192,9 @@ impl SemanticTable {
 
                 let mut typed_children = vec![];
                 for child in &ast.children {
-                    if !matches!(child.node, ASN::Declaration { .. }) {
+                    if !matches!(child.node, AbstractSyntaxNode::Declaration { .. }) {
                         typed_children.push(self.analyze(child)?);
-                    } else if let ASN::Declaration {
+                    } else if let AbstractSyntaxNode::Declaration {
                         typ,
                         name,
                         expression,
@@ -199,7 +204,7 @@ impl SemanticTable {
                             Some(e) => Some(self.analyze_expression(e)?),
                             None => None,
                         };
-                        typed_children.push(TypedAST::new(ASN::Declaration {
+                        typed_children.push(TypedAST::new(AbstractSyntaxNode::Declaration {
                             typ: typ.clone(),
                             name: name.clone(),
                             expression: typed_expr,
@@ -207,24 +212,27 @@ impl SemanticTable {
                     }
                 }
                 self.scopes.pop();
-                (ASN::Class { name: name.clone() }, typed_children)
+                (
+                    AbstractSyntaxNode::Class { name: name.clone() },
+                    typed_children,
+                )
             }
-            ASN::File | ASN::Scope | ASN::Else => {
+            AbstractSyntaxNode::File | AbstractSyntaxNode::Scope | AbstractSyntaxNode::Else => {
                 self.scopes.push(HashMap::new());
                 let children = self.analyze_children(&ast.children)?;
                 self.scopes.pop();
                 (ast.node.clone().map_expr(|_| unreachable!()), children)
             }
-            ASN::Expression { expression } => {
+            AbstractSyntaxNode::Expression { expression } => {
                 let typed_expr = self.analyze_expression(expression)?;
                 (
-                    ASN::Expression {
+                    AbstractSyntaxNode::Expression {
                         expression: typed_expr,
                     },
                     vec![],
                 )
             }
-            ASN::Declaration {
+            AbstractSyntaxNode::Declaration {
                 typ,
                 name,
                 expression,
@@ -235,12 +243,12 @@ impl SemanticTable {
                 };
                 if !matches!(
                     self.stacktrace.get(self.stacktrace.len() - 2),
-                    Some(ASN::Class { .. })
+                    Some(AbstractSyntaxNode::Class { .. })
                 ) {
                     self.analyze_declaration(typ, name, &typed_expr)?;
                 }
                 (
-                    ASN::Declaration {
+                    AbstractSyntaxNode::Declaration {
                         typ: typ.clone(),
                         name: name.clone(),
                         expression: typed_expr,
@@ -248,13 +256,13 @@ impl SemanticTable {
                     vec![],
                 )
             }
-            ASN::Return { value } => {
+            AbstractSyntaxNode::Return { value } => {
                 let func_type = self
                     .stacktrace
                     .iter()
                     .rev()
                     .find_map(|n| {
-                        if let ASN::Callable { result_type, .. } = n {
+                        if let AbstractSyntaxNode::Callable { result_type, .. } = n {
                             Some(result_type)
                         } else {
                             None
@@ -269,14 +277,15 @@ impl SemanticTable {
                 if val_type != *func_type {
                     return Err("Return type mismatch".into());
                 }
-                (ASN::Return { value: typed_value }, vec![])
+                (AbstractSyntaxNode::Return { value: typed_value }, vec![])
             }
-            ASN::Break | ASN::Continue => {
-                if !self
-                    .stacktrace
-                    .iter()
-                    .any(|n| matches!(n, ASN::While { .. } | ASN::For { .. }))
-                {
+            AbstractSyntaxNode::Break | AbstractSyntaxNode::Continue => {
+                if !self.stacktrace.iter().any(|n| {
+                    matches!(
+                        n,
+                        AbstractSyntaxNode::While { .. } | AbstractSyntaxNode::For { .. }
+                    )
+                }) {
                     return Err("Jump outside loop".into());
                 }
                 (ast.node.clone().map_expr(|_| unreachable!()), vec![])
@@ -592,18 +601,20 @@ impl SemanticTable {
     fn statements_guarantee_return(&self, children: &[TypedAST]) -> bool {
         if let Some(last_statement) = children.last() {
             match &last_statement.node {
-                ASN::Return { .. } => true,
-                ASN::Scope => self.statements_guarantee_return(&last_statement.children),
-                ASN::If { .. } => {
+                AbstractSyntaxNode::Return { .. } => true,
+                AbstractSyntaxNode::Scope => {
+                    self.statements_guarantee_return(&last_statement.children)
+                }
+                AbstractSyntaxNode::If { .. } => {
                     let else_node = last_statement
                         .children
                         .iter()
-                        .find(|c| matches!(c.node, ASN::Else));
+                        .find(|c| matches!(c.node, AbstractSyntaxNode::Else));
                     if let Some(else_node) = else_node {
                         let then_children: Vec<_> = last_statement
                             .children
                             .iter()
-                            .filter(|c| !matches!(c.node, ASN::Else))
+                            .filter(|c| !matches!(c.node, AbstractSyntaxNode::Else))
                             .cloned()
                             .collect();
                         self.statements_guarantee_return(&then_children)
@@ -620,60 +631,60 @@ impl SemanticTable {
     }
 }
 
-impl<E> ASN<E> {
-    fn map_expr<F, T>(self, f: F) -> ASN<T>
+impl<E> AbstractSyntaxNode<E> {
+    fn map_expr<F, T>(self, f: F) -> AbstractSyntaxNode<T>
     where
         F: Fn(E) -> T + Copy,
     {
         match self {
-            ASN::If { condition } => ASN::If {
+            AbstractSyntaxNode::If { condition } => AbstractSyntaxNode::If {
                 condition: f(condition),
             },
-            ASN::ElseIf { condition } => ASN::ElseIf {
+            AbstractSyntaxNode::ElseIf { condition } => AbstractSyntaxNode::ElseIf {
                 condition: f(condition),
             },
-            ASN::Else => ASN::Else,
-            ASN::While { condition } => ASN::While {
+            AbstractSyntaxNode::Else => AbstractSyntaxNode::Else,
+            AbstractSyntaxNode::While { condition } => AbstractSyntaxNode::While {
                 condition: f(condition),
             },
-            ASN::Expression { expression } => ASN::Expression {
+            AbstractSyntaxNode::Expression { expression } => AbstractSyntaxNode::Expression {
                 expression: f(expression),
             },
-            ASN::Declaration {
+            AbstractSyntaxNode::Declaration {
                 typ,
                 name,
                 expression,
-            } => ASN::Declaration {
+            } => AbstractSyntaxNode::Declaration {
                 typ,
                 name,
                 expression: expression.map(f),
             },
-            ASN::Return { value } => ASN::Return {
+            AbstractSyntaxNode::Return { value } => AbstractSyntaxNode::Return {
                 value: value.map(f),
             },
-            ASN::Break => ASN::Break,
-            ASN::Continue => ASN::Continue,
-            ASN::Scope => ASN::Scope,
-            ASN::File => ASN::File,
-            ASN::For {
+            AbstractSyntaxNode::Break => AbstractSyntaxNode::Break,
+            AbstractSyntaxNode::Continue => AbstractSyntaxNode::Continue,
+            AbstractSyntaxNode::Scope => AbstractSyntaxNode::Scope,
+            AbstractSyntaxNode::File => AbstractSyntaxNode::File,
+            AbstractSyntaxNode::For {
                 initializer,
                 condition,
                 increment,
-            } => ASN::For {
+            } => AbstractSyntaxNode::For {
                 initializer: initializer.map(|asn| Box::new((*asn).map_expr(f))),
                 condition: condition.map(f),
                 increment: increment.map(f),
             },
-            ASN::Callable {
+            AbstractSyntaxNode::Callable {
                 result_type,
                 name,
                 arguments,
-            } => ASN::Callable {
+            } => AbstractSyntaxNode::Callable {
                 result_type,
                 name,
                 arguments,
             },
-            ASN::Class { name } => ASN::Class { name },
+            AbstractSyntaxNode::Class { name } => AbstractSyntaxNode::Class { name },
         }
     }
 }

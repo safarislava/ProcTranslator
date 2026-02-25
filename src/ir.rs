@@ -1,4 +1,4 @@
-use crate::common::{ASN, Type, TypedAST, TypedExpression};
+use crate::common::{AbstractSyntaxNode, Type, TypedAST, TypedExpression};
 use crate::expression::BinaryOperator;
 use std::collections::HashMap;
 
@@ -240,7 +240,7 @@ impl IrContext {
 
     pub fn gen_statement(&mut self, ast: TypedAST) {
         match ast.node {
-            ASN::If { condition } => {
+            AbstractSyntaxNode::If { condition } => {
                 let condition = self.gen_expression(condition);
                 let true_block = self.create_block();
                 let false_block = self.create_block();
@@ -257,12 +257,12 @@ impl IrContext {
                 let mut else_if_node: Option<TypedAST> = None;
 
                 for child in &ast.children {
-                    if let ASN::Else = child.node {
+                    if let AbstractSyntaxNode::Else = child.node {
                         has_else = true;
-                        if child.children.len() == 1 {
-                            if let ASN::If { .. } = child.children[0].node {
-                                else_if_node = Some(child.children[0].clone());
-                            }
+                        if child.children.len() == 1
+                            && let AbstractSyntaxNode::If { .. } = child.children[0].node
+                        {
+                            else_if_node = Some(child.children[0].clone());
                         }
                     } else {
                         self.gen_statement(child.clone());
@@ -288,32 +288,28 @@ impl IrContext {
                 } else if has_else {
                     self.enter_scope();
                     for child in &ast.children {
-                        if let ASN::Else = child.node {
+                        if let AbstractSyntaxNode::Else = child.node {
                             for grandchild in &child.children {
                                 self.gen_statement(grandchild.clone());
                             }
                         }
                     }
                     self.exit_scope();
-                } else {
-                    if !true_terminated {
-                        let merge_block = self.create_block();
-                        self.emit_terminator(Terminator::Jump(merge_block));
-                        self.set_current_block(merge_block);
-                        return;
-                    }
+                } else if !true_terminated {
+                    let merge_block = self.create_block();
+                    self.emit_terminator(Terminator::Jump(merge_block));
+                    self.set_current_block(merge_block);
+                    return;
                 }
 
                 let false_terminated = self.is_current_terminated();
-                if !true_terminated || !false_terminated {
-                    if !false_terminated {
-                        let merge_block = self.create_block();
-                        self.emit_terminator(Terminator::Jump(merge_block));
-                        self.set_current_block(merge_block);
-                    }
+                if !false_terminated {
+                    let merge_block = self.create_block();
+                    self.emit_terminator(Terminator::Jump(merge_block));
+                    self.set_current_block(merge_block);
                 }
             }
-            ASN::While { condition } => {
+            AbstractSyntaxNode::While { condition } => {
                 let condition_block = self.create_block();
                 let true_block = self.create_block();
                 let false_block = self.create_block();
@@ -339,10 +335,10 @@ impl IrContext {
 
                 self.set_current_block(false_block);
             }
-            ASN::Expression { expression } => {
+            AbstractSyntaxNode::Expression { expression } => {
                 self.gen_expression(expression);
             }
-            ASN::Declaration {
+            AbstractSyntaxNode::Declaration {
                 name, expression, ..
             } => {
                 let slot = self.declare_var(name);
@@ -356,7 +352,7 @@ impl IrContext {
                     self.emit(IrInstruction::StackStore { slot, value });
                 }
             }
-            ASN::Callable {
+            AbstractSyntaxNode::Callable {
                 name, arguments, ..
             } => {
                 let block_id = match &self.current_class {
@@ -398,41 +394,38 @@ impl IrContext {
                 self.exit_scope();
                 self.this_register = None;
             }
-            ASN::Class { name } => {
+            AbstractSyntaxNode::Class { name } => {
                 self.current_class = Some(name);
                 for child in ast.children {
                     self.gen_statement(child);
                 }
             }
-            ASN::Return { value } => {
-                let operand = match value {
-                    Some(value) => Some(self.gen_expression(value)),
-                    None => None,
-                };
+            AbstractSyntaxNode::Return { value } => {
+                let operand = value.map(|value| self.gen_expression(value));
                 self.emit_terminator(Terminator::Return(operand))
             }
-            ASN::Break => {
+            AbstractSyntaxNode::Break => {
                 if let Some((_, break_target)) = self.loop_stack.last() {
                     self.emit_terminator(Terminator::Jump(*break_target));
                 } else {
                     unreachable!();
                 }
             }
-            ASN::Continue => {
+            AbstractSyntaxNode::Continue => {
                 if let Some((continue_target, _)) = self.loop_stack.last() {
                     self.emit_terminator(Terminator::Jump(*continue_target));
                 } else {
                     unreachable!();
                 }
             }
-            ASN::Scope => {
+            AbstractSyntaxNode::Scope => {
                 self.enter_scope();
                 for child in ast.children {
                     self.gen_statement(child);
                 }
                 self.exit_scope();
             }
-            ASN::File => {
+            AbstractSyntaxNode::File => {
                 for child in ast.children {
                     self.gen_statement(child);
                 }
@@ -701,18 +694,18 @@ impl IrContext {
 impl IrContext {
     pub fn scan_signatures(&mut self, ast: &TypedAST) {
         match &ast.node {
-            ASN::File => {
+            AbstractSyntaxNode::File => {
                 for child in &ast.children {
                     self.scan_signatures(child);
                 }
             }
-            ASN::Class { name } => {
+            AbstractSyntaxNode::Class { name } => {
                 let mut class_info = ClassInfo::new();
                 let mut field_counter = 0;
 
                 for child in &ast.children {
                     match &child.node {
-                        ASN::Callable { name, .. } => {
+                        AbstractSyntaxNode::Callable { name, .. } => {
                             let block_id = self.create_block();
                             class_info.methods.insert(name.clone(), block_id);
 
@@ -720,7 +713,7 @@ impl IrContext {
                                 self.main_block = Some(block_id);
                             }
                         }
-                        ASN::Declaration {
+                        AbstractSyntaxNode::Declaration {
                             name, expression, ..
                         } => {
                             class_info
@@ -733,7 +726,7 @@ impl IrContext {
                 }
                 self.classes.insert(name.clone(), class_info);
             }
-            ASN::Callable { name, .. } => {
+            AbstractSyntaxNode::Callable { name, .. } => {
                 let block_id = self.create_block();
                 self.functions.insert(name.clone(), block_id);
                 if name == "Main" {
@@ -746,12 +739,12 @@ impl IrContext {
 }
 
 #[derive(Debug)]
-pub struct CFG {
+pub struct ControlFlowGraph {
     pub blocks: Vec<BasicBlock>,
     pub entry_block: BlockId,
 }
 
-pub fn compile(ast: TypedAST) -> CFG {
+pub fn compile(ast: TypedAST) -> ControlFlowGraph {
     let mut ctx = IrContext::new();
     ctx.scan_signatures(&ast);
     let entry_block = ctx.main_block.unwrap();
@@ -759,7 +752,7 @@ pub fn compile(ast: TypedAST) -> CFG {
     if !ctx.is_current_terminated() {
         ctx.emit_terminator(Terminator::Return(None));
     }
-    CFG {
+    ControlFlowGraph {
         blocks: ctx.blocks,
         entry_block,
     }

@@ -1,4 +1,4 @@
-use crate::common::{ASN, RawAST, RawExpression};
+use crate::common::{AbstractSyntaxNode, RawAST, RawExpression};
 
 pub fn simplify(ast: RawAST) -> RawAST {
     let RawAST { node, children } = ast;
@@ -6,14 +6,14 @@ pub fn simplify(ast: RawAST) -> RawAST {
     let mut iter = children.into_iter().peekable();
 
     while let Some(mut child) = iter.next() {
-        if let ASN::If { .. } = child.node {
+        if let AbstractSyntaxNode::If { .. } = child.node {
             child = build_if_tree(child, &mut iter);
         }
         simplified_children.push(simplify(child));
     }
 
     match node {
-        ASN::For {
+        AbstractSyntaxNode::For {
             initializer,
             condition,
             increment,
@@ -27,7 +27,9 @@ pub fn simplify(ast: RawAST) -> RawAST {
 
             let mut while_body = simplified_children;
             if let Some(inc) = increment {
-                while_body.push(RawAST::new(ASN::Expression { expression: inc }));
+                while_body.push(RawAST::new(AbstractSyntaxNode::Expression {
+                    expression: inc,
+                }));
             }
 
             let condition = condition.unwrap_or_else(|| RawExpression::Literal {
@@ -35,10 +37,11 @@ pub fn simplify(ast: RawAST) -> RawAST {
                 value: "true".into(),
             });
 
-            let while_node = RawAST::with_children(ASN::While { condition }, while_body);
+            let while_node =
+                RawAST::with_children(AbstractSyntaxNode::While { condition }, while_body);
             scope_children.push(while_node);
 
-            RawAST::with_children(ASN::Scope, scope_children)
+            RawAST::with_children(AbstractSyntaxNode::Scope, scope_children)
         }
         other_node => RawAST::with_children(other_node, simplified_children),
     }
@@ -48,19 +51,20 @@ fn build_if_tree(
     mut current_node: RawAST,
     iter: &mut std::iter::Peekable<impl Iterator<Item = RawAST>>,
 ) -> RawAST {
-    if let ASN::ElseIf { condition } = current_node.node {
-        current_node.node = ASN::If { condition };
+    if let AbstractSyntaxNode::ElseIf { condition } = current_node.node {
+        current_node.node = AbstractSyntaxNode::If { condition };
     }
 
     match iter.peek().map(|typed_ast| &typed_ast.node) {
-        Some(ASN::ElseIf { .. }) => {
+        Some(AbstractSyntaxNode::ElseIf { .. }) => {
             let next_node = iter.next().unwrap();
             let nested_if = build_if_tree(next_node, iter);
-            current_node
-                .children
-                .push(RawAST::with_children(ASN::Else, vec![nested_if]));
+            current_node.children.push(RawAST::with_children(
+                AbstractSyntaxNode::Else,
+                vec![nested_if],
+            ));
         }
-        Some(ASN::Else) => {
+        Some(AbstractSyntaxNode::Else) => {
             let else_node = iter.next().unwrap();
             current_node.children.push(else_node);
         }

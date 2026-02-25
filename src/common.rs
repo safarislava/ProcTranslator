@@ -21,10 +21,10 @@ pub enum Type {
 
 pub type RawExpression = Expression<()>;
 
-pub type RawAST = AST<RawExpression>;
+pub type RawAST = AbstractSyntaxTree<RawExpression>;
 
 #[derive(Debug, Clone)]
-pub enum ASN<E> {
+pub enum AbstractSyntaxNode<E> {
     If {
         condition: E,
     },
@@ -36,7 +36,7 @@ pub enum ASN<E> {
         condition: E,
     },
     For {
-        initializer: Option<Box<ASN<E>>>,
+        initializer: Option<Box<AbstractSyntaxNode<E>>>,
         condition: Option<E>,
         increment: Option<E>,
     },
@@ -66,22 +66,25 @@ pub enum ASN<E> {
 }
 
 #[derive(Debug, Clone)]
-pub struct AST<E> {
-    pub node: ASN<E>,
-    pub children: Vec<AST<E>>,
+pub struct AbstractSyntaxTree<E> {
+    pub node: AbstractSyntaxNode<E>,
+    pub children: Vec<AbstractSyntaxTree<E>>,
 }
 
-impl<E> AST<E> {
-    pub fn new(node: ASN<E>) -> Self {
+impl<E> AbstractSyntaxTree<E> {
+    pub fn new(node: AbstractSyntaxNode<E>) -> Self {
         Self {
             node,
             children: vec![],
         }
     }
-    pub fn with_children(node: ASN<E>, children: Vec<AST<E>>) -> Self {
+    pub fn with_children(
+        node: AbstractSyntaxNode<E>,
+        children: Vec<AbstractSyntaxTree<E>>,
+    ) -> Self {
         Self { node, children }
     }
 }
 
 pub type TypedExpression = Expression<Type>;
-pub type TypedAST = AST<TypedExpression>;
+pub type TypedAST = AbstractSyntaxTree<TypedExpression>;

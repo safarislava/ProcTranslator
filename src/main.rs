@@ -9,7 +9,7 @@ mod simplifier;
 mod tests;
 
 use crate::common::BoxError;
-use crate::ir::CFG;
+use crate::ir::ControlFlowGraph;
 
 fn main() -> Result<(), BoxError> {
     compile_and_make_dump(
@@ -18,7 +18,7 @@ fn main() -> Result<(), BoxError> {
     Ok(())
 }
 
-pub fn compile_to_ir(content: &str) -> Result<CFG, BoxError> {
+pub fn compile_to_ir(content: &str) -> Result<ControlFlowGraph, BoxError> {
     let syntax_tree = parser::parse_syntax_tree(content)?;
     let ast = ast::build(syntax_tree)?;
     let simple_ast = simplifier::simplify(ast);

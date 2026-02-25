@@ -1,9 +1,9 @@
-use crate::ir::{CFG, Terminator};
+use crate::ir::{ControlFlowGraph, Terminator};
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 
-impl CFG {
+impl ControlFlowGraph {
     pub fn to_dot(&self) -> String {
         let mut dot = String::new();
         dot.push_str("digraph CFG {\n");
@@ -52,7 +52,7 @@ impl CFG {
             }
         }
 
-        if self.blocks.len() > 0 {
+        if !self.blocks.is_empty() {
             dot.push_str(&format!(
                 "  B{} [style=filled, fillcolor=lightgreen];\n",
                 self.entry_block
