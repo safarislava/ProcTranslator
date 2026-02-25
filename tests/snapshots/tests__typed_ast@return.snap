@@ -1,6 +1,6 @@
 ---
-source: src/tests.rs
-expression: "format!(\"{:#?}\", simple_ast)"
+source: tests/tests.rs
+expression: "format!(\"{:#?}\", tree)"
 ---
 AbstractSyntaxTree {
     node: File,
@@ -20,7 +20,7 @@ AbstractSyntaxTree {
                         AbstractSyntaxTree {
                             node: If {
                                 condition: Literal {
-                                    typ: (),
+                                    typ: Bool,
                                     value: "false",
                                 },
                             },
@@ -37,7 +37,7 @@ AbstractSyntaxTree {
                                         AbstractSyntaxTree {
                                             node: If {
                                                 condition: Literal {
-                                                    typ: (),
+                                                    typ: Bool,
                                                     value: "false",
                                                 },
                                             },

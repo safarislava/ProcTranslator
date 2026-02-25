@@ -1,5 +1,5 @@
 ---
-source: src/tests.rs
+source: tests/tests.rs
 expression: "format!(\"{:#?}\", tree)"
 ---
 AbstractSyntaxTree {
@@ -16,7 +16,7 @@ AbstractSyntaxTree {
                         name: "counter",
                         expression: Some(
                             Literal {
-                                typ: (),
+                                typ: Int,
                                 value: "5",
                             },
                         ),
@@ -34,11 +34,13 @@ AbstractSyntaxTree {
                             node: Return {
                                 value: Some(
                                     Increment {
-                                        typ: (),
+                                        typ: Int,
                                         expression: Field {
-                                            typ: (),
+                                            typ: Int,
                                             object: This {
-                                                typ: (),
+                                                typ: Class(
+                                                    "Node",
+                                                ),
                                             },
                                             name: "counter",
                                         },
@@ -72,7 +74,9 @@ AbstractSyntaxTree {
                                 name: "node",
                                 expression: Some(
                                     New {
-                                        typ: (),
+                                        typ: Class(
+                                            "Node",
+                                        ),
                                         class_name: "Node",
                                     },
                                 ),
@@ -82,9 +86,11 @@ AbstractSyntaxTree {
                         AbstractSyntaxTree {
                             node: Expression {
                                 expression: MethodCall {
-                                    typ: (),
+                                    typ: Int,
                                     object: Variable {
-                                        typ: (),
+                                        typ: Class(
+                                            "Node",
+                                        ),
                                         name: "node",
                                     },
                                     name: "Increment",
@@ -96,9 +102,11 @@ AbstractSyntaxTree {
                         AbstractSyntaxTree {
                             node: Expression {
                                 expression: MethodCall {
-                                    typ: (),
+                                    typ: Int,
                                     object: Variable {
-                                        typ: (),
+                                        typ: Class(
+                                            "Node",
+                                        ),
                                         name: "node",
                                     },
                                     name: "Increment",
