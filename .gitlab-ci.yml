@@ -1,17 +1,19 @@
-# .gitlab-ci.yml
 image: rust:latest
+
+variables:
+  CARGO_HOME: "${CI_PROJECT_DIR}/.cargo"
+  RUSTFLAGS: "-C debuginfo=0"
 
 cache:
   key: "${CI_COMMIT_REF_SLUG}"
   paths:
     - target/
     - Cargo.lock
+    - .cargo/
 
 stages:
   - lint
   - test
-  - snapshots
-
 
 lint:
   stage: lint
@@ -24,20 +26,10 @@ lint:
 test:
   stage: test
   script:
-    - cargo install cargo-insta
+    - cargo install cargo-insta --locked
     - CI=true cargo test -- --nocapture
   artifacts:
     paths:
       - tests/snapshots/
     when: on_failure
     expire_in: 1 week
-
-review-snapshots:
-  stage: snapshots
-  script:
-    - cargo install cargo-insta
-    - cargo insta test --review --unreferenced=delete
-    - git diff --exit-code tests/snapshots/ || echo "Snapshots changed!: cargo insta review"
-  rules:
-    - if: $CI_MERGE_REQUEST_IID
-  allow_failure: true
