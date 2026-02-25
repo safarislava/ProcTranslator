@@ -1,7 +1,22 @@
-debug:
-  stage: build  # или любая другая стадия
+stages:
+  - lint
+  - test
+
+lint:
+  stage: lint
   script:
-    - echo "Checking available images..."
-    - docker images 2>&1 || echo "Cannot run docker images"
-    - env | grep -i image || echo "No IMAGE env"
+    - cargo fmt -- --check
+    - cargo clippy -- -D warnings
   allow_failure: true
+
+test:
+  stage: test
+  script:
+    - cargo install cargo-insta --locked
+    - CI=true cargo test -- --nocapture
+  cache:
+    paths:
+      - target/
+      - Cargo.lock
+  tags:
+    - shell
