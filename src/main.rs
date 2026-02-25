@@ -1,18 +1,20 @@
-mod parser;
 mod analyzer;
 mod ast;
-mod expression;
 mod common;
+mod expression;
 mod ir;
+mod parser;
+mod printers;
 mod simplifier;
 mod tests;
-mod printers;
 
 use crate::common::BoxError;
 use crate::ir::CFG;
 
 fn main() -> Result<(), BoxError> {
-    compile_and_make_dump("/Users/safarislava/Documents/Projects/ProcTranslator/examples/correct/scopes.java")?;
+    compile_and_make_dump(
+        "/Users/safarislava/Documents/Projects/ProcTranslator/examples/correct/scopes.java",
+    )?;
     Ok(())
 }
 

@@ -1,5 +1,5 @@
-use std::fmt;
 use crate::ir::Operand;
+use std::fmt;
 
 impl fmt::Display for Operand {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

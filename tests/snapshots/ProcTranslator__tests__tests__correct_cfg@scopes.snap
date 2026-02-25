@@ -1,62 +1,912 @@
 ---
 source: src/tests.rs
-expression: cfg.to_dot()
+expression: "format!(\"{:#?}\", cfg)"
 ---
-digraph CFG {
-  rankdir=TB;
-  node [shape=box, fontname="Courier"];
-  edge [fontname="Courier"];
-
-  B0 [label="{B0|r0 = param[0]\lalloc s0\lr1 = param[1]\ls0 = r1\lr2 = load s0\lr3 = const 5\lr4 = r2 Plus r3\lreturn r4\l}"];
-  B1 [label="{B1|r5 = param[0]\lalloc s1\lr6 = const 0\ls1 = r6\lalloc s2\lr7 = const 1\ls2 = r7\lr8 = load s1\lr9 = load s2\lr10 = r8 Greater r9\lbranch r10 ? B2 : B3\l}"];
-  B2 [label="{B2|r11 = load s1\lr12 = const 1\lr13 = r11 Plus r12\lr14 = load s2\lr15 = r13 Greater r14\lbranch r15 ? B4 : B5\l}"];
-  B3 [label="{B3|r16 = load s1\lr17 = load s2\lr18 = r16 Less r17\lbranch r18 ? B7 : B8\l}"];
-  B4 [label="{B4|jump B5\l}"];
-  B5 [label="{B5|jump B6\l}"];
-  B6 [label="{B6|jump B3\l}"];
-  B7 [label="{B7|jump B8\l}"];
-  B8 [label="{B8|jump B9\l}"];
-  B9 [label="{B9|jump B10\l}"];
-  B10 [label="{B10|jump B11\l}"];
-  B11 [label="{B11|r19 = const true\lbranch r19 ? B12 : B13\l}"];
-  B12 [label="{B12|r20 = load s1\lr21 = const 9\lr22 = r20 Equal r21\lbranch r22 ? B14 : B15\l}"];
-  B13 [label="{B13|alloc s3\lr32 = const 2\ls3 = r32\ljump B20\l}"];
-  B14 [label="{B14|r23 = load s1\lr24 = r23 Plus \"1\"\ls1 = r24\ljump B15\l}"];
-  B15 [label="{B15|r25 = load s1\lr26 = const 10\lr27 = r25 Equal r26\lbranch r27 ? B16 : B17\l}"];
-  B16 [label="{B16|jump B13\l}"];
-  B17 [label="{B17|jump B18\l}"];
-  B18 [label="{B18|jump B19\l}"];
-  B19 [label="{B19|r28 = load s1\lr29 = const 1\lr30 = r28 Plus r29\lr31 = call B0(r5, r30)\ls1 = r31\ljump B11\l}"];
-  B20 [label="{B20|r33 = load s3\lr34 = const 10\lr35 = r33 Less r34\lbranch r35 ? B21 : B22\l}"];
-  B21 [label="{B21|r36 = load s1\lr37 = const 2\lr38 = r36 AssignAdd r37\lr39 = load s3\lr40 = r39 Plus \"1\"\ls3 = r40\ljump B20\l}"];
-  B22 [label="{B22|return\l}"];
-  B1 -> B2 [label="true"];
-  B1 -> B3 [label="false"];
-  B2 -> B4 [label="true"];
-  B2 -> B5 [label="false"];
-  B3 -> B7 [label="true"];
-  B3 -> B8 [label="false"];
-  B4 -> B5;
-  B5 -> B6;
-  B6 -> B3;
-  B7 -> B8;
-  B8 -> B9;
-  B9 -> B10;
-  B10 -> B11;
-  B11 -> B12 [label="true"];
-  B11 -> B13 [label="false"];
-  B12 -> B14 [label="true"];
-  B12 -> B15 [label="false"];
-  B13 -> B20;
-  B14 -> B15;
-  B15 -> B16 [label="true"];
-  B15 -> B17 [label="false"];
-  B16 -> B13;
-  B17 -> B18;
-  B18 -> B19;
-  B19 -> B11;
-  B20 -> B21 [label="true"];
-  B20 -> B22 [label="false"];
-  B21 -> B20;
-  B1 [style=filled, fillcolor=lightgreen];
+CFG {
+    blocks: [
+        BasicBlock {
+            id: 0,
+            instructions: [
+                LoadParam {
+                    dest: Register(
+                        0,
+                    ),
+                    index: 0,
+                },
+                StackAlloc {
+                    slot: StackSlot(
+                        0,
+                    ),
+                },
+                LoadParam {
+                    dest: Register(
+                        1,
+                    ),
+                    index: 1,
+                },
+                StackStore {
+                    slot: StackSlot(
+                        0,
+                    ),
+                    value: Value(
+                        Register(
+                            1,
+                        ),
+                    ),
+                },
+                StackLoad {
+                    dest: Register(
+                        2,
+                    ),
+                    slot: StackSlot(
+                        0,
+                    ),
+                },
+                LoadConst {
+                    dest: Register(
+                        3,
+                    ),
+                    value: "5",
+                },
+                BinaryOp {
+                    dest: Register(
+                        4,
+                    ),
+                    left: Value(
+                        Register(
+                            2,
+                        ),
+                    ),
+                    op: Plus,
+                    right: Value(
+                        Register(
+                            3,
+                        ),
+                    ),
+                },
+            ],
+            terminator: Some(
+                Return(
+                    Some(
+                        Value(
+                            Register(
+                                4,
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            predecessors: [],
+            successors: [],
+        },
+        BasicBlock {
+            id: 1,
+            instructions: [
+                LoadParam {
+                    dest: Register(
+                        5,
+                    ),
+                    index: 0,
+                },
+                StackAlloc {
+                    slot: StackSlot(
+                        1,
+                    ),
+                },
+                LoadConst {
+                    dest: Register(
+                        6,
+                    ),
+                    value: "0",
+                },
+                StackStore {
+                    slot: StackSlot(
+                        1,
+                    ),
+                    value: Value(
+                        Register(
+                            6,
+                        ),
+                    ),
+                },
+                StackAlloc {
+                    slot: StackSlot(
+                        2,
+                    ),
+                },
+                LoadConst {
+                    dest: Register(
+                        7,
+                    ),
+                    value: "1",
+                },
+                StackStore {
+                    slot: StackSlot(
+                        2,
+                    ),
+                    value: Value(
+                        Register(
+                            7,
+                        ),
+                    ),
+                },
+                StackLoad {
+                    dest: Register(
+                        8,
+                    ),
+                    slot: StackSlot(
+                        1,
+                    ),
+                },
+                StackLoad {
+                    dest: Register(
+                        9,
+                    ),
+                    slot: StackSlot(
+                        2,
+                    ),
+                },
+                BinaryOp {
+                    dest: Register(
+                        10,
+                    ),
+                    left: Value(
+                        Register(
+                            8,
+                        ),
+                    ),
+                    op: Greater,
+                    right: Value(
+                        Register(
+                            9,
+                        ),
+                    ),
+                },
+            ],
+            terminator: Some(
+                Branch {
+                    condition: Value(
+                        Register(
+                            10,
+                        ),
+                    ),
+                    true_block: 2,
+                    false_block: 3,
+                },
+            ),
+            predecessors: [],
+            successors: [
+                2,
+                3,
+            ],
+        },
+        BasicBlock {
+            id: 2,
+            instructions: [
+                StackLoad {
+                    dest: Register(
+                        11,
+                    ),
+                    slot: StackSlot(
+                        1,
+                    ),
+                },
+                LoadConst {
+                    dest: Register(
+                        12,
+                    ),
+                    value: "1",
+                },
+                BinaryOp {
+                    dest: Register(
+                        13,
+                    ),
+                    left: Value(
+                        Register(
+                            11,
+                        ),
+                    ),
+                    op: Plus,
+                    right: Value(
+                        Register(
+                            12,
+                        ),
+                    ),
+                },
+                StackLoad {
+                    dest: Register(
+                        14,
+                    ),
+                    slot: StackSlot(
+                        2,
+                    ),
+                },
+                BinaryOp {
+                    dest: Register(
+                        15,
+                    ),
+                    left: Value(
+                        Register(
+                            13,
+                        ),
+                    ),
+                    op: Greater,
+                    right: Value(
+                        Register(
+                            14,
+                        ),
+                    ),
+                },
+            ],
+            terminator: Some(
+                Branch {
+                    condition: Value(
+                        Register(
+                            15,
+                        ),
+                    ),
+                    true_block: 4,
+                    false_block: 5,
+                },
+            ),
+            predecessors: [
+                1,
+            ],
+            successors: [
+                4,
+                5,
+            ],
+        },
+        BasicBlock {
+            id: 3,
+            instructions: [
+                StackLoad {
+                    dest: Register(
+                        16,
+                    ),
+                    slot: StackSlot(
+                        1,
+                    ),
+                },
+                StackLoad {
+                    dest: Register(
+                        17,
+                    ),
+                    slot: StackSlot(
+                        2,
+                    ),
+                },
+                BinaryOp {
+                    dest: Register(
+                        18,
+                    ),
+                    left: Value(
+                        Register(
+                            16,
+                        ),
+                    ),
+                    op: Less,
+                    right: Value(
+                        Register(
+                            17,
+                        ),
+                    ),
+                },
+            ],
+            terminator: Some(
+                Branch {
+                    condition: Value(
+                        Register(
+                            18,
+                        ),
+                    ),
+                    true_block: 7,
+                    false_block: 8,
+                },
+            ),
+            predecessors: [
+                1,
+                6,
+            ],
+            successors: [
+                7,
+                8,
+            ],
+        },
+        BasicBlock {
+            id: 4,
+            instructions: [],
+            terminator: Some(
+                Jump(
+                    5,
+                ),
+            ),
+            predecessors: [
+                2,
+            ],
+            successors: [
+                5,
+            ],
+        },
+        BasicBlock {
+            id: 5,
+            instructions: [],
+            terminator: Some(
+                Jump(
+                    6,
+                ),
+            ),
+            predecessors: [
+                2,
+                4,
+            ],
+            successors: [
+                6,
+            ],
+        },
+        BasicBlock {
+            id: 6,
+            instructions: [],
+            terminator: Some(
+                Jump(
+                    3,
+                ),
+            ),
+            predecessors: [
+                5,
+            ],
+            successors: [
+                3,
+            ],
+        },
+        BasicBlock {
+            id: 7,
+            instructions: [],
+            terminator: Some(
+                Jump(
+                    8,
+                ),
+            ),
+            predecessors: [
+                3,
+            ],
+            successors: [
+                8,
+            ],
+        },
+        BasicBlock {
+            id: 8,
+            instructions: [],
+            terminator: Some(
+                Jump(
+                    9,
+                ),
+            ),
+            predecessors: [
+                3,
+                7,
+            ],
+            successors: [
+                9,
+            ],
+        },
+        BasicBlock {
+            id: 9,
+            instructions: [],
+            terminator: Some(
+                Jump(
+                    10,
+                ),
+            ),
+            predecessors: [
+                8,
+            ],
+            successors: [
+                10,
+            ],
+        },
+        BasicBlock {
+            id: 10,
+            instructions: [],
+            terminator: Some(
+                Jump(
+                    11,
+                ),
+            ),
+            predecessors: [
+                9,
+            ],
+            successors: [
+                11,
+            ],
+        },
+        BasicBlock {
+            id: 11,
+            instructions: [
+                LoadConst {
+                    dest: Register(
+                        19,
+                    ),
+                    value: "true",
+                },
+            ],
+            terminator: Some(
+                Branch {
+                    condition: Value(
+                        Register(
+                            19,
+                        ),
+                    ),
+                    true_block: 12,
+                    false_block: 13,
+                },
+            ),
+            predecessors: [
+                10,
+                19,
+            ],
+            successors: [
+                12,
+                13,
+            ],
+        },
+        BasicBlock {
+            id: 12,
+            instructions: [
+                StackLoad {
+                    dest: Register(
+                        20,
+                    ),
+                    slot: StackSlot(
+                        1,
+                    ),
+                },
+                LoadConst {
+                    dest: Register(
+                        21,
+                    ),
+                    value: "9",
+                },
+                BinaryOp {
+                    dest: Register(
+                        22,
+                    ),
+                    left: Value(
+                        Register(
+                            20,
+                        ),
+                    ),
+                    op: Equal,
+                    right: Value(
+                        Register(
+                            21,
+                        ),
+                    ),
+                },
+            ],
+            terminator: Some(
+                Branch {
+                    condition: Value(
+                        Register(
+                            22,
+                        ),
+                    ),
+                    true_block: 14,
+                    false_block: 15,
+                },
+            ),
+            predecessors: [
+                11,
+            ],
+            successors: [
+                14,
+                15,
+            ],
+        },
+        BasicBlock {
+            id: 13,
+            instructions: [
+                StackAlloc {
+                    slot: StackSlot(
+                        3,
+                    ),
+                },
+                LoadConst {
+                    dest: Register(
+                        32,
+                    ),
+                    value: "2",
+                },
+                StackStore {
+                    slot: StackSlot(
+                        3,
+                    ),
+                    value: Value(
+                        Register(
+                            32,
+                        ),
+                    ),
+                },
+            ],
+            terminator: Some(
+                Jump(
+                    20,
+                ),
+            ),
+            predecessors: [
+                11,
+                16,
+            ],
+            successors: [
+                20,
+            ],
+        },
+        BasicBlock {
+            id: 14,
+            instructions: [
+                StackLoad {
+                    dest: Register(
+                        23,
+                    ),
+                    slot: StackSlot(
+                        1,
+                    ),
+                },
+                BinaryOp {
+                    dest: Register(
+                        24,
+                    ),
+                    left: Value(
+                        Register(
+                            23,
+                        ),
+                    ),
+                    op: Plus,
+                    right: Constant(
+                        "1",
+                    ),
+                },
+                StackStore {
+                    slot: StackSlot(
+                        1,
+                    ),
+                    value: Value(
+                        Register(
+                            24,
+                        ),
+                    ),
+                },
+            ],
+            terminator: Some(
+                Jump(
+                    15,
+                ),
+            ),
+            predecessors: [
+                12,
+            ],
+            successors: [
+                15,
+            ],
+        },
+        BasicBlock {
+            id: 15,
+            instructions: [
+                StackLoad {
+                    dest: Register(
+                        25,
+                    ),
+                    slot: StackSlot(
+                        1,
+                    ),
+                },
+                LoadConst {
+                    dest: Register(
+                        26,
+                    ),
+                    value: "10",
+                },
+                BinaryOp {
+                    dest: Register(
+                        27,
+                    ),
+                    left: Value(
+                        Register(
+                            25,
+                        ),
+                    ),
+                    op: Equal,
+                    right: Value(
+                        Register(
+                            26,
+                        ),
+                    ),
+                },
+            ],
+            terminator: Some(
+                Branch {
+                    condition: Value(
+                        Register(
+                            27,
+                        ),
+                    ),
+                    true_block: 16,
+                    false_block: 17,
+                },
+            ),
+            predecessors: [
+                12,
+                14,
+            ],
+            successors: [
+                16,
+                17,
+            ],
+        },
+        BasicBlock {
+            id: 16,
+            instructions: [],
+            terminator: Some(
+                Jump(
+                    13,
+                ),
+            ),
+            predecessors: [
+                15,
+            ],
+            successors: [
+                13,
+            ],
+        },
+        BasicBlock {
+            id: 17,
+            instructions: [],
+            terminator: Some(
+                Jump(
+                    18,
+                ),
+            ),
+            predecessors: [
+                15,
+            ],
+            successors: [
+                18,
+            ],
+        },
+        BasicBlock {
+            id: 18,
+            instructions: [],
+            terminator: Some(
+                Jump(
+                    19,
+                ),
+            ),
+            predecessors: [
+                17,
+            ],
+            successors: [
+                19,
+            ],
+        },
+        BasicBlock {
+            id: 19,
+            instructions: [
+                StackLoad {
+                    dest: Register(
+                        28,
+                    ),
+                    slot: StackSlot(
+                        1,
+                    ),
+                },
+                LoadConst {
+                    dest: Register(
+                        29,
+                    ),
+                    value: "1",
+                },
+                BinaryOp {
+                    dest: Register(
+                        30,
+                    ),
+                    left: Value(
+                        Register(
+                            28,
+                        ),
+                    ),
+                    op: Plus,
+                    right: Value(
+                        Register(
+                            29,
+                        ),
+                    ),
+                },
+                Call {
+                    dest: Register(
+                        31,
+                    ),
+                    block: 0,
+                    arguments: [
+                        Value(
+                            Register(
+                                5,
+                            ),
+                        ),
+                        Value(
+                            Register(
+                                30,
+                            ),
+                        ),
+                    ],
+                },
+                StackStore {
+                    slot: StackSlot(
+                        1,
+                    ),
+                    value: Value(
+                        Register(
+                            31,
+                        ),
+                    ),
+                },
+            ],
+            terminator: Some(
+                Jump(
+                    11,
+                ),
+            ),
+            predecessors: [
+                18,
+            ],
+            successors: [
+                11,
+            ],
+        },
+        BasicBlock {
+            id: 20,
+            instructions: [
+                StackLoad {
+                    dest: Register(
+                        33,
+                    ),
+                    slot: StackSlot(
+                        3,
+                    ),
+                },
+                LoadConst {
+                    dest: Register(
+                        34,
+                    ),
+                    value: "10",
+                },
+                BinaryOp {
+                    dest: Register(
+                        35,
+                    ),
+                    left: Value(
+                        Register(
+                            33,
+                        ),
+                    ),
+                    op: Less,
+                    right: Value(
+                        Register(
+                            34,
+                        ),
+                    ),
+                },
+            ],
+            terminator: Some(
+                Branch {
+                    condition: Value(
+                        Register(
+                            35,
+                        ),
+                    ),
+                    true_block: 21,
+                    false_block: 22,
+                },
+            ),
+            predecessors: [
+                13,
+                21,
+            ],
+            successors: [
+                21,
+                22,
+            ],
+        },
+        BasicBlock {
+            id: 21,
+            instructions: [
+                StackLoad {
+                    dest: Register(
+                        36,
+                    ),
+                    slot: StackSlot(
+                        1,
+                    ),
+                },
+                LoadConst {
+                    dest: Register(
+                        37,
+                    ),
+                    value: "2",
+                },
+                BinaryOp {
+                    dest: Register(
+                        38,
+                    ),
+                    left: Value(
+                        Register(
+                            36,
+                        ),
+                    ),
+                    op: AssignAdd,
+                    right: Value(
+                        Register(
+                            37,
+                        ),
+                    ),
+                },
+                StackLoad {
+                    dest: Register(
+                        39,
+                    ),
+                    slot: StackSlot(
+                        3,
+                    ),
+                },
+                BinaryOp {
+                    dest: Register(
+                        40,
+                    ),
+                    left: Value(
+                        Register(
+                            39,
+                        ),
+                    ),
+                    op: Plus,
+                    right: Constant(
+                        "1",
+                    ),
+                },
+                StackStore {
+                    slot: StackSlot(
+                        3,
+                    ),
+                    value: Value(
+                        Register(
+                            40,
+                        ),
+                    ),
+                },
+            ],
+            terminator: Some(
+                Jump(
+                    20,
+                ),
+            ),
+            predecessors: [
+                20,
+            ],
+            successors: [
+                20,
+            ],
+        },
+        BasicBlock {
+            id: 22,
+            instructions: [],
+            terminator: Some(
+                Return(
+                    None,
+                ),
+            ),
+            predecessors: [
+                20,
+            ],
+            successors: [],
+        },
+    ],
+    entry_block: 1,
 }

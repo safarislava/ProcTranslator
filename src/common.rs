@@ -1,5 +1,5 @@
-use std::error::Error;
 use crate::expression::Expression;
+use std::error::Error;
 
 pub type BoxError = Box<dyn Error>;
 
@@ -25,16 +25,40 @@ pub type RawAST = AST<RawExpression>;
 
 #[derive(Debug, Clone)]
 pub enum ASN<E> {
-    If { condition: E },
-    ElseIf { condition: E },
+    If {
+        condition: E,
+    },
+    ElseIf {
+        condition: E,
+    },
     Else,
-    While { condition: E },
-    For { initializer: Option<Box<ASN<E>>>, condition: Option<E>, increment: Option<E> },
-    Callable { result_type: Type, name: String, arguments: Vec<Var> },
-    Class { name: String },
-    Expression { expression: E },
-    Declaration { typ: Type, name: String, expression: Option<E> },
-    Return { value: Option<E> },
+    While {
+        condition: E,
+    },
+    For {
+        initializer: Option<Box<ASN<E>>>,
+        condition: Option<E>,
+        increment: Option<E>,
+    },
+    Callable {
+        result_type: Type,
+        name: String,
+        arguments: Vec<Var>,
+    },
+    Class {
+        name: String,
+    },
+    Expression {
+        expression: E,
+    },
+    Declaration {
+        typ: Type,
+        name: String,
+        expression: Option<E>,
+    },
+    Return {
+        value: Option<E>,
+    },
     Break,
     Continue,
     Scope,
@@ -49,7 +73,10 @@ pub struct AST<E> {
 
 impl<E> AST<E> {
     pub fn new(node: ASN<E>) -> Self {
-        Self { node, children: vec![] }
+        Self {
+            node,
+            children: vec![],
+        }
     }
     pub fn with_children(node: ASN<E>, children: Vec<AST<E>>) -> Self {
         Self { node, children }

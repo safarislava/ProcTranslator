@@ -1,7 +1,7 @@
+use crate::ir::{CFG, Terminator};
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
-use crate::ir::{Terminator, CFG};
 
 impl CFG {
     pub fn to_dot(&self) -> String {
@@ -33,9 +33,19 @@ impl CFG {
                     Terminator::Jump(target) => {
                         dot.push_str(&format!("  B{} -> B{};\n", block.id, target));
                     }
-                    Terminator::Branch { true_block, false_block, .. } => {
-                        dot.push_str(&format!("  B{} -> B{} [label=\"true\"];\n", block.id, true_block));
-                        dot.push_str(&format!("  B{} -> B{} [label=\"false\"];\n", block.id, false_block));
+                    Terminator::Branch {
+                        true_block,
+                        false_block,
+                        ..
+                    } => {
+                        dot.push_str(&format!(
+                            "  B{} -> B{} [label=\"true\"];\n",
+                            block.id, true_block
+                        ));
+                        dot.push_str(&format!(
+                            "  B{} -> B{} [label=\"false\"];\n",
+                            block.id, false_block
+                        ));
                     }
                     Terminator::Return(_) => {}
                 }
@@ -43,7 +53,10 @@ impl CFG {
         }
 
         if self.blocks.len() > 0 {
-            dot.push_str(&format!("  B{} [style=filled, fillcolor=lightgreen];\n", self.entry_block));
+            dot.push_str(&format!(
+                "  B{} [style=filled, fillcolor=lightgreen];\n",
+                self.entry_block
+            ));
         }
 
         dot.push_str("}\n");

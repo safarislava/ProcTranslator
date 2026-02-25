@@ -1,7 +1,7 @@
+use crate::common::{BoxError, RawExpression};
 use std::iter::Peekable;
 use std::str::Chars;
 use std::vec::IntoIter;
-use crate::common::{BoxError, RawExpression};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum BinaryOperator {
@@ -27,20 +27,72 @@ pub enum BinaryOperator {
 
 #[derive(Debug, Clone)]
 pub enum Expression<T> {
-    Literal { typ: T, value: String },
-    Variable { typ: T, name: String },
-    BinaryOp { typ: T, left: Box<Expression<T>>, op: BinaryOperator, right: Box<Expression<T>> },
-    FunctionCall { typ: T, name: String, arguments: Vec<Expression<T>> },
-    MethodCall { typ: T, object: Box<Expression<T>>, name: String, arguments: Vec<Expression<T>> },
-    Assign { typ: T, name: String, value: Box<Expression<T>> },
-    AssignField { typ: T, object: Box<Expression<T>>, name: String, value: Box<Expression<T>> },
-    Increment { typ: T, expression: Box<Expression<T>>, postfix: bool },
-    Decrement { typ: T, expression: Box<Expression<T>>, postfix: bool },
-    Negate { typ: T, expression: Box<Expression<T>> },
-    Not { typ: T, expression: Box<Expression<T>> },
-    New { typ: T, class_name: String },
-    Field { typ: T, object: Box<Expression<T>>, name: String },
-    This { typ: T },
+    Literal {
+        typ: T,
+        value: String,
+    },
+    Variable {
+        typ: T,
+        name: String,
+    },
+    BinaryOp {
+        typ: T,
+        left: Box<Expression<T>>,
+        op: BinaryOperator,
+        right: Box<Expression<T>>,
+    },
+    FunctionCall {
+        typ: T,
+        name: String,
+        arguments: Vec<Expression<T>>,
+    },
+    MethodCall {
+        typ: T,
+        object: Box<Expression<T>>,
+        name: String,
+        arguments: Vec<Expression<T>>,
+    },
+    Assign {
+        typ: T,
+        name: String,
+        value: Box<Expression<T>>,
+    },
+    AssignField {
+        typ: T,
+        object: Box<Expression<T>>,
+        name: String,
+        value: Box<Expression<T>>,
+    },
+    Increment {
+        typ: T,
+        expression: Box<Expression<T>>,
+        postfix: bool,
+    },
+    Decrement {
+        typ: T,
+        expression: Box<Expression<T>>,
+        postfix: bool,
+    },
+    Negate {
+        typ: T,
+        expression: Box<Expression<T>>,
+    },
+    Not {
+        typ: T,
+        expression: Box<Expression<T>>,
+    },
+    New {
+        typ: T,
+        class_name: String,
+    },
+    Field {
+        typ: T,
+        object: Box<Expression<T>>,
+        name: String,
+    },
+    This {
+        typ: T,
+    },
 }
 
 impl<T: Clone> Expression<T> {
@@ -64,11 +116,17 @@ impl<T: Clone> Expression<T> {
     }
 }
 
-
 #[derive(Debug, Clone, PartialEq)]
 enum Token {
-    Num(String), Str(String), Bool(String), Id(String), Op(String),
-    LParen, RParen, Comma, Dot,
+    Num(String),
+    Str(String),
+    Bool(String),
+    Id(String),
+    Op(String),
+    LParen,
+    RParen,
+    Comma,
+    Dot,
 }
 
 struct Lexer<'a> {
@@ -76,21 +134,34 @@ struct Lexer<'a> {
 }
 
 impl<'a> Lexer<'a> {
-    fn new(input: &'a str) -> Self { Self { chars: input.chars().peekable() } }
-
-    fn skip_whitespace(&mut self) {
-        while let Some(&c) = self.chars.peek() {
-            if c.is_whitespace() { self.chars.next(); } else { break; }
+    fn new(input: &'a str) -> Self {
+        Self {
+            chars: input.chars().peekable(),
         }
     }
 
-    fn read_while<F>(&mut self, cond: F) -> String where F: Fn(char) -> bool {
+    fn skip_whitespace(&mut self) {
+        while let Some(&c) = self.chars.peek() {
+            if c.is_whitespace() {
+                self.chars.next();
+            } else {
+                break;
+            }
+        }
+    }
+
+    fn read_while<F>(&mut self, cond: F) -> String
+    where
+        F: Fn(char) -> bool,
+    {
         let mut s = String::new();
         while let Some(&c) = self.chars.peek() {
             if cond(c) {
                 s.push(c);
                 self.chars.next();
-            } else { break; }
+            } else {
+                break;
+            }
         }
         s
     }
@@ -103,7 +174,9 @@ impl<'a> Lexer<'a> {
         };
 
         let token = match c {
-            c if c.is_ascii_digit() => Token::Num(self.read_while(|c| c.is_ascii_digit() || c == '.')),
+            c if c.is_ascii_digit() => {
+                Token::Num(self.read_while(|c| c.is_ascii_digit() || c == '.'))
+            }
             '"' => {
                 self.chars.next();
                 let s = self.read_while(|c| c != '"');
@@ -117,10 +190,22 @@ impl<'a> Lexer<'a> {
                     _ => Token::Id(id),
                 }
             }
-            '(' => { self.chars.next(); Token::LParen }
-            ')' => { self.chars.next(); Token::RParen }
-            ',' => { self.chars.next(); Token::Comma }
-            '.' => { self.chars.next(); Token::Dot }
+            '(' => {
+                self.chars.next();
+                Token::LParen
+            }
+            ')' => {
+                self.chars.next();
+                Token::RParen
+            }
+            ',' => {
+                self.chars.next();
+                Token::Comma
+            }
+            '.' => {
+                self.chars.next();
+                Token::Dot
+            }
             _ => {
                 let op = self.read_while(|c| "+-*/%=<>!&|".contains(c));
                 if op.is_empty() {
@@ -136,7 +221,9 @@ impl<'a> Lexer<'a> {
 
     fn tokenize(&mut self) -> Result<Vec<Token>, BoxError> {
         let mut tokens = vec![];
-        while let Some(token) = self.next_token()? { tokens.push(token); }
+        while let Some(token) = self.next_token()? {
+            tokens.push(token);
+        }
         Ok(tokens)
     }
 }
@@ -147,7 +234,9 @@ struct Parser {
 
 impl Parser {
     fn new(tokens: Vec<Token>) -> Self {
-        Self { tokens: tokens.into_iter().peekable() }
+        Self {
+            tokens: tokens.into_iter().peekable(),
+        }
     }
 
     fn is_changeable(expr: &RawExpression) -> bool {
@@ -170,25 +259,46 @@ impl Parser {
                 if let Some(Token::LParen) = self.tokens.peek() {
                     self.tokens.next();
                     let args = self.parse_arguments()?;
-                    left = Expression::MethodCall { typ: (), object: Box::new(left), name: member, arguments: args };
+                    left = Expression::MethodCall {
+                        typ: (),
+                        object: Box::new(left),
+                        name: member,
+                        arguments: args,
+                    };
                 } else {
-                    left = Expression::Field { typ: (), object: Box::new(left), name: member };
+                    left = Expression::Field {
+                        typ: (),
+                        object: Box::new(left),
+                        name: member,
+                    };
                 }
                 continue;
             }
 
-            if let Some(Token::Op(op)) = next.as_ref() && (op == "++" || op == "--") {
+            if let Some(Token::Op(op)) = next.as_ref()
+                && (op == "++" || op == "--")
+            {
                 let op_str = op.clone();
                 self.tokens.next();
 
                 if Self::is_changeable(&left) {
                     left = if op_str == "++" {
-                        Expression::Increment { typ: (), expression: Box::new(left), postfix: true }
+                        Expression::Increment {
+                            typ: (),
+                            expression: Box::new(left),
+                            postfix: true,
+                        }
                     } else {
-                        Expression::Decrement { typ: (), expression: Box::new(left), postfix: true }
+                        Expression::Decrement {
+                            typ: (),
+                            expression: Box::new(left),
+                            postfix: true,
+                        }
                     };
                 } else {
-                    return Err(format!("Operator '{}' can only be applied to a variable", op_str).into());
+                    return Err(
+                        format!("Operator '{}' can only be applied to a variable", op_str).into(),
+                    );
                 }
                 continue;
             }
@@ -205,16 +315,34 @@ impl Parser {
 
                 left = match op {
                     BinaryOperator::Assign => {
-                        if !Self::is_changeable(&left) { return Err("Invalid assignment target".into()); }
-                        match left {
-                            Expression::Variable { name, .. } =>
-                                Expression::Assign { typ: (), name, value: Box::new(right) },
-                            Expression::Field { object, name: member, .. } =>
-                                Expression::AssignField { typ: (), object, name: member, value: Box::new(right) },
-                            _ => unreachable!()
+                        if !Self::is_changeable(&left) {
+                            return Err("Invalid assignment target".into());
                         }
+                        match left {
+                            Expression::Variable { name, .. } => Expression::Assign {
+                                typ: (),
+                                name,
+                                value: Box::new(right),
+                            },
+                            Expression::Field {
+                                object,
+                                name: member,
+                                ..
+                            } => Expression::AssignField {
+                                typ: (),
+                                object,
+                                name: member,
+                                value: Box::new(right),
+                            },
+                            _ => unreachable!(),
+                        }
+                    }
+                    _ => Expression::BinaryOp {
+                        typ: (),
+                        left: Box::new(left),
+                        op,
+                        right: Box::new(right),
                     },
-                    _ => Expression::BinaryOp { typ: (), left: Box::new(left), op, right: Box::new(right) },
                 };
             } else {
                 break;
@@ -226,8 +354,11 @@ impl Parser {
     fn parse_primary(&mut self) -> Result<RawExpression, BoxError> {
         let token = self.tokens.next().ok_or("Unexpected end of expression")?;
         match token {
-            Token::Num(value) => Ok(Expression::Literal { typ: (), value } ),
-            Token::Str(value) => Ok(Expression::Literal { typ: (), value: format!("\"{}\"", value) }),
+            Token::Num(value) => Ok(Expression::Literal { typ: (), value }),
+            Token::Str(value) => Ok(Expression::Literal {
+                typ: (),
+                value: format!("\"{}\"", value),
+            }),
             Token::Bool(value) => Ok(Expression::Literal { typ: (), value }),
             Token::Id(id) => match id.as_str() {
                 "this" => Ok(Expression::This { typ: () }),
@@ -236,21 +367,33 @@ impl Parser {
                         Some(Token::Id(name)) => name,
                         _ => return Err("Expected class name after 'new'".into()),
                     };
-                    Ok(Expression::New { typ: (), class_name })
+                    Ok(Expression::New {
+                        typ: (),
+                        class_name,
+                    })
                 }
                 name => {
                     if let Some(Token::LParen) = self.tokens.peek() {
                         self.tokens.next();
                         let args = self.parse_arguments()?;
-                        Ok(Expression::FunctionCall { typ: (), name: name.to_string(), arguments: args })
+                        Ok(Expression::FunctionCall {
+                            typ: (),
+                            name: name.to_string(),
+                            arguments: args,
+                        })
                     } else {
-                        Ok(Expression::Variable { typ: (), name: name.to_string() })
+                        Ok(Expression::Variable {
+                            typ: (),
+                            name: name.to_string(),
+                        })
                     }
                 }
             },
             Token::LParen => {
                 let expr = self.parse_expression(0)?;
-                if self.tokens.next() != Some(Token::RParen) { return Err("Expected ')'".into()); }
+                if self.tokens.next() != Some(Token::RParen) {
+                    return Err("Expected ')'".into());
+                }
                 Ok(expr)
             }
             Token::Op(op) => {
@@ -259,25 +402,43 @@ impl Parser {
                         let target = self.parse_primary()?;
                         if Self::is_changeable(&target) {
                             Ok(if op == "++" {
-                                Expression::Increment { typ: (), expression: Box::new(target), postfix: false }
+                                Expression::Increment {
+                                    typ: (),
+                                    expression: Box::new(target),
+                                    postfix: false,
+                                }
                             } else {
-                                Expression::Decrement { typ: (), expression: Box::new(target), postfix: false }
+                                Expression::Decrement {
+                                    typ: (),
+                                    expression: Box::new(target),
+                                    postfix: false,
+                                }
                             })
                         } else {
-                            Err(format!("Operator '{}' can only be applied to a variable or field", op).into())
+                            Err(format!(
+                                "Operator '{}' can only be applied to a variable or field",
+                                op
+                            )
+                            .into())
                         }
-                    },
+                    }
                     "-" => {
                         let expr = self.parse_expression(15)?; // Унарный минус имеет высокий приоритет
-                        Ok(Expression::Negate { typ: (), expression: Box::new(expr) })
-                    },
+                        Ok(Expression::Negate {
+                            typ: (),
+                            expression: Box::new(expr),
+                        })
+                    }
                     "!" => {
                         let expr = self.parse_expression(15)?; // Унарное отрицание
-                        Ok(Expression::Not { typ: (), expression: Box::new(expr) })
+                        Ok(Expression::Not {
+                            typ: (),
+                            expression: Box::new(expr),
+                        })
                     }
-                    _ => Err(format!("Unexpected unary operator: {}", op).into())
+                    _ => Err(format!("Unexpected unary operator: {}", op).into()),
                 }
-            },
+            }
             _ => Err(format!("Unexpected token: {:?}", token).into()),
         }
     }
@@ -301,28 +462,42 @@ impl Parser {
 
     fn link_binary_operator(op: &str) -> Result<BinaryOperator, BoxError> {
         match op {
-            "=" => Ok(BinaryOperator::Assign), "+=" => Ok(BinaryOperator::AssignAdd),
-            "-=" => Ok(BinaryOperator::AssignSub), "*=" => Ok(BinaryOperator::AssignMul),
-            "/=" => Ok(BinaryOperator::AssignDiv), "||" => Ok(BinaryOperator::Or),
-            "&&" => Ok(BinaryOperator::And), "==" => Ok(BinaryOperator::Equal),
-            "!=" => Ok(BinaryOperator::NotEqual), "<" => Ok(BinaryOperator::Less),
-            "<=" => Ok(BinaryOperator::LessEqual), ">" => Ok(BinaryOperator::Greater),
-            ">=" => Ok(BinaryOperator::GreaterEqual), "+" => Ok(BinaryOperator::Plus),
-            "-" => Ok(BinaryOperator::Minus), "*" => Ok(BinaryOperator::Multiply),
-            "/" => Ok(BinaryOperator::Divide), "%" => Ok(BinaryOperator::Modulo),
+            "=" => Ok(BinaryOperator::Assign),
+            "+=" => Ok(BinaryOperator::AssignAdd),
+            "-=" => Ok(BinaryOperator::AssignSub),
+            "*=" => Ok(BinaryOperator::AssignMul),
+            "/=" => Ok(BinaryOperator::AssignDiv),
+            "||" => Ok(BinaryOperator::Or),
+            "&&" => Ok(BinaryOperator::And),
+            "==" => Ok(BinaryOperator::Equal),
+            "!=" => Ok(BinaryOperator::NotEqual),
+            "<" => Ok(BinaryOperator::Less),
+            "<=" => Ok(BinaryOperator::LessEqual),
+            ">" => Ok(BinaryOperator::Greater),
+            ">=" => Ok(BinaryOperator::GreaterEqual),
+            "+" => Ok(BinaryOperator::Plus),
+            "-" => Ok(BinaryOperator::Minus),
+            "*" => Ok(BinaryOperator::Multiply),
+            "/" => Ok(BinaryOperator::Divide),
+            "%" => Ok(BinaryOperator::Modulo),
             _ => Err("Unknown binary operator".into()),
         }
     }
 
     fn binding_order(op: &BinaryOperator) -> (u8, u8) {
         match op {
-            BinaryOperator::Assign | BinaryOperator::AssignAdd | BinaryOperator::AssignSub |
-            BinaryOperator::AssignMul | BinaryOperator::AssignDiv => (1, 2),
+            BinaryOperator::Assign
+            | BinaryOperator::AssignAdd
+            | BinaryOperator::AssignSub
+            | BinaryOperator::AssignMul
+            | BinaryOperator::AssignDiv => (1, 2),
             BinaryOperator::Or => (3, 4),
             BinaryOperator::And => (5, 6),
             BinaryOperator::Equal | BinaryOperator::NotEqual => (7, 8),
-            BinaryOperator::Less | BinaryOperator::LessEqual |
-            BinaryOperator::Greater | BinaryOperator::GreaterEqual => (9, 10),
+            BinaryOperator::Less
+            | BinaryOperator::LessEqual
+            | BinaryOperator::Greater
+            | BinaryOperator::GreaterEqual => (9, 10),
             BinaryOperator::Plus | BinaryOperator::Minus => (11, 12),
             BinaryOperator::Multiply | BinaryOperator::Divide | BinaryOperator::Modulo => (13, 14),
         }
@@ -331,7 +506,9 @@ impl Parser {
 
 pub fn parse_expression(raw_code: &str) -> Result<RawExpression, BoxError> {
     let trimmed = raw_code.trim().trim_end_matches(';');
-    if trimmed.is_empty() { return Err("Empty expression".into()); }
+    if trimmed.is_empty() {
+        return Err("Empty expression".into());
+    }
     let mut lexer = Lexer::new(trimmed);
     let tokens = lexer.tokenize()?;
     let mut parser = Parser::new(tokens);

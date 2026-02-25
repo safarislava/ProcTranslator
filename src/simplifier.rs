@@ -1,4 +1,4 @@
-use crate::common::{RawAST, RawExpression, ASN};
+use crate::common::{ASN, RawAST, RawExpression};
 
 pub fn simplify(ast: RawAST) -> RawAST {
     let RawAST { node, children } = ast;
@@ -13,7 +13,11 @@ pub fn simplify(ast: RawAST) -> RawAST {
     }
 
     match node {
-        ASN::For { initializer, condition, increment } => {
+        ASN::For {
+            initializer,
+            condition,
+            increment,
+        } => {
             let mut scope_children = Vec::new();
 
             if let Some(init_box) = initializer {
@@ -26,9 +30,10 @@ pub fn simplify(ast: RawAST) -> RawAST {
                 while_body.push(RawAST::new(ASN::Expression { expression: inc }));
             }
 
-            let condition = condition.unwrap_or_else(||
-                RawExpression::Literal { typ: (), value: "true".into() }
-            );
+            let condition = condition.unwrap_or_else(|| RawExpression::Literal {
+                typ: (),
+                value: "true".into(),
+            });
 
             let while_node = RawAST::with_children(ASN::While { condition }, while_body);
             scope_children.push(while_node);
@@ -39,7 +44,10 @@ pub fn simplify(ast: RawAST) -> RawAST {
     }
 }
 
-fn build_if_tree(mut current_node: RawAST, iter: &mut std::iter::Peekable<impl Iterator<Item = RawAST>>) -> RawAST {
+fn build_if_tree(
+    mut current_node: RawAST,
+    iter: &mut std::iter::Peekable<impl Iterator<Item = RawAST>>,
+) -> RawAST {
     if let ASN::ElseIf { condition } = current_node.node {
         current_node.node = ASN::If { condition };
     }
@@ -48,7 +56,9 @@ fn build_if_tree(mut current_node: RawAST, iter: &mut std::iter::Peekable<impl I
         Some(ASN::ElseIf { .. }) => {
             let next_node = iter.next().unwrap();
             let nested_if = build_if_tree(next_node, iter);
-            current_node.children.push(RawAST::with_children(ASN::Else, vec![nested_if]));
+            current_node
+                .children
+                .push(RawAST::with_children(ASN::Else, vec![nested_if]));
         }
         Some(ASN::Else) => {
             let else_node = iter.next().unwrap();

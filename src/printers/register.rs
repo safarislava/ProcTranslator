@@ -1,5 +1,5 @@
-use std::fmt;
 use crate::ir::Register;
+use std::fmt;
 
 impl fmt::Display for Register {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

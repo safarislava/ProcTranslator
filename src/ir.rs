@@ -1,6 +1,6 @@
-use std::collections::HashMap;
-use crate::common::{TypedAST, TypedExpression, ASN, Type};
+use crate::common::{ASN, Type, TypedAST, TypedExpression};
 use crate::expression::BinaryOperator;
+use std::collections::HashMap;
 
 pub type BlockId = usize;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -18,24 +18,62 @@ pub enum Operand {
 
 #[derive(Debug, Clone)]
 pub enum IrInstruction {
-    LoadConst { dest: Register, value: String },
-    BinaryOp { dest: Register, left: Operand, op: BinaryOperator, right: Operand },
-    Call { dest: Register, block: BlockId, arguments: Vec<Operand> },
-    LoadParam { dest: Register, index: usize },
+    LoadConst {
+        dest: Register,
+        value: String,
+    },
+    BinaryOp {
+        dest: Register,
+        left: Operand,
+        op: BinaryOperator,
+        right: Operand,
+    },
+    Call {
+        dest: Register,
+        block: BlockId,
+        arguments: Vec<Operand>,
+    },
+    LoadParam {
+        dest: Register,
+        index: usize,
+    },
 
-    StackAlloc { slot: StackSlot },
-    StackStore { slot: StackSlot, value: Operand },
-    StackLoad { dest: Register, slot: StackSlot },
+    StackAlloc {
+        slot: StackSlot,
+    },
+    StackStore {
+        slot: StackSlot,
+        value: Operand,
+    },
+    StackLoad {
+        dest: Register,
+        slot: StackSlot,
+    },
 
-    GetField { dest: Register, object: Operand, offset: usize },
-    PutField { object: Operand, offset: usize, value: Operand },
-    AllocObject { dest: Register, class_name: String },
+    GetField {
+        dest: Register,
+        object: Operand,
+        offset: usize,
+    },
+    PutField {
+        object: Operand,
+        offset: usize,
+        value: Operand,
+    },
+    AllocObject {
+        dest: Register,
+        class_name: String,
+    },
 }
 
 #[derive(Debug, Clone)]
 pub enum Terminator {
     Jump(BlockId),
-    Branch { condition: Operand, true_block: BlockId, false_block: BlockId },
+    Branch {
+        condition: Operand,
+        true_block: BlockId,
+        false_block: BlockId,
+    },
     Return(Option<Operand>),
 }
 
@@ -50,7 +88,13 @@ pub struct BasicBlock {
 
 impl BasicBlock {
     pub fn new(id: BlockId) -> Self {
-        Self { id, instructions: Vec::new(), terminator: None, predecessors: Vec::new(), successors: Vec::new() }
+        Self {
+            id,
+            instructions: Vec::new(),
+            terminator: None,
+            predecessors: Vec::new(),
+            successors: Vec::new(),
+        }
     }
 }
 
@@ -61,7 +105,10 @@ struct ClassInfo {
 
 impl ClassInfo {
     pub fn new() -> Self {
-        ClassInfo { fields: HashMap::new(), methods: HashMap::new() }
+        ClassInfo {
+            fields: HashMap::new(),
+            methods: HashMap::new(),
+        }
     }
 }
 
@@ -127,7 +174,9 @@ impl IrContext {
     }
 
     pub fn emit(&mut self, instruction: IrInstruction) {
-        if let Some(block_id) = self.current_block && self.blocks[block_id].terminator.is_none() {
+        if let Some(block_id) = self.current_block
+            && self.blocks[block_id].terminator.is_none()
+        {
             self.blocks[block_id].instructions.push(instruction);
         }
     }
@@ -142,7 +191,11 @@ impl IrContext {
                 Terminator::Jump(target) => {
                     self.link_blocks(source_block, *target);
                 }
-                Terminator::Branch { true_block, false_block, .. } => {
+                Terminator::Branch {
+                    true_block,
+                    false_block,
+                    ..
+                } => {
                     self.link_blocks(source_block, *true_block);
                     self.link_blocks(source_block, *false_block);
                 }
@@ -191,7 +244,11 @@ impl IrContext {
                 let condition = self.gen_expression(condition);
                 let true_block = self.create_block();
                 let false_block = self.create_block();
-                self.emit_terminator(Terminator::Branch { condition, true_block, false_block });
+                self.emit_terminator(Terminator::Branch {
+                    condition,
+                    true_block,
+                    false_block,
+                });
 
                 self.set_current_block(true_block);
                 self.enter_scope();
@@ -264,7 +321,11 @@ impl IrContext {
 
                 self.set_current_block(condition_block);
                 let condition = self.gen_expression(condition);
-                self.emit_terminator(Terminator::Branch { condition, true_block, false_block });
+                self.emit_terminator(Terminator::Branch {
+                    condition,
+                    true_block,
+                    false_block,
+                });
 
                 self.set_current_block(true_block);
                 self.enter_scope();
@@ -281,7 +342,9 @@ impl IrContext {
             ASN::Expression { expression } => {
                 self.gen_expression(expression);
             }
-            ASN::Declaration { name, expression, .. } => {
+            ASN::Declaration {
+                name, expression, ..
+            } => {
                 let slot = self.declare_var(name);
                 let value = if let Some(expr) = expression {
                     self.gen_expression(expr)
@@ -293,7 +356,9 @@ impl IrContext {
                     self.emit(IrInstruction::StackStore { slot, value });
                 }
             }
-            ASN::Callable { name, arguments, .. } => {
+            ASN::Callable {
+                name, arguments, ..
+            } => {
                 let block_id = match &self.current_class {
                     Some(current_class) => self.classes[current_class].methods[&name],
                     None => self.functions[&name],
@@ -305,7 +370,10 @@ impl IrContext {
                 let mut param_offset = 0;
                 if self.current_class.is_some() {
                     let reg = self.new_reg();
-                    self.emit(IrInstruction::LoadParam { dest: reg, index: 0 });
+                    self.emit(IrInstruction::LoadParam {
+                        dest: reg,
+                        index: 0,
+                    });
                     self.this_register = Some(reg);
                     param_offset = 1;
                 }
@@ -313,8 +381,14 @@ impl IrContext {
                 for (i, arg) in arguments.into_iter().enumerate() {
                     let slot = self.declare_var(arg.name);
                     let reg = self.new_reg();
-                    self.emit(IrInstruction::LoadParam { dest: reg, index: i + param_offset });
-                    self.emit(IrInstruction::StackStore { slot, value: Operand::Value(reg) });
+                    self.emit(IrInstruction::LoadParam {
+                        dest: reg,
+                        index: i + param_offset,
+                    });
+                    self.emit(IrInstruction::StackStore {
+                        slot,
+                        value: Operand::Value(reg),
+                    });
                 }
 
                 for child in ast.children {
@@ -340,14 +414,16 @@ impl IrContext {
             ASN::Break => {
                 if let Some((_, break_target)) = self.loop_stack.last() {
                     self.emit_terminator(Terminator::Jump(*break_target));
+                } else {
+                    unreachable!();
                 }
-                else { unreachable!(); }
             }
             ASN::Continue => {
                 if let Some((continue_target, _)) = self.loop_stack.last() {
                     self.emit_terminator(Terminator::Jump(*continue_target));
+                } else {
+                    unreachable!();
                 }
-                else { unreachable!(); }
             }
             ASN::Scope => {
                 self.enter_scope();
@@ -361,7 +437,7 @@ impl IrContext {
                     self.gen_statement(child);
                 }
             }
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 
@@ -378,21 +454,34 @@ impl IrContext {
                 self.emit(IrInstruction::StackLoad { dest, slot });
                 Operand::Value(dest)
             }
-            TypedExpression::BinaryOp { left, op, right, .. } => {
+            TypedExpression::BinaryOp {
+                left, op, right, ..
+            } => {
                 let left = self.gen_expression(*left);
                 let right = self.gen_expression(*right);
                 let dest = self.new_reg();
-                self.emit(IrInstruction::BinaryOp { dest, left, op, right });
+                self.emit(IrInstruction::BinaryOp {
+                    dest,
+                    left,
+                    op,
+                    right,
+                });
                 Operand::Value(dest)
             }
-            TypedExpression::FunctionCall { name, arguments, .. } => {
+            TypedExpression::FunctionCall {
+                name, arguments, ..
+            } => {
                 let mut args = Vec::new();
                 for arg in arguments {
                     args.push(self.gen_expression(arg));
                 }
                 let dest = self.new_reg();
                 let block = self.functions[&name];
-                self.emit(IrInstruction::Call { dest, block, arguments: args });
+                self.emit(IrInstruction::Call {
+                    dest,
+                    block,
+                    arguments: args,
+                });
                 Operand::Value(dest)
             }
             TypedExpression::Assign { name, value, .. } => {
@@ -402,18 +491,26 @@ impl IrContext {
                 self.emit(IrInstruction::StackStore { slot, value });
                 Operand::Void
             }
-            TypedExpression::Increment { expression, postfix, .. } => {
-                self.update_value(*expression, postfix, BinaryOperator::Plus)
-            }
-            TypedExpression::Decrement { expression, postfix, .. } => {
-                self.update_value(*expression, postfix, BinaryOperator::Minus)
-            }
+            TypedExpression::Increment {
+                expression,
+                postfix,
+                ..
+            } => self.update_value(*expression, postfix, BinaryOperator::Plus),
+            TypedExpression::Decrement {
+                expression,
+                postfix,
+                ..
+            } => self.update_value(*expression, postfix, BinaryOperator::Minus),
             TypedExpression::Negate { expression, .. } => {
                 let operand = self.gen_expression(*expression);
                 let dest = self.new_reg();
                 let zero_const = Operand::Constant("0".to_string());
                 self.emit(IrInstruction::BinaryOp {
-                    dest, left: zero_const, op: BinaryOperator::Minus, right: operand });
+                    dest,
+                    left: zero_const,
+                    op: BinaryOperator::Minus,
+                    right: operand,
+                });
                 Operand::Value(dest)
             }
             TypedExpression::Not { expression, .. } => {
@@ -421,13 +518,24 @@ impl IrContext {
                 let dest = self.new_reg();
                 let false_const = Operand::Constant("false".to_string());
                 self.emit(IrInstruction::BinaryOp {
-                    dest, left: operand, op: BinaryOperator::Equal, right: false_const});
+                    dest,
+                    left: operand,
+                    op: BinaryOperator::Equal,
+                    right: false_const,
+                });
                 Operand::Value(dest)
             }
-            TypedExpression::MethodCall { object, name, arguments, .. } => {
+            TypedExpression::MethodCall {
+                object,
+                name,
+                arguments,
+                ..
+            } => {
                 let typ = object.get_type();
                 let object = self.gen_expression(*object);
-                let Type::Class(class_name) = typ else { unreachable!() };
+                let Type::Class(class_name) = typ else {
+                    unreachable!()
+                };
 
                 let mut args = vec![object];
                 for arg in arguments {
@@ -436,42 +544,73 @@ impl IrContext {
 
                 let block = self.classes[&class_name].methods[&name];
                 let dest = self.new_reg();
-                self.emit(IrInstruction::Call { dest, block, arguments: args });
+                self.emit(IrInstruction::Call {
+                    dest,
+                    block,
+                    arguments: args,
+                });
 
                 Operand::Value(dest)
             }
-            TypedExpression::AssignField { object, name, value, .. } => {
+            TypedExpression::AssignField {
+                object,
+                name,
+                value,
+                ..
+            } => {
                 let typ = object.get_type();
                 let object = self.gen_expression(*object);
-                let Type::Class(class_name) = typ else { unreachable!() };
+                let Type::Class(class_name) = typ else {
+                    unreachable!()
+                };
                 let offset = self.classes[&class_name].fields[&name].1;
                 let value = self.gen_expression(*value);
 
-                self.emit(IrInstruction::PutField {object, offset, value});
+                self.emit(IrInstruction::PutField {
+                    object,
+                    offset,
+                    value,
+                });
                 Operand::Void
             }
-            TypedExpression::New { class_name, ..} => {
+            TypedExpression::New { class_name, .. } => {
                 let dest = self.new_reg();
-                self.emit(IrInstruction::AllocObject { dest, class_name: class_name.clone() });
+                self.emit(IrInstruction::AllocObject {
+                    dest,
+                    class_name: class_name.clone(),
+                });
                 let object = Operand::Value(dest);
 
-                let fields: Vec<_> = self.classes[&class_name].fields.values()
-                    .filter_map(|(e, o)| Some((e.clone()?, *o))).collect();
+                let fields: Vec<_> = self.classes[&class_name]
+                    .fields
+                    .values()
+                    .filter_map(|(e, o)| Some((e.clone()?, *o)))
+                    .collect();
 
                 for (expression, offset) in fields {
                     let value = self.gen_expression(expression);
-                    self.emit(IrInstruction::PutField { object: object.clone(), offset, value });
+                    self.emit(IrInstruction::PutField {
+                        object: object.clone(),
+                        offset,
+                        value,
+                    });
                 }
                 object
             }
             TypedExpression::Field { object, name, .. } => {
                 let typ = object.get_type();
                 let object = self.gen_expression(*object);
-                let Type::Class(class_name) = typ else { unreachable!() };
+                let Type::Class(class_name) = typ else {
+                    unreachable!()
+                };
                 let offset = self.classes[&class_name].fields[&name].1;
 
                 let dest = self.new_reg();
-                self.emit(IrInstruction::GetField { dest, object, offset });
+                self.emit(IrInstruction::GetField {
+                    dest,
+                    object,
+                    offset,
+                });
 
                 Operand::Value(dest)
             }
@@ -485,18 +624,33 @@ impl IrContext {
         }
     }
 
-    fn update_value(&mut self, expression: TypedExpression, postfix: bool, op: BinaryOperator) -> Operand {
+    fn update_value(
+        &mut self,
+        expression: TypedExpression,
+        postfix: bool,
+        op: BinaryOperator,
+    ) -> Operand {
         match expression {
             TypedExpression::Variable { name, .. } => {
                 let slot = self.resolve_var_addr(&name);
                 let old_val_reg = self.new_reg();
-                self.emit(IrInstruction::StackLoad { dest: old_val_reg, slot });
+                self.emit(IrInstruction::StackLoad {
+                    dest: old_val_reg,
+                    slot,
+                });
 
                 let new_val_reg = self.new_reg();
                 let one_const = Operand::Constant("1".to_string());
                 self.emit(IrInstruction::BinaryOp {
-                    dest: new_val_reg, left: Operand::Value(old_val_reg), op, right: one_const, });
-                self.emit(IrInstruction::StackStore { slot, value: Operand::Value(new_val_reg) });
+                    dest: new_val_reg,
+                    left: Operand::Value(old_val_reg),
+                    op,
+                    right: one_const,
+                });
+                self.emit(IrInstruction::StackStore {
+                    slot,
+                    value: Operand::Value(new_val_reg),
+                });
 
                 if postfix {
                     Operand::Value(old_val_reg)
@@ -507,17 +661,31 @@ impl IrContext {
             TypedExpression::Field { object, name, .. } => {
                 let typ = object.get_type();
                 let object = self.gen_expression(*object);
-                let Type::Class(class_name) = typ else { unreachable!() };
+                let Type::Class(class_name) = typ else {
+                    unreachable!()
+                };
                 let offset = self.classes[&class_name].fields[&name].1;
 
                 let old_val_reg = self.new_reg();
-                self.emit(IrInstruction::GetField { dest: old_val_reg, object: object.clone(), offset });
+                self.emit(IrInstruction::GetField {
+                    dest: old_val_reg,
+                    object: object.clone(),
+                    offset,
+                });
 
                 let new_val_reg = self.new_reg();
                 let one_const = Operand::Constant("1".to_string());
                 self.emit(IrInstruction::BinaryOp {
-                    dest: new_val_reg, left: Operand::Value(old_val_reg), op, right: one_const, });
-                self.emit(IrInstruction::PutField {object,  offset, value: Operand::Value(new_val_reg)});
+                    dest: new_val_reg,
+                    left: Operand::Value(old_val_reg),
+                    op,
+                    right: one_const,
+                });
+                self.emit(IrInstruction::PutField {
+                    object,
+                    offset,
+                    value: Operand::Value(new_val_reg),
+                });
 
                 if postfix {
                     Operand::Value(old_val_reg)
@@ -525,7 +693,7 @@ impl IrContext {
                     Operand::Value(new_val_reg)
                 }
             }
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 }
@@ -552,8 +720,12 @@ impl IrContext {
                                 self.main_block = Some(block_id);
                             }
                         }
-                        ASN::Declaration { name, expression, .. } => {
-                            class_info.fields.insert(name.clone(), (expression.clone(), field_counter));
+                        ASN::Declaration {
+                            name, expression, ..
+                        } => {
+                            class_info
+                                .fields
+                                .insert(name.clone(), (expression.clone(), field_counter));
                             field_counter += 1;
                         }
                         _ => {}
@@ -587,5 +759,8 @@ pub fn compile(ast: TypedAST) -> CFG {
     if !ctx.is_current_terminated() {
         ctx.emit_terminator(Terminator::Return(None));
     }
-    CFG { blocks: ctx.blocks, entry_block }
+    CFG {
+        blocks: ctx.blocks,
+        entry_block,
+    }
 }

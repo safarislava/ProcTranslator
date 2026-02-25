@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod tests {
-    use crate::compile_to_ir;
-    use insta::{assert_snapshot, Settings};
-    use std::fs;
-    use std::env;
     use crate::common::RawAST;
+    use crate::compile_to_ir;
+    use insta::{Settings, assert_snapshot};
+    use std::env;
+    use std::fs;
 
     fn get_settings() -> Settings {
         let mut settings = Settings::clone_current();
@@ -27,9 +27,11 @@ mod tests {
                 assert!(result.is_ok(), "File {:?} should compile", path);
 
                 let cfg = result.unwrap();
-                // Добавляем префикс теста
-                let snapshot_name = format!("correct_cfg@{}", path.file_stem().unwrap().to_str().unwrap());
-                assert_snapshot!(snapshot_name, cfg.to_dot());
+                let snapshot_name = format!(
+                    "correct_cfg@{}",
+                    path.file_stem().unwrap().to_str().unwrap()
+                );
+                assert_snapshot!(snapshot_name, format!("{:#?}", cfg));
             });
         });
     }
@@ -49,7 +51,10 @@ mod tests {
                 assert!(result.is_err(), "File {:?} should fail to compile", path);
 
                 let error = result.unwrap_err().to_string();
-                let snapshot_name = format!("incorrect_error@{}", path.file_stem().unwrap().to_str().unwrap());
+                let snapshot_name = format!(
+                    "incorrect_error@{}",
+                    path.file_stem().unwrap().to_str().unwrap()
+                );
                 assert_snapshot!(snapshot_name, error);
             });
         });
@@ -70,7 +75,8 @@ mod tests {
 
                 match syntax_tree {
                     Ok(tree) => {
-                        let snapshot_name = format!("parser@{}", path.file_stem().unwrap().to_str().unwrap());
+                        let snapshot_name =
+                            format!("parser@{}", path.file_stem().unwrap().to_str().unwrap());
                         assert_snapshot!(snapshot_name, format!("{:#?}", tree));
                     }
                     Err(e) => {
@@ -97,7 +103,8 @@ mod tests {
 
                 match ast {
                     Ok(tree) => {
-                        let snapshot_name = format!("ast@{}", path.file_stem().unwrap().to_str().unwrap());
+                        let snapshot_name =
+                            format!("ast@{}", path.file_stem().unwrap().to_str().unwrap());
                         assert_snapshot!(snapshot_name, format!("{:#?}", tree));
                     }
                     Err(e) => {
@@ -123,7 +130,10 @@ mod tests {
                 let ast = crate::ast::build(syntax_tree).unwrap();
                 let simple_ast: RawAST = crate::simplifier::simplify(ast);
 
-                let snapshot_name = format!("simplified_ast@{}", path.file_stem().unwrap().to_str().unwrap());
+                let snapshot_name = format!(
+                    "simplified_ast@{}",
+                    path.file_stem().unwrap().to_str().unwrap()
+                );
                 assert_snapshot!(snapshot_name, format!("{:#?}", simple_ast));
             });
         });
@@ -147,7 +157,8 @@ mod tests {
 
                 match typed_ast {
                     Ok(tree) => {
-                        let snapshot_name = format!("typed_ast@{}", path.file_stem().unwrap().to_str().unwrap());
+                        let snapshot_name =
+                            format!("typed_ast@{}", path.file_stem().unwrap().to_str().unwrap());
                         assert_snapshot!(snapshot_name, format!("{:#?}", tree));
                     }
                     Err(e) => {

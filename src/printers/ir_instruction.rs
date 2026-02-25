@@ -1,5 +1,5 @@
-use std::fmt;
 use crate::ir::IrInstruction;
+use std::fmt;
 
 impl fmt::Display for IrInstruction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -7,11 +7,24 @@ impl fmt::Display for IrInstruction {
             IrInstruction::LoadConst { dest, value } => {
                 write!(f, "{} = const {}", dest, value)
             }
-            IrInstruction::BinaryOp { dest, left, op, right } => {
+            IrInstruction::BinaryOp {
+                dest,
+                left,
+                op,
+                right,
+            } => {
                 write!(f, "{} = {} {:?} {}", dest, left, op, right)
             }
-            IrInstruction::Call { dest, block, arguments } => {
-                let args = arguments.iter().map(|a| a.to_string()).collect::<Vec<_>>().join(", ");
+            IrInstruction::Call {
+                dest,
+                block,
+                arguments,
+            } => {
+                let args = arguments
+                    .iter()
+                    .map(|a| a.to_string())
+                    .collect::<Vec<_>>()
+                    .join(", ");
                 write!(f, "{} = call B{}({})", dest, block, args)
             }
             IrInstruction::LoadParam { dest, index } => {
@@ -26,10 +39,18 @@ impl fmt::Display for IrInstruction {
             IrInstruction::StackLoad { dest, slot } => {
                 write!(f, "{} = load {}", dest, slot)
             }
-            IrInstruction::GetField { dest, object, offset } => {
+            IrInstruction::GetField {
+                dest,
+                object,
+                offset,
+            } => {
                 write!(f, "{} = getfield {}[{}]", dest, object, offset)
             }
-            IrInstruction::PutField { object, offset, value } => {
+            IrInstruction::PutField {
+                object,
+                offset,
+                value,
+            } => {
                 write!(f, "{}[{}] = {}", object, offset, value)
             }
             IrInstruction::AllocObject { dest, class_name } => {
