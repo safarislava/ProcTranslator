@@ -2,15 +2,15 @@
 source: src/tests.rs
 expression: "format!(\"{:#?}\", tree)"
 ---
-AST {
+AbstractSyntaxTree {
     node: File,
     children: [
-        AST {
+        AbstractSyntaxTree {
             node: Class {
                 name: "Node",
             },
             children: [
-                AST {
+                AbstractSyntaxTree {
                     node: Declaration {
                         typ: Int,
                         name: "counter",
@@ -23,14 +23,14 @@ AST {
                     },
                     children: [],
                 },
-                AST {
+                AbstractSyntaxTree {
                     node: Callable {
                         result_type: Int,
                         name: "Increment",
                         arguments: [],
                     },
                     children: [
-                        AST {
+                        AbstractSyntaxTree {
                             node: Return {
                                 value: Some(
                                     Increment {
@@ -54,19 +54,19 @@ AST {
                 },
             ],
         },
-        AST {
+        AbstractSyntaxTree {
             node: Class {
                 name: "App",
             },
             children: [
-                AST {
+                AbstractSyntaxTree {
                     node: Callable {
                         result_type: Void,
                         name: "Main",
                         arguments: [],
                     },
                     children: [
-                        AST {
+                        AbstractSyntaxTree {
                             node: Declaration {
                                 typ: Class(
                                     "Node",
@@ -83,7 +83,7 @@ AST {
                             },
                             children: [],
                         },
-                        AST {
+                        AbstractSyntaxTree {
                             node: Expression {
                                 expression: MethodCall {
                                     typ: Int,
@@ -99,7 +99,7 @@ AST {
                             },
                             children: [],
                         },
-                        AST {
+                        AbstractSyntaxTree {
                             node: Expression {
                                 expression: MethodCall {
                                     typ: Int,
@@ -115,7 +115,7 @@ AST {
                             },
                             children: [],
                         },
-                        AST {
+                        AbstractSyntaxTree {
                             node: Return {
                                 value: None,
                             },

@@ -2,15 +2,15 @@
 source: src/tests.rs
 expression: "format!(\"{:#?}\", simple_ast)"
 ---
-AST {
+AbstractSyntaxTree {
     node: File,
     children: [
-        AST {
+        AbstractSyntaxTree {
             node: Class {
                 name: "App",
             },
             children: [
-                AST {
+                AbstractSyntaxTree {
                     node: Callable {
                         result_type: Int,
                         name: "f",
@@ -22,7 +22,7 @@ AST {
                         ],
                     },
                     children: [
-                        AST {
+                        AbstractSyntaxTree {
                             node: Return {
                                 value: Some(
                                     BinaryOp {
@@ -43,14 +43,14 @@ AST {
                         },
                     ],
                 },
-                AST {
+                AbstractSyntaxTree {
                     node: Callable {
                         result_type: Void,
                         name: "Main",
                         arguments: [],
                     },
                     children: [
-                        AST {
+                        AbstractSyntaxTree {
                             node: Declaration {
                                 typ: Int,
                                 name: "x",
@@ -63,7 +63,7 @@ AST {
                             },
                             children: [],
                         },
-                        AST {
+                        AbstractSyntaxTree {
                             node: Declaration {
                                 typ: Int,
                                 name: "b",
@@ -76,7 +76,7 @@ AST {
                             },
                             children: [],
                         },
-                        AST {
+                        AbstractSyntaxTree {
                             node: If {
                                 condition: BinaryOp {
                                     typ: (),
@@ -92,7 +92,7 @@ AST {
                                 },
                             },
                             children: [
-                                AST {
+                                AbstractSyntaxTree {
                                     node: If {
                                         condition: BinaryOp {
                                             typ: (),
@@ -116,16 +116,16 @@ AST {
                                         },
                                     },
                                     children: [
-                                        AST {
+                                        AbstractSyntaxTree {
                                             node: Else,
                                             children: [],
                                         },
                                     ],
                                 },
-                                AST {
+                                AbstractSyntaxTree {
                                     node: Else,
                                     children: [
-                                        AST {
+                                        AbstractSyntaxTree {
                                             node: If {
                                                 condition: BinaryOp {
                                                     typ: (),
@@ -141,7 +141,7 @@ AST {
                                                 },
                                             },
                                             children: [
-                                                AST {
+                                                AbstractSyntaxTree {
                                                     node: Else,
                                                     children: [],
                                                 },
@@ -151,7 +151,7 @@ AST {
                                 },
                             ],
                         },
-                        AST {
+                        AbstractSyntaxTree {
                             node: While {
                                 condition: Literal {
                                     typ: (),
@@ -159,7 +159,7 @@ AST {
                                 },
                             },
                             children: [
-                                AST {
+                                AbstractSyntaxTree {
                                     node: If {
                                         condition: BinaryOp {
                                             typ: (),
@@ -175,7 +175,7 @@ AST {
                                         },
                                     },
                                     children: [
-                                        AST {
+                                        AbstractSyntaxTree {
                                             node: Expression {
                                                 expression: Increment {
                                                     typ: (),
@@ -188,10 +188,10 @@ AST {
                                             },
                                             children: [],
                                         },
-                                        AST {
+                                        AbstractSyntaxTree {
                                             node: Else,
                                             children: [
-                                                AST {
+                                                AbstractSyntaxTree {
                                                     node: If {
                                                         condition: BinaryOp {
                                                             typ: (),
@@ -207,7 +207,7 @@ AST {
                                                         },
                                                     },
                                                     children: [
-                                                        AST {
+                                                        AbstractSyntaxTree {
                                                             node: Break,
                                                             children: [],
                                                         },
@@ -217,7 +217,7 @@ AST {
                                         },
                                     ],
                                 },
-                                AST {
+                                AbstractSyntaxTree {
                                     node: Expression {
                                         expression: Assign {
                                             typ: (),
@@ -249,10 +249,10 @@ AST {
                                 },
                             ],
                         },
-                        AST {
+                        AbstractSyntaxTree {
                             node: Scope,
                             children: [
-                                AST {
+                                AbstractSyntaxTree {
                                     node: Declaration {
                                         typ: Int,
                                         name: "i",
@@ -265,7 +265,7 @@ AST {
                                     },
                                     children: [],
                                 },
-                                AST {
+                                AbstractSyntaxTree {
                                     node: While {
                                         condition: BinaryOp {
                                             typ: (),
@@ -281,7 +281,7 @@ AST {
                                         },
                                     },
                                     children: [
-                                        AST {
+                                        AbstractSyntaxTree {
                                             node: Expression {
                                                 expression: BinaryOp {
                                                     typ: (),
@@ -298,7 +298,7 @@ AST {
                                             },
                                             children: [],
                                         },
-                                        AST {
+                                        AbstractSyntaxTree {
                                             node: Expression {
                                                 expression: Increment {
                                                     typ: (),
@@ -315,7 +315,7 @@ AST {
                                 },
                             ],
                         },
-                        AST {
+                        AbstractSyntaxTree {
                             node: Return {
                                 value: None,
                             },

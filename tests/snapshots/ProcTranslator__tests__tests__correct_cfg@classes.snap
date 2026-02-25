@@ -2,7 +2,7 @@
 source: src/tests.rs
 expression: "format!(\"{:#?}\", cfg)"
 ---
-CFG {
+ControlFlowGraph {
     blocks: [
         BasicBlock {
             id: 0,
