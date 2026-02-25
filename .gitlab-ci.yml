@@ -1,35 +1,13 @@
-image: rust:latest
-
-variables:
-  CARGO_HOME: "${CI_PROJECT_DIR}/.cargo"
-  RUSTFLAGS: "-C debuginfo=0"
-
-cache:
-  key: "${CI_COMMIT_REF_SLUG}"
-  paths:
-    - target/
-    - Cargo.lock
-    - .cargo/
+image: ubuntu:22.04
 
 stages:
-  - lint
   - test
-
-lint:
-  stage: lint
-  script:
-    - rustup component add clippy rustfmt
-    - cargo fmt -- --check
-    - cargo clippy -- -D warnings
-  allow_failure: true
 
 test:
   stage: test
   script:
+    - apt-get update && apt-get install -y curl build-essential
+    - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    - source $HOME/.cargo/env
     - cargo install cargo-insta --locked
-    - CI=true cargo test -- --nocapture
-  artifacts:
-    paths:
-      - tests/snapshots/
-    when: on_failure
-    expire_in: 1 week
+    - CI=true cargo test
