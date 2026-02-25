@@ -1,22 +1,48 @@
+image: rust:latest
+
 stages:
   - lint
   - test
+  - snapshots
+
+cache:
+  key: "${CI_COMMIT_REF_SLUG}"
+  paths:
+    - target/
+    - Cargo.lock
+    - .cargo/
 
 lint:
   stage: lint
   script:
     - cargo fmt -- --check
     - cargo clippy -- -D warnings
+  tags:
+    - main
   allow_failure: true
 
 test:
   stage: test
   script:
-    - cargo install cargo-insta --locked
+    - cargo install cargo-insta --locked || true
+
     - CI=true cargo test -- --nocapture
-  cache:
-    paths:
-      - target/
-      - Cargo.lock
+
+    - cargo --version
+    - rustc --version
   tags:
-    - shell
+    - main
+  artifacts:
+    paths:
+      - tests/snapshots/
+    when: on_failure
+
+review-snapshots:
+  stage: snapshots
+  script:
+    - cargo install cargo-insta
+    - cargo insta test --review --unreferenced=delete
+    - git diff --exit-code tests/snapshots/ || echo "Snapshots changed! Review with: cargo insta review"
+  rules:
+    - if: $CI_MERGE_REQUEST_IID
+  allow_failure: true
