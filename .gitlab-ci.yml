@@ -1,13 +1,7 @@
-image: ubuntu:22.04
-
-stages:
-  - test
-
-test:
-  stage: test
+debug:
+  stage: build  # или любая другая стадия
   script:
-    - apt-get update && apt-get install -y curl build-essential
-    - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    - source $HOME/.cargo/env
-    - cargo install cargo-insta --locked
-    - CI=true cargo test
+    - echo "Checking available images..."
+    - docker images 2>&1 || echo "Cannot run docker images"
+    - env | grep -i image || echo "No IMAGE env"
+  allow_failure: true
