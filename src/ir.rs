@@ -75,6 +75,7 @@ struct IrContext {
     reg_counter: usize,
     slot_counter: usize,
     scopes: Vec<HashMap<String, StackSlot>>,
+    loop_stack: Vec<(BlockId, BlockId)>,
     functions: HashMap<String, BlockId>,
     classes: HashMap<String, ClassInfo>,
     current_class: Option<String>,
@@ -90,6 +91,7 @@ impl IrContext {
             blocks: vec![entry_block],
             current_block: Some(0),
             scopes: vec![HashMap::new()],
+            loop_stack: Vec::new(),
             functions: HashMap::new(),
             classes: HashMap::new(),
             current_class: None,
@@ -233,9 +235,11 @@ impl IrContext {
 
                 self.set_current_block(true_block);
                 self.enter_scope();
+                self.loop_stack.push((condition_block, false_block));
                 for child in ast.children {
                     self.gen_statement(child);
                 }
+                self.loop_stack.pop();
                 self.exit_scope();
                 self.emit_terminator(Terminator::Jump(condition_block));
 
@@ -288,16 +292,29 @@ impl IrContext {
                 self.this_register = None;
             }
             ASN::Class { name } => {
-
+                self.current_class = Some(name);
+                for child in ast.children {
+                    self.gen_statement(child);
+                }
             }
             ASN::Return { value } => {
-                todo!()
+                let operand = match value {
+                    Some(value) => Some(self.gen_expression(value)),
+                    None => None,
+                };
+                self.emit_terminator(Terminator::Return(operand))
             }
             ASN::Break => {
-                todo!()
+                if let Some((_, break_target)) = self.loop_stack.last() {
+                    self.emit_terminator(Terminator::Jump(*break_target));
+                }
+                else { unreachable!(); }
             }
             ASN::Continue => {
-                todo!()
+                if let Some((continue_target, _)) = self.loop_stack.last() {
+                    self.emit_terminator(Terminator::Jump(*continue_target));
+                }
+                else { unreachable!(); }
             }
             ASN::Scope => {
                 self.enter_scope();
@@ -306,7 +323,11 @@ impl IrContext {
                 }
                 self.exit_scope();
             }
-            ASN::File => {}
+            ASN::File => {
+                for child in ast.children {
+                    self.gen_statement(child);
+                }
+            }
             _ => unreachable!()
         }
     }
@@ -370,7 +391,8 @@ impl IrContext {
                     dest, left: operand, op: BinaryOperator::Equal, right: false_const});
                 Operand::Value(dest)
             }
-            TypedExpression::MethodCall { object, name, arguments, typ } => {
+            TypedExpression::MethodCall { object, name, arguments, .. } => {
+                let typ = object.get_type();
                 let object = self.gen_expression(*object);
                 let Type::Class(class_name) = typ else { unreachable!() };
 
@@ -385,7 +407,8 @@ impl IrContext {
 
                 Operand::Value(dest)
             }
-            TypedExpression::AssignField { object, name, value, typ } => {
+            TypedExpression::AssignField { object, name, value, .. } => {
+                let typ = object.get_type();
                 let object = self.gen_expression(*object);
                 let Type::Class(class_name) = typ else { unreachable!() };
                 let offset = self.classes[&class_name].fields[&name].1;
@@ -408,7 +431,8 @@ impl IrContext {
                 }
                 object
             }
-            TypedExpression::Field { object, name, typ } => {
+            TypedExpression::Field { object, name, .. } => {
+                let typ = object.get_type();
                 let object = self.gen_expression(*object);
                 let Type::Class(class_name) = typ else { unreachable!() };
                 let offset = self.classes[&class_name].fields[&name].1;
@@ -447,7 +471,8 @@ impl IrContext {
                     Operand::Value(new_val_reg)
                 }
             }
-            TypedExpression::Field { object, name, typ } => {
+            TypedExpression::Field { object, name, .. } => {
+                let typ = object.get_type();
                 let object = self.gen_expression(*object);
                 let Type::Class(class_name) = typ else { unreachable!() };
                 let offset = self.classes[&class_name].fields[&name].1;
