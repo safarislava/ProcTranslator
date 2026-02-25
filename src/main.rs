@@ -10,11 +10,15 @@ mod tests;
 
 use crate::common::BoxError;
 use crate::ir::ControlFlowGraph;
+use std::fs::File;
+use std::io::Write;
+use std::path::Path;
 
 fn main() -> Result<(), BoxError> {
-    compile_and_make_dump(
-        "/Users/safarislava/Documents/Projects/ProcTranslator/examples/correct/scopes.java",
-    )?;
+    let name = "classes";
+    let content = std::fs::read_to_string(format!("examples/correct/{name}.java"))?;
+    let cfg = compile_to_ir(&content)?;
+    dump_to_file(format!("output/{name}.dot"), cfg.to_dot())?;
     Ok(())
 }
 
@@ -27,9 +31,8 @@ pub fn compile_to_ir(content: &str) -> Result<ControlFlowGraph, BoxError> {
     Ok(cfg)
 }
 
-fn compile_and_make_dump(path: &str) -> Result<(), BoxError> {
-    let content = std::fs::read_to_string(path)?;
-    let cfg = compile_to_ir(&content)?;
-    cfg.dump_to_file("output/cfg.dot")?;
+fn dump_to_file(path: impl AsRef<Path>, value: String) -> std::io::Result<()> {
+    let mut file = File::create(path)?;
+    file.write_all(value.as_bytes())?;
     Ok(())
 }

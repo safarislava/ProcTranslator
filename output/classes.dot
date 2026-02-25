@@ -1,0 +1,9 @@
+digraph CFG {
+  rankdir=TB;
+  node [shape=box, fontname="Courier"];
+  edge [fontname="Courier"];
+
+  B0 [label="{B0|r1 = param[0]\lr2 = getfield r1[0]\lr3 = r2 Plus \"1\"\lr1[0] = r3\lreturn r2\l}"];
+  B1 [label="{B1|r4 = param[0]\lalloc s1\lr5 = new Node\lr6 = const 5\lr5[0] = r6\ls1 = r5\lr7 = load s1\lr8 = call B0(r7)\lr9 = load s1\lr10 = call B0(r9)\lreturn\l}"];
+  B1 [style=filled, fillcolor=lightgreen];
+}

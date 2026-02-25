@@ -1,7 +1,4 @@
 use crate::ir::{ControlFlowGraph, Terminator};
-use std::fs::File;
-use std::io::Write;
-use std::path::Path;
 
 impl ControlFlowGraph {
     pub fn to_dot(&self) -> String {
@@ -61,13 +58,6 @@ impl ControlFlowGraph {
 
         dot.push_str("}\n");
         dot
-    }
-
-    pub fn dump_to_file(&self, path: impl AsRef<Path>) -> std::io::Result<()> {
-        let dot_content = self.to_dot();
-        let mut file = File::create(path)?;
-        file.write_all(dot_content.as_bytes())?;
-        Ok(())
     }
 }
 
