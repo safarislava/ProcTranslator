@@ -1,4 +1,4 @@
-use crate::common::BoxError;
+use crate::common::ResBox;
 use regex::Regex;
 
 #[derive(Debug)]
@@ -46,7 +46,7 @@ impl SyntaxTree {
     }
 }
 
-pub fn parse_syntax_tree(raw_code: &str) -> Result<SyntaxTree, BoxError> {
+pub fn parse_syntax_tree(raw_code: &str) -> ResBox<SyntaxTree> {
     let if_pattern = Regex::new(r"^if\s*\((.+)\)")?;
     let else_if_pattern = Regex::new(r"^else\s+if\s*\((.+)\)")?;
     let else_pattern = Regex::new(r"^else")?;
@@ -55,43 +55,43 @@ pub fn parse_syntax_tree(raw_code: &str) -> Result<SyntaxTree, BoxError> {
     let function_pattern = Regex::new(r"^(\w+)\s+(\w+)\s*\(([^)]*)\)")?;
     let class_pattern = Regex::new(r"^class\s+(\w+)")?;
 
-    let sentences = parse_sentences(raw_code)?;
+    let tokens = get_tokens(raw_code)?;
     let mut tree_stack: Vec<SyntaxTree> = vec![SyntaxTree::new(SyntaxNode::File)];
     let mut expect_body = false;
 
-    for sentence in sentences.iter() {
-        if sentence == "{" {
+    for token in tokens.iter() {
+        if token == "{" {
             if expect_body {
                 expect_body = false;
             } else {
                 tree_stack.push(SyntaxTree::new(SyntaxNode::Scope));
             }
-        } else if sentence == "}" {
+        } else if token == "}" {
             if tree_stack.len() < 2 {
                 return Err("Unmatched closing bracket".into());
             }
             let current_tree = tree_stack.pop().unwrap();
             tree_stack.last_mut().unwrap().children.push(current_tree);
-        } else if let Some(captures) = if_pattern.captures(sentence) {
+        } else if let Some(captures) = if_pattern.captures(token) {
             let condition = captures.get(1).unwrap().as_str().to_string();
             tree_stack.push(SyntaxTree::new(SyntaxNode::If { condition }));
             expect_body = true;
-        } else if let Some(captures) = else_if_pattern.captures(sentence) {
+        } else if let Some(captures) = else_if_pattern.captures(token) {
             let condition = captures.get(1).unwrap().as_str().to_string();
             tree_stack.push(SyntaxTree::new(SyntaxNode::ElseIf { condition }));
             expect_body = true;
-        } else if else_pattern.is_match(sentence) {
+        } else if else_pattern.is_match(token) {
             tree_stack.push(SyntaxTree::new(SyntaxNode::Else));
             expect_body = true;
-        } else if let Some(captures) = while_pattern.captures(sentence) {
+        } else if let Some(captures) = while_pattern.captures(token) {
             let condition = captures.get(1).unwrap().as_str().to_string();
             tree_stack.push(SyntaxTree::new(SyntaxNode::While { condition }));
             expect_body = true;
-        } else if let Some(captures) = for_pattern.captures(sentence) {
+        } else if let Some(captures) = for_pattern.captures(token) {
             let condition = captures.get(1).unwrap().as_str().to_string();
             tree_stack.push(SyntaxTree::new(SyntaxNode::For { condition }));
             expect_body = true;
-        } else if let Some(captures) = function_pattern.captures(sentence) {
+        } else if let Some(captures) = function_pattern.captures(token) {
             let result_type = captures
                 .get(1)
                 .map(|m| m.as_str())
@@ -113,12 +113,12 @@ pub fn parse_syntax_tree(raw_code: &str) -> Result<SyntaxTree, BoxError> {
                 arguments,
             }));
             expect_body = true;
-        } else if let Some(captures) = class_pattern.captures(sentence) {
+        } else if let Some(captures) = class_pattern.captures(token) {
             let name = captures.get(1).unwrap().as_str().to_string();
             tree_stack.push(SyntaxTree::new(SyntaxNode::Class { name }));
             expect_body = true;
-        } else if sentence.ends_with(';') {
-            let value = sentence.trim_end_matches(';').trim().to_string();
+        } else if token.ends_with(';') {
+            let value = token.trim_end_matches(';').trim().to_string();
             tree_stack
                 .last_mut()
                 .unwrap()
@@ -138,7 +138,7 @@ pub fn parse_syntax_tree(raw_code: &str) -> Result<SyntaxTree, BoxError> {
         .ok_or_else(|| "Syntax tree is empty".into())
 }
 
-fn parse_sentences(raw_code: &str) -> Result<Vec<String>, BoxError> {
+fn get_tokens(raw_code: &str) -> ResBox<Vec<String>> {
     let mut sentences = vec![];
     let mut token = String::new();
     let mut depth = 0;

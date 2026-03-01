@@ -1,4 +1,4 @@
-use crate::common::{BoxError, RawExpression};
+use crate::common::{RawExpression, ResBox};
 use std::iter::Peekable;
 use std::str::Chars;
 use std::vec::IntoIter;
@@ -166,7 +166,7 @@ impl<'a> Lexer<'a> {
         s
     }
 
-    fn next_token(&mut self) -> Result<Option<Token>, BoxError> {
+    fn next_token(&mut self) -> ResBox<Option<Token>> {
         self.skip_whitespace();
         let &c = match self.chars.peek() {
             Some(c) => c,
@@ -219,7 +219,7 @@ impl<'a> Lexer<'a> {
         Ok(Some(token))
     }
 
-    fn tokenize(&mut self) -> Result<Vec<Token>, BoxError> {
+    fn tokenize(&mut self) -> ResBox<Vec<Token>> {
         let mut tokens = vec![];
         while let Some(token) = self.next_token()? {
             tokens.push(token);
@@ -243,7 +243,7 @@ impl Parser {
         matches!(expr, Expression::Variable { .. } | Expression::Field { .. })
     }
 
-    fn parse_expression(&mut self, min_order: u8) -> Result<RawExpression, BoxError> {
+    fn parse_expression(&mut self, min_order: u8) -> ResBox<RawExpression> {
         let mut left = self.parse_primary()?;
 
         loop {
@@ -351,7 +351,7 @@ impl Parser {
         Ok(left)
     }
 
-    fn parse_primary(&mut self) -> Result<RawExpression, BoxError> {
+    fn parse_primary(&mut self) -> ResBox<RawExpression> {
         let token = self.tokens.next().ok_or("Unexpected end of expression")?;
         match token {
             Token::Num(value) => Ok(Expression::Literal { typ: (), value }),
@@ -443,7 +443,7 @@ impl Parser {
         }
     }
 
-    fn parse_arguments(&mut self) -> Result<Vec<RawExpression>, BoxError> {
+    fn parse_arguments(&mut self) -> ResBox<Vec<RawExpression>> {
         let mut args = vec![];
         if let Some(Token::RParen) = self.tokens.peek() {
             self.tokens.next();
@@ -460,7 +460,7 @@ impl Parser {
         Ok(args)
     }
 
-    fn link_binary_operator(op: &str) -> Result<BinaryOperator, BoxError> {
+    fn link_binary_operator(op: &str) -> ResBox<BinaryOperator> {
         match op {
             "=" => Ok(BinaryOperator::Assign),
             "+=" => Ok(BinaryOperator::AssignAdd),
@@ -504,7 +504,7 @@ impl Parser {
     }
 }
 
-pub fn parse_expression(raw_code: &str) -> Result<RawExpression, BoxError> {
+pub fn parse_expression(raw_code: &str) -> ResBox<RawExpression> {
     let trimmed = raw_code.trim().trim_end_matches(';');
     if trimmed.is_empty() {
         return Err("Empty expression".into());

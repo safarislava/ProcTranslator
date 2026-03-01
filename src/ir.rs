@@ -143,25 +143,25 @@ impl IrContext {
         }
     }
 
-    pub fn new_reg(&mut self) -> Register {
+    fn new_reg(&mut self) -> Register {
         let id = self.reg_counter;
         self.reg_counter += 1;
         Register(id)
     }
 
-    pub fn new_slot(&mut self) -> StackSlot {
+    fn new_slot(&mut self) -> StackSlot {
         let id = self.slot_counter;
         self.slot_counter += 1;
         StackSlot(id)
     }
 
-    pub fn create_block(&mut self) -> BlockId {
+    fn create_block(&mut self) -> BlockId {
         let id = self.blocks.len();
         self.blocks.push(BasicBlock::new(id));
         id
     }
 
-    pub fn set_current_block(&mut self, id: BlockId) {
+    fn set_current_block(&mut self, id: BlockId) {
         self.current_block = Some(id);
     }
 
@@ -173,7 +173,7 @@ impl IrContext {
         }
     }
 
-    pub fn emit(&mut self, instruction: IrInstruction) {
+    fn emit(&mut self, instruction: IrInstruction) {
         if let Some(block_id) = self.current_block
             && self.blocks[block_id].terminator.is_none()
         {
@@ -181,7 +181,7 @@ impl IrContext {
         }
     }
 
-    pub fn emit_terminator(&mut self, term: Terminator) {
+    fn emit_terminator(&mut self, term: Terminator) {
         if let Some(source_block) = self.current_block {
             if self.blocks[source_block].terminator.is_some() {
                 return;
@@ -212,15 +212,15 @@ impl IrContext {
         self.blocks[to].predecessors.push(from);
     }
 
-    pub fn enter_scope(&mut self) {
+    fn enter_scope(&mut self) {
         self.scopes.push(HashMap::new());
     }
 
-    pub fn exit_scope(&mut self) {
+    fn exit_scope(&mut self) {
         self.scopes.pop();
     }
 
-    pub fn declare_var(&mut self, name: String) -> StackSlot {
+    fn declare_var(&mut self, name: String) -> StackSlot {
         let slot = self.new_slot();
         self.emit(IrInstruction::StackAlloc { slot });
 
@@ -229,13 +229,25 @@ impl IrContext {
         slot
     }
 
-    pub fn resolve_var_addr(&self, name: &str) -> StackSlot {
+    fn resolve_var_addr(&self, name: &str) -> StackSlot {
         for scope in self.scopes.iter().rev() {
             if let Some(&slot) = scope.get(name) {
                 return slot;
             }
         }
         unreachable!()
+    }
+
+    fn resolve_field_offset(&self, object_type: &Type, field_name: &str) -> usize {
+        if let Type::Class(class_name) = object_type {
+            self.classes
+                .get(class_name)
+                .and_then(|c| c.fields.get(field_name))
+                .map(|(_, offset)| *offset)
+                .expect("Field not found")
+        } else {
+            unreachable!("Type is not a class")
+        }
     }
 
     pub fn gen_statement(&mut self, ast: TypedAST) {
@@ -450,24 +462,24 @@ impl IrContext {
             TypedExpression::BinaryOp {
                 left, op, right, ..
             } => {
-                let left = self.gen_expression(*left);
-                let right = self.gen_expression(*right);
+                let left_op = self.gen_expression(*left);
+                let right_op = self.gen_expression(*right);
                 let dest = self.new_reg();
                 self.emit(IrInstruction::BinaryOp {
                     dest,
-                    left,
+                    left: left_op,
                     op,
-                    right,
+                    right: right_op,
                 });
                 Operand::Value(dest)
             }
             TypedExpression::FunctionCall {
                 name, arguments, ..
             } => {
-                let mut args = Vec::new();
-                for arg in arguments {
-                    args.push(self.gen_expression(arg));
-                }
+                let args: Vec<_> = arguments
+                    .into_iter()
+                    .map(|arg| self.gen_expression(arg))
+                    .collect();
                 let dest = self.new_reg();
                 let block = self.functions[&name];
                 self.emit(IrInstruction::Call {
@@ -479,9 +491,12 @@ impl IrContext {
             }
             TypedExpression::Assign { name, value, .. } => {
                 let slot = self.resolve_var_addr(&name);
-                let value = self.gen_expression(*value);
+                let value_op = self.gen_expression(*value);
 
-                self.emit(IrInstruction::StackStore { slot, value });
+                self.emit(IrInstruction::StackStore {
+                    slot,
+                    value: value_op,
+                });
                 Operand::Void
             }
             TypedExpression::Increment {
@@ -524,16 +539,13 @@ impl IrContext {
                 arguments,
                 ..
             } => {
-                let typ = object.get_type();
-                let object = self.gen_expression(*object);
-                let Type::Class(class_name) = typ else {
+                let Type::Class(class_name) = object.get_type() else {
                     unreachable!()
                 };
+                let object_op = self.gen_expression(*object);
 
-                let mut args = vec![object];
-                for arg in arguments {
-                    args.push(self.gen_expression(arg));
-                }
+                let mut args = vec![object_op];
+                args.extend(arguments.into_iter().map(|arg| self.gen_expression(arg)));
 
                 let block = self.classes[&class_name].methods[&name];
                 let dest = self.new_reg();
@@ -551,18 +563,14 @@ impl IrContext {
                 value,
                 ..
             } => {
-                let typ = object.get_type();
-                let object = self.gen_expression(*object);
-                let Type::Class(class_name) = typ else {
-                    unreachable!()
-                };
-                let offset = self.classes[&class_name].fields[&name].1;
-                let value = self.gen_expression(*value);
+                let offset = self.resolve_field_offset(&object.get_type(), &name);
+                let object_op = self.gen_expression(*object);
+                let value_op = self.gen_expression(*value);
 
                 self.emit(IrInstruction::PutField {
-                    object,
+                    object: object_op,
                     offset,
-                    value,
+                    value: value_op,
                 });
                 Operand::Void
             }
@@ -572,48 +580,42 @@ impl IrContext {
                     dest,
                     class_name: class_name.clone(),
                 });
-                let object = Operand::Value(dest);
+                let object_op = Operand::Value(dest);
 
-                let fields: Vec<_> = self.classes[&class_name]
+                let class_info = &self.classes[&class_name];
+                let mut fields: Vec<_> = class_info
                     .fields
                     .values()
-                    .filter_map(|(e, o)| Some((e.clone()?, *o)))
+                    .filter_map(|(expr, off)| expr.as_ref().map(|e| (e.clone(), *off)))
                     .collect();
 
-                for (expression, offset) in fields {
-                    let value = self.gen_expression(expression);
+                fields.sort_by_key(|(_, off)| *off);
+
+                for (expr, offset) in fields {
+                    let val = self.gen_expression(expr);
                     self.emit(IrInstruction::PutField {
-                        object: object.clone(),
+                        object: object_op.clone(),
                         offset,
-                        value,
+                        value: val,
                     });
                 }
-                object
+                object_op
             }
             TypedExpression::Field { object, name, .. } => {
-                let typ = object.get_type();
-                let object = self.gen_expression(*object);
-                let Type::Class(class_name) = typ else {
-                    unreachable!()
-                };
-                let offset = self.classes[&class_name].fields[&name].1;
-
+                let offset = self.resolve_field_offset(&object.get_type(), &name);
+                let object_op = self.gen_expression(*object);
                 let dest = self.new_reg();
                 self.emit(IrInstruction::GetField {
                     dest,
-                    object,
+                    object: object_op,
                     offset,
                 });
-
                 Operand::Value(dest)
             }
-            TypedExpression::This { .. } => {
-                if let Some(reg) = self.this_register {
-                    Operand::Value(reg)
-                } else {
-                    unreachable!()
-                }
-            }
+            TypedExpression::This { .. } => Operand::Value(
+                self.this_register
+                    .expect("Usage of 'this' outside of method"),
+            ),
         }
     }
 

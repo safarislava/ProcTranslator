@@ -1,4 +1,4 @@
-use crate::common::{AbstractSyntaxNode, BoxError, RawAST, RawExpression, Type, Var};
+use crate::common::{AbstractSyntaxNode, RawAST, RawExpression, ResBox, Type, Var};
 use crate::expression::parse_expression;
 use crate::parser::{SyntaxNode, SyntaxTree};
 
@@ -15,7 +15,7 @@ fn parse_type(s: &str) -> Type {
     }
 }
 
-fn parse_var(arg: &str) -> Result<Var, BoxError> {
+fn parse_var(arg: &str) -> ResBox<Var> {
     let parts: Vec<&str> = arg.split_whitespace().collect();
     if parts.len() != 2 {
         return Err(format!("Invalid variable declaration: '{arg}'").into());
@@ -26,7 +26,7 @@ fn parse_var(arg: &str) -> Result<Var, BoxError> {
     })
 }
 
-fn parse_arguments(args_str: &str) -> Result<Vec<Var>, BoxError> {
+fn parse_arguments(args_str: &str) -> ResBox<Vec<Var>> {
     let trimmed = args_str.trim();
     if trimmed.is_empty() {
         return Ok(vec![]);
@@ -34,9 +34,7 @@ fn parse_arguments(args_str: &str) -> Result<Vec<Var>, BoxError> {
     trimmed.split(',').map(|s| parse_var(s.trim())).collect()
 }
 
-fn parse_statement_keyword(
-    value: &str,
-) -> Result<Option<AbstractSyntaxNode<RawExpression>>, BoxError> {
+fn parse_statement_keyword(value: &str) -> ResBox<Option<AbstractSyntaxNode<RawExpression>>> {
     let trimmed = value.trim().trim_end_matches(';');
 
     if trimmed == "return" {
@@ -56,7 +54,7 @@ fn parse_statement_keyword(
     Ok(None)
 }
 
-fn parse_declaration(raw_code: &str) -> Result<Option<DeclarationInfo>, BoxError> {
+fn parse_declaration(raw_code: &str) -> ResBox<Option<DeclarationInfo>> {
     let code = raw_code.trim();
     if code.is_empty() {
         return Ok(None);
@@ -98,7 +96,7 @@ fn parse_declaration(raw_code: &str) -> Result<Option<DeclarationInfo>, BoxError
     }
 }
 
-fn build_for_loop(condition: String, body_children: Vec<RawAST>) -> Result<RawAST, BoxError> {
+fn build_for_loop(condition: String, body_children: Vec<RawAST>) -> ResBox<RawAST> {
     let parts: Vec<&str> = condition.split(';').map(|s| s.trim()).collect();
     if parts.len() != 3 {
         return Err(format!("Invalid for loop format: {}", condition).into());
@@ -142,7 +140,7 @@ fn build_for_loop(condition: String, body_children: Vec<RawAST>) -> Result<RawAS
     ))
 }
 
-pub fn build_ast(tree: SyntaxTree) -> Result<RawAST, BoxError> {
+pub fn build_ast(tree: SyntaxTree) -> ResBox<RawAST> {
     let processed_children: Vec<RawAST> = tree
         .children
         .into_iter()

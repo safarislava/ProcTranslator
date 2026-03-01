@@ -1,5 +1,5 @@
 use crate::common::{
-    AbstractSyntaxNode, AbstractSyntaxTree, BoxError, RawAST, RawExpression, Type, TypedAST,
+    AbstractSyntaxNode, AbstractSyntaxTree, RawAST, RawExpression, ResBox, Type, TypedAST,
     TypedExpression,
 };
 use crate::expression::{BinaryOperator, Expression};
@@ -57,7 +57,7 @@ impl SemanticTable {
         None
     }
 
-    fn collect_definitions(&mut self, ast: &RawAST) -> Result<(), BoxError> {
+    fn collect_definitions(&mut self, ast: &RawAST) -> ResBox<()> {
         match &ast.node {
             AbstractSyntaxNode::Class { name } => {
                 if self.classes.contains_key(name) {
@@ -109,7 +109,7 @@ impl SemanticTable {
         Ok(())
     }
 
-    pub fn analyze(&mut self, ast: &RawAST) -> Result<TypedAST, BoxError> {
+    pub fn analyze(&mut self, ast: &RawAST) -> ResBox<TypedAST> {
         self.stacktrace.push(ast.node.clone());
 
         let (typed_node, typed_children) = match &ast.node {
@@ -310,7 +310,7 @@ impl SemanticTable {
         Ok(TypedAST::with_children(typed_node, typed_children))
     }
 
-    fn analyze_children(&mut self, children: &[RawAST]) -> Result<Vec<TypedAST>, BoxError> {
+    fn analyze_children(&mut self, children: &[RawAST]) -> ResBox<Vec<TypedAST>> {
         let mut typed_children = vec![];
         for child in children {
             typed_children.push(self.analyze(child)?);
@@ -323,7 +323,7 @@ impl SemanticTable {
         typ: &Type,
         name: &str,
         expression: &Option<TypedExpression>,
-    ) -> Result<(), BoxError> {
+    ) -> ResBox<()> {
         if let Type::Class(c) = typ
             && !self.classes.contains_key(c)
         {
@@ -341,7 +341,7 @@ impl SemanticTable {
         Ok(())
     }
 
-    fn analyze_expression(&self, expression: &RawExpression) -> Result<TypedExpression, BoxError> {
+    fn analyze_expression(&self, expression: &RawExpression) -> ResBox<TypedExpression> {
         match expression {
             Expression::Literal { value, .. } => {
                 let typ = get_literal_type(value)?;
@@ -582,7 +582,7 @@ impl SemanticTable {
         &self,
         params: &[Type],
         args: &[RawExpression],
-    ) -> Result<Vec<TypedExpression>, BoxError> {
+    ) -> ResBox<Vec<TypedExpression>> {
         if params.len() != args.len() {
             return Err("Arg count mismatch".into());
         }
@@ -653,7 +653,7 @@ impl SemanticTable {
     }
 }
 
-pub fn get_literal_type(value: &str) -> Result<Type, BoxError> {
+pub fn get_literal_type(value: &str) -> ResBox<Type> {
     if value.parse::<bool>().is_ok() {
         Ok(Type::Bool)
     } else if value.parse::<i64>().is_ok() {
@@ -667,7 +667,7 @@ pub fn get_literal_type(value: &str) -> Result<Type, BoxError> {
     }
 }
 
-pub fn semantic_analyze(ast: RawAST) -> Result<TypedAST, BoxError> {
+pub fn semantic_analyze(ast: RawAST) -> ResBox<TypedAST> {
     let mut table = SemanticTable::new();
     table.collect_definitions(&ast)?;
 

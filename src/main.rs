@@ -1,6 +1,6 @@
-use proc_translator::common::{BoxError, compile_to_ir, dump_to_file};
+use proc_translator::common::{ResBox, compile_to_ir, dump_to_file};
 
-fn main() -> Result<(), BoxError> {
+fn main() -> ResBox<()> {
     let name = "return";
     let content = std::fs::read_to_string(format!("examples/correct/{name}.java"))?;
     let cfg = compile_to_ir(&content)?;

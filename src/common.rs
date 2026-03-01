@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 
-pub type BoxError = Box<dyn Error>;
+pub type ResBox<T> = Result<T, Box<dyn Error>>;
 
 #[derive(Debug, Clone)]
 pub struct Var {
@@ -94,7 +94,7 @@ impl<E> AbstractSyntaxTree<E> {
 pub type TypedExpression = Expression<Type>;
 pub type TypedAST = AbstractSyntaxTree<TypedExpression>;
 
-pub fn compile_to_ir(content: &str) -> Result<ControlFlowGraph, BoxError> {
+pub fn compile_to_ir(content: &str) -> ResBox<ControlFlowGraph> {
     let syntax_tree = parser::parse_syntax_tree(content)?;
     let ast = ast::build_ast(syntax_tree)?;
     let simple_ast = simplifier::simplify(ast);
