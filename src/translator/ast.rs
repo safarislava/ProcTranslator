@@ -1,4 +1,6 @@
-use crate::translator::common::{AbstractSyntaxNode, RawAST, RawExpression, ResBox, Type, Var};
+use crate::translator::common::{
+    AbstractSyntaxNode, RawAbstractSyntaxTree, RawExpression, ResBox, Type, Var,
+};
 use crate::translator::expression::parse_expression;
 use crate::translator::parser::{SyntaxNode, SyntaxTree};
 
@@ -96,7 +98,10 @@ fn parse_declaration(raw_code: &str) -> ResBox<Option<DeclarationInfo>> {
     }
 }
 
-fn build_for_loop(condition: String, body_children: Vec<RawAST>) -> ResBox<RawAST> {
+fn build_for_loop(
+    condition: String,
+    body_children: Vec<RawAbstractSyntaxTree>,
+) -> ResBox<RawAbstractSyntaxTree> {
     let parts: Vec<&str> = condition.split(';').map(|s| s.trim()).collect();
     if parts.len() != 3 {
         return Err(format!("Invalid for loop format: {}", condition).into());
@@ -130,7 +135,7 @@ fn build_for_loop(condition: String, body_children: Vec<RawAST>) -> ResBox<RawAS
         Some(parse_expression(parts[2])?)
     };
 
-    Ok(RawAST::with_children(
+    Ok(RawAbstractSyntaxTree::with_children(
         AbstractSyntaxNode::For {
             initializer,
             condition,
@@ -140,27 +145,29 @@ fn build_for_loop(condition: String, body_children: Vec<RawAST>) -> ResBox<RawAS
     ))
 }
 
-pub fn build_ast(tree: SyntaxTree) -> ResBox<RawAST> {
-    let processed_children: Vec<RawAST> = tree
+pub fn build_ast(tree: SyntaxTree) -> ResBox<RawAbstractSyntaxTree> {
+    let processed_children: Vec<RawAbstractSyntaxTree> = tree
         .children
         .into_iter()
         .map(build_ast)
         .collect::<Result<Vec<_>, _>>()?;
     let ast = match tree.node {
-        SyntaxNode::If { condition } => RawAST::with_children(
+        SyntaxNode::If { condition } => RawAbstractSyntaxTree::with_children(
             AbstractSyntaxNode::If {
                 condition: parse_expression(&condition)?,
             },
             processed_children,
         ),
-        SyntaxNode::ElseIf { condition } => RawAST::with_children(
+        SyntaxNode::ElseIf { condition } => RawAbstractSyntaxTree::with_children(
             AbstractSyntaxNode::ElseIf {
                 condition: parse_expression(&condition)?,
             },
             processed_children,
         ),
-        SyntaxNode::Else => RawAST::with_children(AbstractSyntaxNode::Else, processed_children),
-        SyntaxNode::While { condition } => RawAST::with_children(
+        SyntaxNode::Else => {
+            RawAbstractSyntaxTree::with_children(AbstractSyntaxNode::Else, processed_children)
+        }
+        SyntaxNode::While { condition } => RawAbstractSyntaxTree::with_children(
             AbstractSyntaxNode::While {
                 condition: parse_expression(&condition)?,
             },
@@ -169,16 +176,16 @@ pub fn build_ast(tree: SyntaxTree) -> ResBox<RawAST> {
         SyntaxNode::For { condition } => build_for_loop(condition, processed_children)?,
         SyntaxNode::Line { value } => {
             if let Some(asn) = parse_statement_keyword(&value)? {
-                RawAST::new(asn)
+                RawAbstractSyntaxTree::new(asn)
             } else if let Ok(Some((typ_str, name, expr))) = parse_declaration(&value) {
                 let typ = parse_type(&typ_str);
-                RawAST::new(AbstractSyntaxNode::Declaration {
+                RawAbstractSyntaxTree::new(AbstractSyntaxNode::Declaration {
                     typ,
                     name,
                     expression: expr,
                 })
             } else {
-                RawAST::new(AbstractSyntaxNode::Expression {
+                RawAbstractSyntaxTree::new(AbstractSyntaxNode::Expression {
                     expression: parse_expression(&value)?,
                 })
             }
@@ -190,7 +197,7 @@ pub fn build_ast(tree: SyntaxTree) -> ResBox<RawAST> {
         } => {
             let args = parse_arguments(&arguments)?;
             let result_type = parse_type(&result_type);
-            RawAST::with_children(
+            RawAbstractSyntaxTree::with_children(
                 AbstractSyntaxNode::Callable {
                     result_type,
                     name,
@@ -199,11 +206,16 @@ pub fn build_ast(tree: SyntaxTree) -> ResBox<RawAST> {
                 processed_children,
             )
         }
-        SyntaxNode::Class { name } => {
-            RawAST::with_children(AbstractSyntaxNode::Class { name }, processed_children)
+        SyntaxNode::Class { name } => RawAbstractSyntaxTree::with_children(
+            AbstractSyntaxNode::Class { name },
+            processed_children,
+        ),
+        SyntaxNode::Scope => {
+            RawAbstractSyntaxTree::with_children(AbstractSyntaxNode::Scope, processed_children)
         }
-        SyntaxNode::Scope => RawAST::with_children(AbstractSyntaxNode::Scope, processed_children),
-        SyntaxNode::File => RawAST::with_children(AbstractSyntaxNode::File, processed_children),
+        SyntaxNode::File => {
+            RawAbstractSyntaxTree::with_children(AbstractSyntaxNode::File, processed_children)
+        }
     };
     Ok(ast)
 }

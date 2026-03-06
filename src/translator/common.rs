@@ -1,10 +1,10 @@
 use crate::translator::expression::Expression;
 use crate::translator::ir::ControlFlowGraph;
+use crate::translator::{analyzer, ast, ir, parser, simplifier};
 use std::error::Error;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
-use crate::translator::{analyzer, ast, ir, parser, simplifier};
 
 pub type ResBox<T> = Result<T, Box<dyn Error>>;
 
@@ -26,7 +26,7 @@ pub enum Type {
 
 pub type RawExpression = Expression<()>;
 
-pub type RawAST = AbstractSyntaxTree<RawExpression>;
+pub type RawAbstractSyntaxTree = AbstractSyntaxTree<RawExpression>;
 
 #[derive(Debug, Clone)]
 pub enum AbstractSyntaxNode<E> {
@@ -92,7 +92,7 @@ impl<E> AbstractSyntaxTree<E> {
 }
 
 pub type TypedExpression = Expression<Type>;
-pub type TypedAST = AbstractSyntaxTree<TypedExpression>;
+pub type TypedAbstractSyntaxTree = AbstractSyntaxTree<TypedExpression>;
 
 pub fn compile_to_ir(content: &str) -> ResBox<ControlFlowGraph> {
     let syntax_tree = parser::parse_syntax_tree(content)?;

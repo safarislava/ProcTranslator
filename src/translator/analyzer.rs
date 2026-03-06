@@ -1,6 +1,6 @@
 use crate::translator::common::{
-    AbstractSyntaxNode, AbstractSyntaxTree, RawAST, RawExpression, ResBox, Type, TypedAST,
-    TypedExpression,
+    AbstractSyntaxNode, AbstractSyntaxTree, RawAbstractSyntaxTree, RawExpression, ResBox, Type,
+    TypedAbstractSyntaxTree, TypedExpression,
 };
 use crate::translator::expression::{BinaryOperator, Expression};
 use std::collections::HashMap;
@@ -57,7 +57,7 @@ impl SemanticTable {
         None
     }
 
-    fn collect_definitions(&mut self, ast: &RawAST) -> ResBox<()> {
+    fn collect_definitions(&mut self, ast: &RawAbstractSyntaxTree) -> ResBox<()> {
         match &ast.node {
             AbstractSyntaxNode::Class { name } => {
                 if self.classes.contains_key(name) {
@@ -109,7 +109,7 @@ impl SemanticTable {
         Ok(())
     }
 
-    pub fn analyze(&mut self, ast: &RawAST) -> ResBox<TypedAST> {
+    pub fn analyze(&mut self, ast: &RawAbstractSyntaxTree) -> ResBox<TypedAbstractSyntaxTree> {
         self.stacktrace.push(ast.node.clone());
 
         let (typed_node, typed_children) = match &ast.node {
@@ -206,11 +206,13 @@ impl SemanticTable {
                             Some(e) => Some(self.analyze_expression(e)?),
                             None => None,
                         };
-                        typed_children.push(TypedAST::new(AbstractSyntaxNode::Declaration {
-                            typ: typ.clone(),
-                            name: name.clone(),
-                            expression: typed_expr,
-                        }));
+                        typed_children.push(TypedAbstractSyntaxTree::new(
+                            AbstractSyntaxNode::Declaration {
+                                typ: typ.clone(),
+                                name: name.clone(),
+                                expression: typed_expr,
+                            },
+                        ));
                     }
                 }
                 self.scopes.pop();
@@ -307,10 +309,16 @@ impl SemanticTable {
         };
 
         self.stacktrace.pop();
-        Ok(TypedAST::with_children(typed_node, typed_children))
+        Ok(TypedAbstractSyntaxTree::with_children(
+            typed_node,
+            typed_children,
+        ))
     }
 
-    fn analyze_children(&mut self, children: &[RawAST]) -> ResBox<Vec<TypedAST>> {
+    fn analyze_children(
+        &mut self,
+        children: &[RawAbstractSyntaxTree],
+    ) -> ResBox<Vec<TypedAbstractSyntaxTree>> {
         let mut typed_children = vec![];
         for child in children {
             typed_children.push(self.analyze(child)?);
@@ -667,7 +675,7 @@ pub fn get_literal_type(value: &str) -> ResBox<Type> {
     }
 }
 
-pub fn semantic_analyze(ast: RawAST) -> ResBox<TypedAST> {
+pub fn semantic_analyze(ast: RawAbstractSyntaxTree) -> ResBox<TypedAbstractSyntaxTree> {
     let mut table = SemanticTable::new();
     table.collect_definitions(&ast)?;
 

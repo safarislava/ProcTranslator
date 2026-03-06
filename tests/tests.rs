@@ -1,9 +1,9 @@
-use insta::{assert_snapshot, Settings};
+use insta::{Settings, assert_snapshot};
 use proc_translator::translator::ast::build_ast;
 use proc_translator::translator::common::compile_to_ir;
 use proc_translator::translator::parser::parse_syntax_tree;
-use std::fs;
 use proc_translator::translator::{analyzer, simplifier};
+use std::fs;
 
 fn get_settings() -> Settings {
     let mut settings = Settings::clone_current();

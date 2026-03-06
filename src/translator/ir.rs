@@ -1,4 +1,6 @@
-use crate::translator::common::{AbstractSyntaxNode, Type, TypedAST, TypedExpression};
+use crate::translator::common::{
+    AbstractSyntaxNode, Type, TypedAbstractSyntaxTree, TypedExpression,
+};
 use crate::translator::expression::BinaryOperator;
 use std::collections::HashMap;
 
@@ -249,11 +251,13 @@ impl IrContext {
             unreachable!("Type is not a class")
         }
     }
+}
 
-    pub fn gen_statement(&mut self, ast: TypedAST) {
+impl IrContext {
+    pub fn generate_statement(&mut self, ast: TypedAbstractSyntaxTree) {
         match ast.node {
             AbstractSyntaxNode::If { condition } => {
-                let condition = self.gen_expression(condition);
+                let condition = self.generate_expression(condition);
                 let true_block = self.create_block();
                 let false_block = self.create_block();
                 self.emit_terminator(Terminator::Branch {
@@ -266,7 +270,7 @@ impl IrContext {
                 self.enter_scope();
 
                 let mut has_else = false;
-                let mut else_if_node: Option<TypedAST> = None;
+                let mut else_if_node: Option<TypedAbstractSyntaxTree> = None;
 
                 for child in &ast.children {
                     if let AbstractSyntaxNode::Else = child.node {
@@ -277,7 +281,7 @@ impl IrContext {
                             else_if_node = Some(child.children[0].clone());
                         }
                     } else {
-                        self.gen_statement(child.clone());
+                        self.generate_statement(child.clone());
                     }
                 }
                 self.exit_scope();
@@ -296,13 +300,13 @@ impl IrContext {
 
                 self.set_current_block(false_block);
                 if let Some(else_if) = else_if_node {
-                    self.gen_statement(else_if);
+                    self.generate_statement(else_if);
                 } else if has_else {
                     self.enter_scope();
                     for child in &ast.children {
                         if let AbstractSyntaxNode::Else = child.node {
                             for grandchild in &child.children {
-                                self.gen_statement(grandchild.clone());
+                                self.generate_statement(grandchild.clone());
                             }
                         }
                     }
@@ -328,7 +332,7 @@ impl IrContext {
                 self.emit_terminator(Terminator::Jump(condition_block));
 
                 self.set_current_block(condition_block);
-                let condition = self.gen_expression(condition);
+                let condition = self.generate_expression(condition);
                 self.emit_terminator(Terminator::Branch {
                     condition,
                     true_block,
@@ -339,7 +343,7 @@ impl IrContext {
                 self.enter_scope();
                 self.loop_stack.push((condition_block, false_block));
                 for child in ast.children {
-                    self.gen_statement(child);
+                    self.generate_statement(child);
                 }
                 self.loop_stack.pop();
                 self.exit_scope();
@@ -348,14 +352,14 @@ impl IrContext {
                 self.set_current_block(false_block);
             }
             AbstractSyntaxNode::Expression { expression } => {
-                self.gen_expression(expression);
+                self.generate_expression(expression);
             }
             AbstractSyntaxNode::Declaration {
                 name, expression, ..
             } => {
                 let slot = self.declare_var(name);
                 let value = if let Some(expr) = expression {
-                    self.gen_expression(expr)
+                    self.generate_expression(expr)
                 } else {
                     Operand::Constant("0".into())
                 };
@@ -400,7 +404,7 @@ impl IrContext {
                 }
 
                 for child in ast.children {
-                    self.gen_statement(child);
+                    self.generate_statement(child);
                 }
 
                 self.exit_scope();
@@ -409,11 +413,11 @@ impl IrContext {
             AbstractSyntaxNode::Class { name } => {
                 self.current_class = Some(name);
                 for child in ast.children {
-                    self.gen_statement(child);
+                    self.generate_statement(child);
                 }
             }
             AbstractSyntaxNode::Return { value } => {
-                let operand = value.map(|value| self.gen_expression(value));
+                let operand = value.map(|value| self.generate_expression(value));
                 self.emit_terminator(Terminator::Return(operand))
             }
             AbstractSyntaxNode::Break => {
@@ -433,20 +437,20 @@ impl IrContext {
             AbstractSyntaxNode::Scope => {
                 self.enter_scope();
                 for child in ast.children {
-                    self.gen_statement(child);
+                    self.generate_statement(child);
                 }
                 self.exit_scope();
             }
             AbstractSyntaxNode::File => {
                 for child in ast.children {
-                    self.gen_statement(child);
+                    self.generate_statement(child);
                 }
             }
             _ => unreachable!(),
         }
     }
 
-    pub fn gen_expression(&mut self, expression: TypedExpression) -> Operand {
+    pub fn generate_expression(&mut self, expression: TypedExpression) -> Operand {
         match expression {
             TypedExpression::Literal { value, .. } => {
                 let dest = self.new_reg();
@@ -462,8 +466,8 @@ impl IrContext {
             TypedExpression::BinaryOp {
                 left, op, right, ..
             } => {
-                let left_op = self.gen_expression(*left);
-                let right_op = self.gen_expression(*right);
+                let left_op = self.generate_expression(*left);
+                let right_op = self.generate_expression(*right);
                 let dest = self.new_reg();
                 self.emit(IrInstruction::BinaryOp {
                     dest,
@@ -478,7 +482,7 @@ impl IrContext {
             } => {
                 let args: Vec<_> = arguments
                     .into_iter()
-                    .map(|arg| self.gen_expression(arg))
+                    .map(|arg| self.generate_expression(arg))
                     .collect();
                 let dest = self.new_reg();
                 let block = self.functions[&name];
@@ -491,7 +495,7 @@ impl IrContext {
             }
             TypedExpression::Assign { name, value, .. } => {
                 let slot = self.resolve_var_addr(&name);
-                let value_op = self.gen_expression(*value);
+                let value_op = self.generate_expression(*value);
 
                 self.emit(IrInstruction::StackStore {
                     slot,
@@ -503,14 +507,14 @@ impl IrContext {
                 expression,
                 postfix,
                 ..
-            } => self.update_value(*expression, postfix, BinaryOperator::Plus),
+            } => self.generate_increment_or_decrement(*expression, postfix, BinaryOperator::Plus),
             TypedExpression::Decrement {
                 expression,
                 postfix,
                 ..
-            } => self.update_value(*expression, postfix, BinaryOperator::Minus),
+            } => self.generate_increment_or_decrement(*expression, postfix, BinaryOperator::Minus),
             TypedExpression::Negate { expression, .. } => {
-                let operand = self.gen_expression(*expression);
+                let operand = self.generate_expression(*expression);
                 let dest = self.new_reg();
                 let zero_const = Operand::Constant("0".to_string());
                 self.emit(IrInstruction::BinaryOp {
@@ -522,7 +526,7 @@ impl IrContext {
                 Operand::Value(dest)
             }
             TypedExpression::Not { expression, .. } => {
-                let operand = self.gen_expression(*expression);
+                let operand = self.generate_expression(*expression);
                 let dest = self.new_reg();
                 let false_const = Operand::Constant("false".to_string());
                 self.emit(IrInstruction::BinaryOp {
@@ -542,10 +546,14 @@ impl IrContext {
                 let Type::Class(class_name) = object.get_type() else {
                     unreachable!()
                 };
-                let object_op = self.gen_expression(*object);
+                let object_op = self.generate_expression(*object);
 
                 let mut args = vec![object_op];
-                args.extend(arguments.into_iter().map(|arg| self.gen_expression(arg)));
+                args.extend(
+                    arguments
+                        .into_iter()
+                        .map(|arg| self.generate_expression(arg)),
+                );
 
                 let block = self.classes[&class_name].methods[&name];
                 let dest = self.new_reg();
@@ -564,8 +572,8 @@ impl IrContext {
                 ..
             } => {
                 let offset = self.resolve_field_offset(&object.get_type(), &name);
-                let object_op = self.gen_expression(*object);
-                let value_op = self.gen_expression(*value);
+                let object_op = self.generate_expression(*object);
+                let value_op = self.generate_expression(*value);
 
                 self.emit(IrInstruction::PutField {
                     object: object_op,
@@ -592,7 +600,7 @@ impl IrContext {
                 fields.sort_by_key(|(_, off)| *off);
 
                 for (expr, offset) in fields {
-                    let val = self.gen_expression(expr);
+                    let val = self.generate_expression(expr);
                     self.emit(IrInstruction::PutField {
                         object: object_op.clone(),
                         offset,
@@ -603,7 +611,7 @@ impl IrContext {
             }
             TypedExpression::Field { object, name, .. } => {
                 let offset = self.resolve_field_offset(&object.get_type(), &name);
-                let object_op = self.gen_expression(*object);
+                let object_op = self.generate_expression(*object);
                 let dest = self.new_reg();
                 self.emit(IrInstruction::GetField {
                     dest,
@@ -619,7 +627,7 @@ impl IrContext {
         }
     }
 
-    fn update_value(
+    fn generate_increment_or_decrement(
         &mut self,
         expression: TypedExpression,
         postfix: bool,
@@ -655,7 +663,7 @@ impl IrContext {
             }
             TypedExpression::Field { object, name, .. } => {
                 let typ = object.get_type();
-                let object = self.gen_expression(*object);
+                let object = self.generate_expression(*object);
                 let Type::Class(class_name) = typ else {
                     unreachable!()
                 };
@@ -694,7 +702,7 @@ impl IrContext {
 }
 
 impl IrContext {
-    pub fn scan_signatures(&mut self, ast: &TypedAST) {
+    pub fn scan_signatures(&mut self, ast: &TypedAbstractSyntaxTree) {
         match &ast.node {
             AbstractSyntaxNode::File => {
                 for child in &ast.children {
@@ -746,11 +754,11 @@ pub struct ControlFlowGraph {
     pub entry_block: BlockId,
 }
 
-pub fn compile(ast: TypedAST) -> ControlFlowGraph {
+pub fn compile(ast: TypedAbstractSyntaxTree) -> ControlFlowGraph {
     let mut ctx = IrContext::new();
     ctx.scan_signatures(&ast);
     let entry_block = ctx.main_block.unwrap();
-    ctx.gen_statement(ast);
+    ctx.generate_statement(ast);
     if !ctx.is_current_terminated() {
         ctx.emit_terminator(Terminator::Return(None));
     }

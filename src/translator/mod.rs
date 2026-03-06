@@ -4,5 +4,5 @@ pub mod common;
 pub mod expression;
 pub mod ir;
 pub mod parser;
-pub mod simplifier;
 pub mod printers;
+pub mod simplifier;
