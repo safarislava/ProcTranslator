@@ -1,4 +1,4 @@
-use crate::ir::StackSlot;
+use crate::translator::ir::StackSlot;
 use std::fmt;
 
 impl fmt::Display for StackSlot {

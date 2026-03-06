@@ -1,4 +1,4 @@
-use crate::ir::Register;
+use crate::translator::ir::Register;
 use std::fmt;
 
 impl fmt::Display for Register {

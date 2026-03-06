@@ -1,5 +1,5 @@
-use crate::common::{AbstractSyntaxNode, Type, TypedAST, TypedExpression};
-use crate::expression::BinaryOperator;
+use crate::translator::common::{AbstractSyntaxNode, Type, TypedAST, TypedExpression};
+use crate::translator::expression::BinaryOperator;
 use std::collections::HashMap;
 
 pub type BlockId = usize;

@@ -1,6 +1,6 @@
-use crate::common::{AbstractSyntaxNode, RawAST, RawExpression, ResBox, Type, Var};
-use crate::expression::parse_expression;
-use crate::parser::{SyntaxNode, SyntaxTree};
+use crate::translator::common::{AbstractSyntaxNode, RawAST, RawExpression, ResBox, Type, Var};
+use crate::translator::expression::parse_expression;
+use crate::translator::parser::{SyntaxNode, SyntaxTree};
 
 type DeclarationInfo = (String, String, Option<RawExpression>);
 

@@ -1,4 +1,4 @@
-use crate::ir::{ControlFlowGraph, Terminator};
+use crate::translator::ir::{ControlFlowGraph, Terminator};
 
 impl ControlFlowGraph {
     pub fn to_dot(&self) -> String {

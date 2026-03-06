@@ -1,4 +1,4 @@
-use proc_translator::common::{ResBox, compile_to_ir, dump_to_file};
+use proc_translator::translator::common::{ResBox, compile_to_ir, dump_to_file};
 
 fn main() -> ResBox<()> {
     let name = "return";

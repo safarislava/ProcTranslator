@@ -1,10 +1,10 @@
-use crate::expression::Expression;
-use crate::ir::ControlFlowGraph;
-use crate::{analyzer, ast, ir, parser, simplifier};
+use crate::translator::expression::Expression;
+use crate::translator::ir::ControlFlowGraph;
 use std::error::Error;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
+use crate::translator::{analyzer, ast, ir, parser, simplifier};
 
 pub type ResBox<T> = Result<T, Box<dyn Error>>;
 

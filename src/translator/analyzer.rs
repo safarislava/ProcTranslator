@@ -1,8 +1,8 @@
-use crate::common::{
+use crate::translator::common::{
     AbstractSyntaxNode, AbstractSyntaxTree, RawAST, RawExpression, ResBox, Type, TypedAST,
     TypedExpression,
 };
-use crate::expression::{BinaryOperator, Expression};
+use crate::translator::expression::{BinaryOperator, Expression};
 use std::collections::HashMap;
 
 type FunctionInfo = (Type, Vec<Type>);

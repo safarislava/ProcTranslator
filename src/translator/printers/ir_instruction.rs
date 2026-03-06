@@ -1,4 +1,4 @@
-use crate::ir::IrInstruction;
+use crate::translator::ir::IrInstruction;
 use std::fmt;
 
 impl fmt::Display for IrInstruction {

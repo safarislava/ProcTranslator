@@ -1,4 +1,4 @@
-use crate::common::{AbstractSyntaxNode, RawAST, RawExpression};
+use crate::translator::common::{AbstractSyntaxNode, RawAST, RawExpression};
 
 pub fn simplify(ast: RawAST) -> RawAST {
     let RawAST { node, children } = ast;

@@ -1,4 +1,4 @@
-use crate::common::{RawExpression, ResBox};
+use crate::translator::common::{RawExpression, ResBox};
 use std::iter::Peekable;
 use std::str::Chars;
 use std::vec::IntoIter;

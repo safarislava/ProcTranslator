@@ -1,4 +1,4 @@
-use crate::ir::Operand;
+use crate::translator::ir::Operand;
 use std::fmt;
 
 impl fmt::Display for Operand {

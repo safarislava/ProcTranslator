@@ -1,4 +1,4 @@
-use crate::ir::Terminator;
+use crate::translator::ir::Terminator;
 use std::fmt;
 
 impl fmt::Display for Terminator {

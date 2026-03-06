@@ -1,4 +1,4 @@
-use crate::common::ResBox;
+use crate::translator::common::ResBox;
 use regex::Regex;
 
 #[derive(Debug)]

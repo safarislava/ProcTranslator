@@ -1,8 +1,2 @@
-pub mod analyzer;
-pub mod ast;
-pub mod common;
-pub mod expression;
-pub mod ir;
-pub mod parser;
-pub mod printers;
-pub mod simplifier;
+pub mod machine;
+pub mod translator;
