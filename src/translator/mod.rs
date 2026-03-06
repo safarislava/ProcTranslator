@@ -6,3 +6,5 @@ pub mod ir;
 pub mod parser;
 pub mod printers;
 pub mod simplifier;
+mod translator;
+mod compiler;
