@@ -17,10 +17,10 @@ fn parse_type(s: &str) -> Type {
     }
 }
 
-fn parse_variable(arg: &str) -> ResBox<Variable> {
-    let parts: Vec<&str> = arg.split_whitespace().collect();
+fn parse_variable(s: &str) -> ResBox<Variable> {
+    let parts: Vec<&str> = s.split_whitespace().collect();
     if parts.len() != 2 {
-        return Err(format!("Invalid variable declaration: '{arg}'").into());
+        return Err(format!("Invalid variable declaration: '{s}'").into());
     }
     Ok(Variable {
         typ: parse_type(parts[0]),
@@ -28,8 +28,8 @@ fn parse_variable(arg: &str) -> ResBox<Variable> {
     })
 }
 
-fn parse_arguments(args_str: &str) -> ResBox<Vec<Variable>> {
-    let trimmed = args_str.trim();
+fn parse_arguments(arguments: &str) -> ResBox<Vec<Variable>> {
+    let trimmed = arguments.trim();
     if trimmed.is_empty() {
         return Ok(vec![]);
     }
@@ -45,7 +45,6 @@ fn parse_statement_keyword(value: &str) -> ResBox<Option<AbstractSyntaxNode<RawE
     if trimmed == "return" {
         return Ok(Some(AbstractSyntaxNode::Return { value: None }));
     }
-
     if let Some(stripped) = trimmed.strip_prefix("return ") {
         let expr = parse_expression(stripped.trim())?;
         return Ok(Some(AbstractSyntaxNode::Return { value: Some(expr) }));
@@ -112,18 +111,16 @@ fn build_for_loop(
 
     let initializer = if parts[0].is_empty() {
         None
-    } else if let Ok(Some((typ_str, name, init_value))) = parse_declaration(parts[0]) {
-        let typ = parse_type(&typ_str);
+    } else if let Ok(Some((typ, name, initializer))) = parse_declaration(parts[0]) {
+        let typ = parse_type(&typ);
         Some(Box::new(AbstractSyntaxNode::Declaration {
             typ,
             name,
-            expression: init_value,
+            expression: initializer,
         }))
     } else {
-        let expr = parse_expression(parts[0])?;
-        Some(Box::new(AbstractSyntaxNode::Expression {
-            expression: expr,
-        }))
+        let expression = parse_expression(parts[0])?;
+        Some(Box::new(AbstractSyntaxNode::Expression { expression }))
     };
 
     let condition = if parts[1].is_empty() {
@@ -180,12 +177,12 @@ pub fn build_ast(tree: SyntaxTree) -> ResBox<RawAbstractSyntaxTree> {
         SyntaxNode::Line { value } => {
             if let Some(asn) = parse_statement_keyword(&value)? {
                 RawAbstractSyntaxTree::new(asn)
-            } else if let Ok(Some((typ_str, name, expr))) = parse_declaration(&value) {
-                let typ = parse_type(&typ_str);
+            } else if let Ok(Some((typ, name, expression))) = parse_declaration(&value) {
+                let typ = parse_type(&typ);
                 RawAbstractSyntaxTree::new(AbstractSyntaxNode::Declaration {
                     typ,
                     name,
-                    expression: expr,
+                    expression,
                 })
             } else {
                 RawAbstractSyntaxTree::new(AbstractSyntaxNode::Expression {
@@ -198,13 +195,13 @@ pub fn build_ast(tree: SyntaxTree) -> ResBox<RawAbstractSyntaxTree> {
             name,
             arguments,
         } => {
-            let args = parse_arguments(&arguments)?;
+            let arguments = parse_arguments(&arguments)?;
             let result_type = parse_type(&result_type);
             RawAbstractSyntaxTree::with_children(
                 AbstractSyntaxNode::Callable {
                     result_type,
                     name,
-                    arguments: args,
+                    arguments,
                 },
                 processed_children,
             )

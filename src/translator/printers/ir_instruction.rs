@@ -4,19 +4,19 @@ use std::fmt;
 impl fmt::Display for IrInstruction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            IrInstruction::LoadConst { dest, value } => {
-                write!(f, "{} = const {}", dest, value)
+            IrInstruction::LoadConst { destination, value } => {
+                write!(f, "{} = const {}", destination, value)
             }
             IrInstruction::BinaryOp {
-                dest,
+                destination,
                 left,
                 op,
                 right,
             } => {
-                write!(f, "{} = {} {:?} {}", dest, left, op, right)
+                write!(f, "{} = {} {:?} {}", destination, left, op, right)
             }
             IrInstruction::Call {
-                dest,
+                destination,
                 block,
                 arguments,
             } => {
@@ -25,10 +25,10 @@ impl fmt::Display for IrInstruction {
                     .map(|a| a.to_string())
                     .collect::<Vec<_>>()
                     .join(", ");
-                write!(f, "{} = call B{}({})", dest, block, args)
+                write!(f, "{} = call B{}({})", destination, block, args)
             }
-            IrInstruction::LoadParam { dest, index } => {
-                write!(f, "{} = param[{}]", dest, index)
+            IrInstruction::LoadParam { destination, index } => {
+                write!(f, "{} = param[{}]", destination, index)
             }
             IrInstruction::StackAlloc { slot } => {
                 write!(f, "alloc {}", slot)
@@ -36,15 +36,15 @@ impl fmt::Display for IrInstruction {
             IrInstruction::StackStore { slot, value } => {
                 write!(f, "{} = {}", slot, value)
             }
-            IrInstruction::StackLoad { dest, slot } => {
-                write!(f, "{} = load {}", dest, slot)
+            IrInstruction::StackLoad { destination, slot } => {
+                write!(f, "{} = load {}", destination, slot)
             }
             IrInstruction::GetField {
-                dest,
+                destination,
                 object,
                 offset,
             } => {
-                write!(f, "{} = getfield {}[{}]", dest, object, offset)
+                write!(f, "{} = getfield {}[{}]", destination, object, offset)
             }
             IrInstruction::PutField {
                 object,
@@ -53,8 +53,11 @@ impl fmt::Display for IrInstruction {
             } => {
                 write!(f, "{}[{}] = {}", object, offset, value)
             }
-            IrInstruction::AllocObject { dest, class_name } => {
-                write!(f, "{} = new {}", dest, class_name)
+            IrInstruction::AllocObject {
+                destination,
+                class_name,
+            } => {
+                write!(f, "{} = new {}", destination, class_name)
             }
         }
     }

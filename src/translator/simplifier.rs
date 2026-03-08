@@ -3,11 +3,11 @@ use crate::translator::common::{AbstractSyntaxNode, RawAbstractSyntaxTree, RawEx
 pub fn simplify(ast: RawAbstractSyntaxTree) -> RawAbstractSyntaxTree {
     let RawAbstractSyntaxTree { node, children } = ast;
     let mut simplified_children = Vec::new();
-    let mut iter = children.into_iter().peekable();
+    let mut iterator = children.into_iter().peekable();
 
-    while let Some(mut child) = iter.next() {
+    while let Some(mut child) = iterator.next() {
         if let AbstractSyntaxNode::If { .. } = child.node {
-            child = build_if_tree(child, &mut iter);
+            child = build_if_tree(child, &mut iterator);
         }
         simplified_children.push(simplify(child));
     }
@@ -51,16 +51,16 @@ pub fn simplify(ast: RawAbstractSyntaxTree) -> RawAbstractSyntaxTree {
 
 fn build_if_tree(
     mut current_node: RawAbstractSyntaxTree,
-    iter: &mut std::iter::Peekable<impl Iterator<Item = RawAbstractSyntaxTree>>,
+    iterator: &mut std::iter::Peekable<impl Iterator<Item = RawAbstractSyntaxTree>>,
 ) -> RawAbstractSyntaxTree {
     if let AbstractSyntaxNode::ElseIf { condition } = current_node.node {
         current_node.node = AbstractSyntaxNode::If { condition };
     }
 
-    match iter.peek().map(|typed_ast| &typed_ast.node) {
+    match iterator.peek().map(|typed_ast| &typed_ast.node) {
         Some(AbstractSyntaxNode::ElseIf { .. }) => {
-            let next_node = iter.next().unwrap();
-            let nested_if = build_if_tree(next_node, iter);
+            let next_node = iterator.next().unwrap();
+            let nested_if = build_if_tree(next_node, iterator);
             current_node
                 .children
                 .push(RawAbstractSyntaxTree::with_children(
@@ -69,7 +69,7 @@ fn build_if_tree(
                 ));
         }
         Some(AbstractSyntaxNode::Else) => {
-            let else_node = iter.next().unwrap();
+            let else_node = iterator.next().unwrap();
             current_node.children.push(else_node);
         }
         _ => {}

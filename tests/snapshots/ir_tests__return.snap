@@ -8,13 +8,13 @@ ControlFlowGraph {
             id: 0,
             instructions: [
                 LoadParam {
-                    dest: Register(
+                    destination: Register(
                         0,
                     ),
                     index: 0,
                 },
                 LoadConst {
-                    dest: Register(
+                    destination: Register(
                         1,
                     ),
                     value: "false",
@@ -54,7 +54,7 @@ ControlFlowGraph {
             id: 2,
             instructions: [
                 LoadConst {
-                    dest: Register(
+                    destination: Register(
                         2,
                     ),
                     value: "false",

@@ -8,13 +8,13 @@ ControlFlowGraph {
             id: 0,
             instructions: [
                 LoadParam {
-                    dest: Register(
+                    destination: Register(
                         1,
                     ),
                     index: 0,
                 },
                 GetField {
-                    dest: Register(
+                    destination: Register(
                         2,
                     ),
                     object: Value(
@@ -25,7 +25,7 @@ ControlFlowGraph {
                     offset: 0,
                 },
                 BinaryOp {
-                    dest: Register(
+                    destination: Register(
                         3,
                     ),
                     left: Value(
@@ -70,7 +70,7 @@ ControlFlowGraph {
             id: 1,
             instructions: [
                 LoadParam {
-                    dest: Register(
+                    destination: Register(
                         4,
                     ),
                     index: 0,
@@ -81,13 +81,13 @@ ControlFlowGraph {
                     ),
                 },
                 AllocObject {
-                    dest: Register(
+                    destination: Register(
                         5,
                     ),
                     class_name: "Node",
                 },
                 LoadConst {
-                    dest: Register(
+                    destination: Register(
                         6,
                     ),
                     value: "5",
@@ -116,7 +116,7 @@ ControlFlowGraph {
                     ),
                 },
                 StackLoad {
-                    dest: Register(
+                    destination: Register(
                         7,
                     ),
                     slot: StackSlot(
@@ -124,7 +124,7 @@ ControlFlowGraph {
                     ),
                 },
                 Call {
-                    dest: Register(
+                    destination: Register(
                         8,
                     ),
                     block: 0,
@@ -137,7 +137,7 @@ ControlFlowGraph {
                     ],
                 },
                 StackLoad {
-                    dest: Register(
+                    destination: Register(
                         9,
                     ),
                     slot: StackSlot(
@@ -145,7 +145,7 @@ ControlFlowGraph {
                     ),
                 },
                 Call {
-                    dest: Register(
+                    destination: Register(
                         10,
                     ),
                     block: 0,

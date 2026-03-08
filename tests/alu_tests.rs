@@ -125,7 +125,6 @@ fn test_lsl() {
     assert_eq!(result, 0x1234);
 }
 
-
 #[test]
 fn test_lsr_carry() {
     let mut alu = ALU::default();
@@ -143,7 +142,6 @@ fn test_lsr() {
     assert!(!alu.nzcv.negative);
     assert!(!alu.nzcv.carry);
 }
-
 
 #[test]
 fn test_asr_sign_extension() {

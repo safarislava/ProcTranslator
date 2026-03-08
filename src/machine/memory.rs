@@ -25,3 +25,9 @@ impl Memory {
         self.data[address] = value;
     }
 }
+
+impl Default for Memory {
+    fn default() -> Self {
+        Self::new()
+    }
+}

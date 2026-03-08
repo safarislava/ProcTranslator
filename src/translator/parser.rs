@@ -46,7 +46,7 @@ impl SyntaxTree {
     }
 }
 
-pub fn parse_syntax_tree(raw_code: &str) -> ResBox<SyntaxTree> {
+pub fn parse_syntax_tree(code: &str) -> ResBox<SyntaxTree> {
     let if_pattern = Regex::new(r"^if\s*\((.+)\)")?;
     let else_if_pattern = Regex::new(r"^else\s+if\s*\((.+)\)")?;
     let else_pattern = Regex::new(r"^else")?;
@@ -55,7 +55,7 @@ pub fn parse_syntax_tree(raw_code: &str) -> ResBox<SyntaxTree> {
     let function_pattern = Regex::new(r"^(\w+)\s+(\w+)\s*\(([^)]*)\)")?;
     let class_pattern = Regex::new(r"^class\s+(\w+)")?;
 
-    let tokens = get_tokens(raw_code)?;
+    let tokens = get_tokens(code)?;
     let mut tree_stack: Vec<SyntaxTree> = vec![SyntaxTree::new(SyntaxNode::File)];
     let mut expect_body = false;
 
@@ -138,12 +138,12 @@ pub fn parse_syntax_tree(raw_code: &str) -> ResBox<SyntaxTree> {
         .ok_or_else(|| "Syntax tree is empty".into())
 }
 
-fn get_tokens(raw_code: &str) -> ResBox<Vec<String>> {
+fn get_tokens(code: &str) -> ResBox<Vec<String>> {
     let mut sentences = vec![];
     let mut token = String::new();
     let mut depth = 0;
 
-    for c in raw_code.chars() {
+    for c in code.chars() {
         match c {
             '(' => {
                 depth += 1;

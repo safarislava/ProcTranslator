@@ -8,7 +8,7 @@ ControlFlowGraph {
             id: 0,
             instructions: [
                 LoadParam {
-                    dest: Register(
+                    destination: Register(
                         0,
                     ),
                     index: 0,
@@ -19,7 +19,7 @@ ControlFlowGraph {
                     ),
                 },
                 LoadParam {
-                    dest: Register(
+                    destination: Register(
                         1,
                     ),
                     index: 1,
@@ -35,7 +35,7 @@ ControlFlowGraph {
                     ),
                 },
                 StackLoad {
-                    dest: Register(
+                    destination: Register(
                         2,
                     ),
                     slot: StackSlot(
@@ -43,13 +43,13 @@ ControlFlowGraph {
                     ),
                 },
                 LoadConst {
-                    dest: Register(
+                    destination: Register(
                         3,
                     ),
                     value: "5",
                 },
                 BinaryOp {
-                    dest: Register(
+                    destination: Register(
                         4,
                     ),
                     left: Value(
@@ -83,7 +83,7 @@ ControlFlowGraph {
             id: 1,
             instructions: [
                 LoadParam {
-                    dest: Register(
+                    destination: Register(
                         5,
                     ),
                     index: 0,
@@ -94,7 +94,7 @@ ControlFlowGraph {
                     ),
                 },
                 LoadConst {
-                    dest: Register(
+                    destination: Register(
                         6,
                     ),
                     value: "0",
@@ -115,7 +115,7 @@ ControlFlowGraph {
                     ),
                 },
                 LoadConst {
-                    dest: Register(
+                    destination: Register(
                         7,
                     ),
                     value: "1",
@@ -131,7 +131,7 @@ ControlFlowGraph {
                     ),
                 },
                 StackLoad {
-                    dest: Register(
+                    destination: Register(
                         8,
                     ),
                     slot: StackSlot(
@@ -139,7 +139,7 @@ ControlFlowGraph {
                     ),
                 },
                 StackLoad {
-                    dest: Register(
+                    destination: Register(
                         9,
                     ),
                     slot: StackSlot(
@@ -147,7 +147,7 @@ ControlFlowGraph {
                     ),
                 },
                 BinaryOp {
-                    dest: Register(
+                    destination: Register(
                         10,
                     ),
                     left: Value(
@@ -184,7 +184,7 @@ ControlFlowGraph {
             id: 2,
             instructions: [
                 StackLoad {
-                    dest: Register(
+                    destination: Register(
                         11,
                     ),
                     slot: StackSlot(
@@ -192,13 +192,13 @@ ControlFlowGraph {
                     ),
                 },
                 LoadConst {
-                    dest: Register(
+                    destination: Register(
                         12,
                     ),
                     value: "1",
                 },
                 BinaryOp {
-                    dest: Register(
+                    destination: Register(
                         13,
                     ),
                     left: Value(
@@ -214,7 +214,7 @@ ControlFlowGraph {
                     ),
                 },
                 StackLoad {
-                    dest: Register(
+                    destination: Register(
                         14,
                     ),
                     slot: StackSlot(
@@ -222,7 +222,7 @@ ControlFlowGraph {
                     ),
                 },
                 BinaryOp {
-                    dest: Register(
+                    destination: Register(
                         15,
                     ),
                     left: Value(
@@ -261,7 +261,7 @@ ControlFlowGraph {
             id: 3,
             instructions: [
                 StackLoad {
-                    dest: Register(
+                    destination: Register(
                         16,
                     ),
                     slot: StackSlot(
@@ -269,7 +269,7 @@ ControlFlowGraph {
                     ),
                 },
                 StackLoad {
-                    dest: Register(
+                    destination: Register(
                         17,
                     ),
                     slot: StackSlot(
@@ -277,7 +277,7 @@ ControlFlowGraph {
                     ),
                 },
                 BinaryOp {
-                    dest: Register(
+                    destination: Register(
                         18,
                     ),
                     left: Value(
@@ -424,7 +424,7 @@ ControlFlowGraph {
             id: 11,
             instructions: [
                 LoadConst {
-                    dest: Register(
+                    destination: Register(
                         19,
                     ),
                     value: "true",
@@ -454,7 +454,7 @@ ControlFlowGraph {
             id: 12,
             instructions: [
                 StackLoad {
-                    dest: Register(
+                    destination: Register(
                         20,
                     ),
                     slot: StackSlot(
@@ -462,13 +462,13 @@ ControlFlowGraph {
                     ),
                 },
                 LoadConst {
-                    dest: Register(
+                    destination: Register(
                         21,
                     ),
                     value: "9",
                 },
                 BinaryOp {
-                    dest: Register(
+                    destination: Register(
                         22,
                     ),
                     left: Value(
@@ -512,7 +512,7 @@ ControlFlowGraph {
                     ),
                 },
                 LoadConst {
-                    dest: Register(
+                    destination: Register(
                         32,
                     ),
                     value: "2",
@@ -545,7 +545,7 @@ ControlFlowGraph {
             id: 14,
             instructions: [
                 StackLoad {
-                    dest: Register(
+                    destination: Register(
                         23,
                     ),
                     slot: StackSlot(
@@ -553,7 +553,7 @@ ControlFlowGraph {
                     ),
                 },
                 BinaryOp {
-                    dest: Register(
+                    destination: Register(
                         24,
                     ),
                     left: Value(
@@ -593,7 +593,7 @@ ControlFlowGraph {
             id: 15,
             instructions: [
                 StackLoad {
-                    dest: Register(
+                    destination: Register(
                         25,
                     ),
                     slot: StackSlot(
@@ -601,13 +601,13 @@ ControlFlowGraph {
                     ),
                 },
                 LoadConst {
-                    dest: Register(
+                    destination: Register(
                         26,
                     ),
                     value: "10",
                 },
                 BinaryOp {
-                    dest: Register(
+                    destination: Register(
                         27,
                     ),
                     left: Value(
@@ -692,7 +692,7 @@ ControlFlowGraph {
             id: 19,
             instructions: [
                 StackLoad {
-                    dest: Register(
+                    destination: Register(
                         28,
                     ),
                     slot: StackSlot(
@@ -700,13 +700,13 @@ ControlFlowGraph {
                     ),
                 },
                 LoadConst {
-                    dest: Register(
+                    destination: Register(
                         29,
                     ),
                     value: "1",
                 },
                 BinaryOp {
-                    dest: Register(
+                    destination: Register(
                         30,
                     ),
                     left: Value(
@@ -722,7 +722,7 @@ ControlFlowGraph {
                     ),
                 },
                 Call {
-                    dest: Register(
+                    destination: Register(
                         31,
                     ),
                     block: 0,
@@ -766,7 +766,7 @@ ControlFlowGraph {
             id: 20,
             instructions: [
                 StackLoad {
-                    dest: Register(
+                    destination: Register(
                         33,
                     ),
                     slot: StackSlot(
@@ -774,13 +774,13 @@ ControlFlowGraph {
                     ),
                 },
                 LoadConst {
-                    dest: Register(
+                    destination: Register(
                         34,
                     ),
                     value: "10",
                 },
                 BinaryOp {
-                    dest: Register(
+                    destination: Register(
                         35,
                     ),
                     left: Value(
@@ -820,7 +820,7 @@ ControlFlowGraph {
             id: 21,
             instructions: [
                 StackLoad {
-                    dest: Register(
+                    destination: Register(
                         36,
                     ),
                     slot: StackSlot(
@@ -828,13 +828,13 @@ ControlFlowGraph {
                     ),
                 },
                 LoadConst {
-                    dest: Register(
+                    destination: Register(
                         37,
                     ),
                     value: "2",
                 },
                 BinaryOp {
-                    dest: Register(
+                    destination: Register(
                         38,
                     ),
                     left: Value(
@@ -850,7 +850,7 @@ ControlFlowGraph {
                     ),
                 },
                 StackLoad {
-                    dest: Register(
+                    destination: Register(
                         39,
                     ),
                     slot: StackSlot(
@@ -858,7 +858,7 @@ ControlFlowGraph {
                     ),
                 },
                 BinaryOp {
-                    dest: Register(
+                    destination: Register(
                         40,
                     ),
                     left: Value(

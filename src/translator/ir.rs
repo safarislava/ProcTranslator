@@ -3,6 +3,7 @@ use crate::translator::common::{
 };
 use crate::translator::expression::ExpressionBinaryOperator;
 use std::collections::HashMap;
+use std::iter;
 
 pub type BlockId = usize;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -21,22 +22,22 @@ pub enum Operand {
 #[derive(Debug, Clone)]
 pub enum IrInstruction {
     LoadConst {
-        dest: Register,
+        destination: Register,
         value: String,
     },
     BinaryOp {
-        dest: Register,
+        destination: Register,
         left: Operand,
         op: ExpressionBinaryOperator,
         right: Operand,
     },
     Call {
-        dest: Register,
+        destination: Register,
         block: BlockId,
         arguments: Vec<Operand>,
     },
     LoadParam {
-        dest: Register,
+        destination: Register,
         index: usize,
     },
 
@@ -48,12 +49,12 @@ pub enum IrInstruction {
         value: Operand,
     },
     StackLoad {
-        dest: Register,
+        destination: Register,
         slot: StackSlot,
     },
 
     GetField {
-        dest: Register,
+        destination: Register,
         object: Operand,
         offset: usize,
     },
@@ -63,7 +64,7 @@ pub enum IrInstruction {
         value: Operand,
     },
     AllocObject {
-        dest: Register,
+        destination: Register,
         class_name: String,
     },
 }
@@ -379,23 +380,23 @@ impl IrContext {
                 self.set_current_block(block_id);
                 self.enter_scope();
 
-                let mut param_offset = 0;
+                let mut parameter_offset = 0;
                 if self.current_class.is_some() {
                     let reg = self.new_reg();
                     self.emit(IrInstruction::LoadParam {
-                        dest: reg,
+                        destination: reg,
                         index: 0,
                     });
                     self.this_register = Some(reg);
-                    param_offset = 1;
+                    parameter_offset = 1;
                 }
 
-                for (i, arg) in arguments.into_iter().enumerate() {
-                    let slot = self.declare_variable(arg.name);
+                for (i, argument) in arguments.into_iter().enumerate() {
+                    let slot = self.declare_variable(argument.name);
                     let reg = self.new_reg();
                     self.emit(IrInstruction::LoadParam {
-                        dest: reg,
-                        index: i + param_offset,
+                        destination: reg,
+                        index: i + parameter_offset,
                     });
                     self.emit(IrInstruction::StackStore {
                         slot,
@@ -453,53 +454,53 @@ impl IrContext {
     pub fn generate_expression(&mut self, expression: TypedExpression) -> Operand {
         match expression {
             TypedExpression::Literal { value, .. } => {
-                let dest = self.new_reg();
-                self.emit(IrInstruction::LoadConst { dest, value });
-                Operand::Value(dest)
+                let destination = self.new_reg();
+                self.emit(IrInstruction::LoadConst { destination, value });
+                Operand::Value(destination)
             }
             TypedExpression::Variable { name, .. } => {
                 let slot = self.resolve_variable_address(&name);
-                let dest = self.new_reg();
-                self.emit(IrInstruction::StackLoad { dest, slot });
-                Operand::Value(dest)
+                let destination = self.new_reg();
+                self.emit(IrInstruction::StackLoad { destination, slot });
+                Operand::Value(destination)
             }
             TypedExpression::BinaryOp {
                 left, op, right, ..
             } => {
-                let left_op = self.generate_expression(*left);
-                let right_op = self.generate_expression(*right);
-                let dest = self.new_reg();
+                let left = self.generate_expression(*left);
+                let right = self.generate_expression(*right);
+                let destination = self.new_reg();
                 self.emit(IrInstruction::BinaryOp {
-                    dest,
-                    left: left_op,
+                    destination,
+                    left,
                     op,
-                    right: right_op,
+                    right,
                 });
-                Operand::Value(dest)
+                Operand::Value(destination)
             }
             TypedExpression::FunctionCall {
                 name, arguments, ..
             } => {
-                let args: Vec<_> = arguments
+                let arguments: Vec<_> = arguments
                     .into_iter()
                     .map(|arg| self.generate_expression(arg))
                     .collect();
-                let dest = self.new_reg();
+                let destination = self.new_reg();
                 let block = self.functions[&name];
                 self.emit(IrInstruction::Call {
-                    dest,
+                    destination,
                     block,
-                    arguments: args,
+                    arguments,
                 });
-                Operand::Value(dest)
+                Operand::Value(destination)
             }
             TypedExpression::Assign { name, value, .. } => {
                 let slot = self.resolve_variable_address(&name);
-                let value_op = self.generate_expression(*value);
+                let value = self.generate_expression(*value);
 
                 self.emit(IrInstruction::StackStore {
                     slot,
-                    value: value_op,
+                    value,
                 });
                 Operand::Void
             }
@@ -523,27 +524,27 @@ impl IrContext {
             ),
             TypedExpression::Negate { expression, .. } => {
                 let operand = self.generate_expression(*expression);
-                let dest = self.new_reg();
+                let destination = self.new_reg();
                 let zero_const = Operand::Constant("0".to_string());
                 self.emit(IrInstruction::BinaryOp {
-                    dest,
+                    destination,
                     left: zero_const,
                     op: ExpressionBinaryOperator::Minus,
                     right: operand,
                 });
-                Operand::Value(dest)
+                Operand::Value(destination)
             }
             TypedExpression::Not { expression, .. } => {
                 let operand = self.generate_expression(*expression);
-                let dest = self.new_reg();
+                let destination = self.new_reg();
                 let false_const = Operand::Constant("false".to_string());
                 self.emit(IrInstruction::BinaryOp {
-                    dest,
+                    destination,
                     left: operand,
                     op: ExpressionBinaryOperator::Equal,
                     right: false_const,
                 });
-                Operand::Value(dest)
+                Operand::Value(destination)
             }
             TypedExpression::MethodCall {
                 object,
@@ -554,24 +555,23 @@ impl IrContext {
                 let Type::Class(class_name) = object.get_type() else {
                     unreachable!()
                 };
-                let object_op = self.generate_expression(*object);
+                let object = self.generate_expression(*object);
 
-                let mut args = vec![object_op];
-                args.extend(
-                    arguments
-                        .into_iter()
-                        .map(|arg| self.generate_expression(arg)),
-                );
+                let arguments_iterator = arguments
+                    .into_iter()
+                    .map(|arg| self.generate_expression(arg));
+                let combined_iterator = iter::once(object).chain(arguments_iterator);
+                let arguments = combined_iterator.collect();
 
                 let block = self.classes[&class_name].methods[&name];
-                let dest = self.new_reg();
+                let destination = self.new_reg();
                 self.emit(IrInstruction::Call {
-                    dest,
+                    destination,
                     block,
-                    arguments: args,
+                    arguments,
                 });
 
-                Operand::Value(dest)
+                Operand::Value(destination)
             }
             TypedExpression::AssignField {
                 object,
@@ -580,23 +580,23 @@ impl IrContext {
                 ..
             } => {
                 let offset = self.resolve_field_offset(&object.get_type(), &name);
-                let object_op = self.generate_expression(*object);
-                let value_op = self.generate_expression(*value);
+                let object = self.generate_expression(*object);
+                let value = self.generate_expression(*value);
 
                 self.emit(IrInstruction::PutField {
-                    object: object_op,
+                    object,
                     offset,
-                    value: value_op,
+                    value,
                 });
                 Operand::Void
             }
             TypedExpression::New { class_name, .. } => {
-                let dest = self.new_reg();
+                let destination = self.new_reg();
                 self.emit(IrInstruction::AllocObject {
-                    dest,
+                    destination,
                     class_name: class_name.clone(),
                 });
-                let object_op = Operand::Value(dest);
+                let object = Operand::Value(destination);
 
                 let class_info = &self.classes[&class_name];
                 let mut fields: Vec<_> = class_info
@@ -607,26 +607,26 @@ impl IrContext {
 
                 fields.sort_by_key(|(_, off)| *off);
 
-                for (expr, offset) in fields {
-                    let val = self.generate_expression(expr);
+                for (expression, offset) in fields {
+                    let value = self.generate_expression(expression);
                     self.emit(IrInstruction::PutField {
-                        object: object_op.clone(),
+                        object: object.clone(),
                         offset,
-                        value: val,
+                        value,
                     });
                 }
-                object_op
+                object
             }
             TypedExpression::Field { object, name, .. } => {
                 let offset = self.resolve_field_offset(&object.get_type(), &name);
-                let object_op = self.generate_expression(*object);
-                let dest = self.new_reg();
+                let object = self.generate_expression(*object);
+                let destination = self.new_reg();
                 self.emit(IrInstruction::GetField {
-                    dest,
-                    object: object_op,
+                    destination,
+                    object,
                     offset,
                 });
-                Operand::Value(dest)
+                Operand::Value(destination)
             }
             TypedExpression::This { .. } => Operand::Value(
                 self.this_register
@@ -644,29 +644,29 @@ impl IrContext {
         match expression {
             TypedExpression::Variable { name, .. } => {
                 let slot = self.resolve_variable_address(&name);
-                let old_val_reg = self.new_reg();
+                let old_value = self.new_reg();
                 self.emit(IrInstruction::StackLoad {
-                    dest: old_val_reg,
+                    destination: old_value,
                     slot,
                 });
 
-                let new_val_reg = self.new_reg();
+                let new_value = self.new_reg();
                 let one_const = Operand::Constant("1".to_string());
                 self.emit(IrInstruction::BinaryOp {
-                    dest: new_val_reg,
-                    left: Operand::Value(old_val_reg),
+                    destination: new_value,
+                    left: Operand::Value(old_value),
                     op,
                     right: one_const,
                 });
                 self.emit(IrInstruction::StackStore {
                     slot,
-                    value: Operand::Value(new_val_reg),
+                    value: Operand::Value(new_value),
                 });
 
                 if postfix {
-                    Operand::Value(old_val_reg)
+                    Operand::Value(old_value)
                 } else {
-                    Operand::Value(new_val_reg)
+                    Operand::Value(new_value)
                 }
             }
             TypedExpression::Field { object, name, .. } => {
@@ -677,31 +677,31 @@ impl IrContext {
                 };
                 let offset = self.classes[&class_name].fields[&name].1;
 
-                let old_val_reg = self.new_reg();
+                let old_value = self.new_reg();
                 self.emit(IrInstruction::GetField {
-                    dest: old_val_reg,
+                    destination: old_value,
                     object: object.clone(),
                     offset,
                 });
 
-                let new_val_reg = self.new_reg();
+                let new_value = self.new_reg();
                 let one_const = Operand::Constant("1".to_string());
                 self.emit(IrInstruction::BinaryOp {
-                    dest: new_val_reg,
-                    left: Operand::Value(old_val_reg),
+                    destination: new_value,
+                    left: Operand::Value(old_value),
                     op,
                     right: one_const,
                 });
                 self.emit(IrInstruction::PutField {
                     object,
                     offset,
-                    value: Operand::Value(new_val_reg),
+                    value: Operand::Value(new_value),
                 });
 
                 if postfix {
-                    Operand::Value(old_val_reg)
+                    Operand::Value(old_value)
                 } else {
-                    Operand::Value(new_val_reg)
+                    Operand::Value(new_value)
                 }
             }
             _ => unreachable!(),
