@@ -1,4 +1,5 @@
 pub mod analyzer;
+pub mod asm_translator;
 pub mod ast;
 pub mod common;
 pub mod compiler;
@@ -7,4 +8,3 @@ pub mod ir;
 pub mod parser;
 pub mod printers;
 pub mod simplifier;
-pub mod asm_translator;

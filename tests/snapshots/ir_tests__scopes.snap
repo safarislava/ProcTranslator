@@ -1,5 +1,5 @@
 ---
-source: tests/tests.rs
+source: tests/ir_tests.rs
 expression: "format!(\"{:#?}\", cfg)"
 ---
 ControlFlowGraph {

@@ -1,5 +1,5 @@
 ---
-source: tests/tests.rs
+source: tests/parser_tests.rs
 expression: "format!(\"{:#?}\", tree)"
 ---
 SyntaxTree {

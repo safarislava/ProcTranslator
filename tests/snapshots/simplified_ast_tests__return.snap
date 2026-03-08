@@ -1,5 +1,5 @@
 ---
-source: tests/tests.rs
+source: tests/simplified_ast_tests.rs
 expression: "format!(\"{:#?}\", simple_ast)"
 ---
 AbstractSyntaxTree {

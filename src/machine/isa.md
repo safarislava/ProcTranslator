@@ -1,7 +1,7 @@
 State Views
 -
-D0 - D7, A0 - A7, NZVC, PC
-A7 - stack pointer 
+D0 - D7, A0 - A7, NZCV, PC
+- A7 - stack pointer 
 
 Addressation:
 -
@@ -27,6 +27,8 @@ MOVA from, to
 ADD, SUB, MUL, DIV, REM from, to 
 - from = {#* | D* | MEMORY}
 - to = {D* | MEMORY}
+- Set NZCV flags
+- DIV, REM set C-flag if zero-dived
 ---
 AND, OR, XOR, NOT from, to
 - from = {#* | D* | MEMORY}
@@ -56,6 +58,7 @@ CALL label
 - PC <- label
 
 FUNC label, args_count, arg0, arg1, ..
+- arg_i = {#* | D* | MEMORY}
 - for i from 0 to count - 1
 - - A7 <- A7 - 8
 - - (A7) <- arg_i

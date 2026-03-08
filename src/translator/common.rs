@@ -9,7 +9,7 @@ use std::path::Path;
 pub type ResBox<T> = Result<T, Box<dyn Error>>;
 
 #[derive(Debug, Clone)]
-pub struct Var {
+pub struct Variable {
     pub name: String,
     pub typ: Type,
 }
@@ -48,7 +48,7 @@ pub enum AbstractSyntaxNode<E> {
     Callable {
         result_type: Type,
         name: String,
-        arguments: Vec<Var>,
+        arguments: Vec<Variable>,
     },
     Class {
         name: String,

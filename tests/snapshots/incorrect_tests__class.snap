@@ -1,5 +1,5 @@
 ---
-source: tests/tests.rs
+source: tests/incorrect_tests.rs
 expression: error
 ---
 Entry point 'Main' function not found

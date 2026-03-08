@@ -1,7 +1,7 @@
 use crate::translator::common::{
     AbstractSyntaxNode, Type, TypedAbstractSyntaxTree, TypedExpression,
 };
-use crate::translator::expression::BinaryOperator;
+use crate::translator::expression::ExpressionBinaryOperator;
 use std::collections::HashMap;
 
 pub type BlockId = usize;
@@ -27,7 +27,7 @@ pub enum IrInstruction {
     BinaryOp {
         dest: Register,
         left: Operand,
-        op: BinaryOperator,
+        op: ExpressionBinaryOperator,
         right: Operand,
     },
     Call {
@@ -222,7 +222,7 @@ impl IrContext {
         self.scopes.pop();
     }
 
-    fn declare_var(&mut self, name: String) -> StackSlot {
+    fn declare_variable(&mut self, name: String) -> StackSlot {
         let slot = self.new_slot();
         self.emit(IrInstruction::StackAlloc { slot });
 
@@ -231,7 +231,7 @@ impl IrContext {
         slot
     }
 
-    fn resolve_var_addr(&self, name: &str) -> StackSlot {
+    fn resolve_variable_address(&self, name: &str) -> StackSlot {
         for scope in self.scopes.iter().rev() {
             if let Some(&slot) = scope.get(name) {
                 return slot;
@@ -357,7 +357,7 @@ impl IrContext {
             AbstractSyntaxNode::Declaration {
                 name, expression, ..
             } => {
-                let slot = self.declare_var(name);
+                let slot = self.declare_variable(name);
                 let value = if let Some(expr) = expression {
                     self.generate_expression(expr)
                 } else {
@@ -391,7 +391,7 @@ impl IrContext {
                 }
 
                 for (i, arg) in arguments.into_iter().enumerate() {
-                    let slot = self.declare_var(arg.name);
+                    let slot = self.declare_variable(arg.name);
                     let reg = self.new_reg();
                     self.emit(IrInstruction::LoadParam {
                         dest: reg,
@@ -458,7 +458,7 @@ impl IrContext {
                 Operand::Value(dest)
             }
             TypedExpression::Variable { name, .. } => {
-                let slot = self.resolve_var_addr(&name);
+                let slot = self.resolve_variable_address(&name);
                 let dest = self.new_reg();
                 self.emit(IrInstruction::StackLoad { dest, slot });
                 Operand::Value(dest)
@@ -494,7 +494,7 @@ impl IrContext {
                 Operand::Value(dest)
             }
             TypedExpression::Assign { name, value, .. } => {
-                let slot = self.resolve_var_addr(&name);
+                let slot = self.resolve_variable_address(&name);
                 let value_op = self.generate_expression(*value);
 
                 self.emit(IrInstruction::StackStore {
@@ -507,12 +507,20 @@ impl IrContext {
                 expression,
                 postfix,
                 ..
-            } => self.generate_increment_or_decrement(*expression, postfix, BinaryOperator::Plus),
+            } => self.generate_increment_or_decrement(
+                *expression,
+                postfix,
+                ExpressionBinaryOperator::Plus,
+            ),
             TypedExpression::Decrement {
                 expression,
                 postfix,
                 ..
-            } => self.generate_increment_or_decrement(*expression, postfix, BinaryOperator::Minus),
+            } => self.generate_increment_or_decrement(
+                *expression,
+                postfix,
+                ExpressionBinaryOperator::Minus,
+            ),
             TypedExpression::Negate { expression, .. } => {
                 let operand = self.generate_expression(*expression);
                 let dest = self.new_reg();
@@ -520,7 +528,7 @@ impl IrContext {
                 self.emit(IrInstruction::BinaryOp {
                     dest,
                     left: zero_const,
-                    op: BinaryOperator::Minus,
+                    op: ExpressionBinaryOperator::Minus,
                     right: operand,
                 });
                 Operand::Value(dest)
@@ -532,7 +540,7 @@ impl IrContext {
                 self.emit(IrInstruction::BinaryOp {
                     dest,
                     left: operand,
-                    op: BinaryOperator::Equal,
+                    op: ExpressionBinaryOperator::Equal,
                     right: false_const,
                 });
                 Operand::Value(dest)
@@ -631,11 +639,11 @@ impl IrContext {
         &mut self,
         expression: TypedExpression,
         postfix: bool,
-        op: BinaryOperator,
+        op: ExpressionBinaryOperator,
     ) -> Operand {
         match expression {
             TypedExpression::Variable { name, .. } => {
-                let slot = self.resolve_var_addr(&name);
+                let slot = self.resolve_variable_address(&name);
                 let old_val_reg = self.new_reg();
                 self.emit(IrInstruction::StackLoad {
                     dest: old_val_reg,

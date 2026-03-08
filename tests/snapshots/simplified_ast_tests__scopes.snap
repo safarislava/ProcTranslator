@@ -1,6 +1,6 @@
 ---
-source: tests/tests.rs
-expression: "format!(\"{:#?}\", tree)"
+source: tests/simplified_ast_tests.rs
+expression: "format!(\"{:#?}\", simple_ast)"
 ---
 AbstractSyntaxTree {
     node: File,
@@ -15,7 +15,7 @@ AbstractSyntaxTree {
                         result_type: Int,
                         name: "f",
                         arguments: [
-                            Var {
+                            Variable {
                                 name: "x",
                                 typ: Int,
                             },
@@ -26,14 +26,14 @@ AbstractSyntaxTree {
                             node: Return {
                                 value: Some(
                                     BinaryOp {
-                                        typ: Int,
+                                        typ: (),
                                         left: Variable {
-                                            typ: Int,
+                                            typ: (),
                                             name: "x",
                                         },
                                         op: Plus,
                                         right: Literal {
-                                            typ: Int,
+                                            typ: (),
                                             value: "5",
                                         },
                                     },
@@ -56,7 +56,7 @@ AbstractSyntaxTree {
                                 name: "x",
                                 expression: Some(
                                     Literal {
-                                        typ: Int,
+                                        typ: (),
                                         value: "0",
                                     },
                                 ),
@@ -69,7 +69,7 @@ AbstractSyntaxTree {
                                 name: "b",
                                 expression: Some(
                                     Literal {
-                                        typ: Int,
+                                        typ: (),
                                         value: "1",
                                     },
                                 ),
@@ -79,14 +79,14 @@ AbstractSyntaxTree {
                         AbstractSyntaxTree {
                             node: If {
                                 condition: BinaryOp {
-                                    typ: Bool,
+                                    typ: (),
                                     left: Variable {
-                                        typ: Int,
+                                        typ: (),
                                         name: "x",
                                     },
                                     op: Greater,
                                     right: Variable {
-                                        typ: Int,
+                                        typ: (),
                                         name: "b",
                                     },
                                 },
@@ -95,22 +95,22 @@ AbstractSyntaxTree {
                                 AbstractSyntaxTree {
                                     node: If {
                                         condition: BinaryOp {
-                                            typ: Bool,
+                                            typ: (),
                                             left: BinaryOp {
-                                                typ: Int,
+                                                typ: (),
                                                 left: Variable {
-                                                    typ: Int,
+                                                    typ: (),
                                                     name: "x",
                                                 },
                                                 op: Plus,
                                                 right: Literal {
-                                                    typ: Int,
+                                                    typ: (),
                                                     value: "1",
                                                 },
                                             },
                                             op: Greater,
                                             right: Variable {
-                                                typ: Int,
+                                                typ: (),
                                                 name: "b",
                                             },
                                         },
@@ -128,14 +128,14 @@ AbstractSyntaxTree {
                                         AbstractSyntaxTree {
                                             node: If {
                                                 condition: BinaryOp {
-                                                    typ: Bool,
+                                                    typ: (),
                                                     left: Variable {
-                                                        typ: Int,
+                                                        typ: (),
                                                         name: "x",
                                                     },
                                                     op: Less,
                                                     right: Variable {
-                                                        typ: Int,
+                                                        typ: (),
                                                         name: "b",
                                                     },
                                                 },
@@ -154,7 +154,7 @@ AbstractSyntaxTree {
                         AbstractSyntaxTree {
                             node: While {
                                 condition: Literal {
-                                    typ: Bool,
+                                    typ: (),
                                     value: "true",
                                 },
                             },
@@ -162,14 +162,14 @@ AbstractSyntaxTree {
                                 AbstractSyntaxTree {
                                     node: If {
                                         condition: BinaryOp {
-                                            typ: Bool,
+                                            typ: (),
                                             left: Variable {
-                                                typ: Int,
+                                                typ: (),
                                                 name: "x",
                                             },
                                             op: Equal,
                                             right: Literal {
-                                                typ: Int,
+                                                typ: (),
                                                 value: "9",
                                             },
                                         },
@@ -178,9 +178,9 @@ AbstractSyntaxTree {
                                         AbstractSyntaxTree {
                                             node: Expression {
                                                 expression: Increment {
-                                                    typ: Int,
+                                                    typ: (),
                                                     expression: Variable {
-                                                        typ: Int,
+                                                        typ: (),
                                                         name: "x",
                                                     },
                                                     postfix: true,
@@ -194,14 +194,14 @@ AbstractSyntaxTree {
                                                 AbstractSyntaxTree {
                                                     node: If {
                                                         condition: BinaryOp {
-                                                            typ: Bool,
+                                                            typ: (),
                                                             left: Variable {
-                                                                typ: Int,
+                                                                typ: (),
                                                                 name: "x",
                                                             },
                                                             op: Equal,
                                                             right: Literal {
-                                                                typ: Int,
+                                                                typ: (),
                                                                 value: "10",
                                                             },
                                                         },
@@ -220,26 +220,24 @@ AbstractSyntaxTree {
                                 AbstractSyntaxTree {
                                     node: Expression {
                                         expression: Assign {
-                                            typ: Int,
+                                            typ: (),
                                             name: "x",
                                             value: MethodCall {
-                                                typ: Int,
+                                                typ: (),
                                                 object: This {
-                                                    typ: Class(
-                                                        "App",
-                                                    ),
+                                                    typ: (),
                                                 },
                                                 name: "f",
                                                 arguments: [
                                                     BinaryOp {
-                                                        typ: Int,
+                                                        typ: (),
                                                         left: Variable {
-                                                            typ: Int,
+                                                            typ: (),
                                                             name: "x",
                                                         },
                                                         op: Plus,
                                                         right: Literal {
-                                                            typ: Int,
+                                                            typ: (),
                                                             value: "1",
                                                         },
                                                     },
@@ -260,7 +258,7 @@ AbstractSyntaxTree {
                                         name: "i",
                                         expression: Some(
                                             Literal {
-                                                typ: Int,
+                                                typ: (),
                                                 value: "2",
                                             },
                                         ),
@@ -270,14 +268,14 @@ AbstractSyntaxTree {
                                 AbstractSyntaxTree {
                                     node: While {
                                         condition: BinaryOp {
-                                            typ: Bool,
+                                            typ: (),
                                             left: Variable {
-                                                typ: Int,
+                                                typ: (),
                                                 name: "i",
                                             },
                                             op: Less,
                                             right: Literal {
-                                                typ: Int,
+                                                typ: (),
                                                 value: "10",
                                             },
                                         },
@@ -286,14 +284,14 @@ AbstractSyntaxTree {
                                         AbstractSyntaxTree {
                                             node: Expression {
                                                 expression: BinaryOp {
-                                                    typ: Int,
+                                                    typ: (),
                                                     left: Variable {
-                                                        typ: Int,
+                                                        typ: (),
                                                         name: "x",
                                                     },
                                                     op: AssignAdd,
                                                     right: Literal {
-                                                        typ: Int,
+                                                        typ: (),
                                                         value: "2",
                                                     },
                                                 },
@@ -303,9 +301,9 @@ AbstractSyntaxTree {
                                         AbstractSyntaxTree {
                                             node: Expression {
                                                 expression: Increment {
-                                                    typ: Int,
+                                                    typ: (),
                                                     expression: Variable {
-                                                        typ: Int,
+                                                        typ: (),
                                                         name: "i",
                                                     },
                                                     postfix: true,

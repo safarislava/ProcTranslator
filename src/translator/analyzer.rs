@@ -2,7 +2,7 @@ use crate::translator::common::{
     AbstractSyntaxNode, AbstractSyntaxTree, RawAbstractSyntaxTree, RawExpression, ResBox, Type,
     TypedAbstractSyntaxTree, TypedExpression,
 };
-use crate::translator::expression::{BinaryOperator, Expression};
+use crate::translator::expression::{Expression, ExpressionBinaryOperator};
 use std::collections::HashMap;
 
 type FunctionInfo = (Type, Vec<Type>);
@@ -605,15 +605,15 @@ impl SemanticTable {
         Ok(typed_args)
     }
 
-    fn is_compering_binary_op(op: &BinaryOperator) -> bool {
+    fn is_compering_binary_op(op: &ExpressionBinaryOperator) -> bool {
         matches!(
             op,
-            BinaryOperator::Equal
-                | BinaryOperator::NotEqual
-                | BinaryOperator::Less
-                | BinaryOperator::LessEqual
-                | BinaryOperator::Greater
-                | BinaryOperator::GreaterEqual
+            ExpressionBinaryOperator::Equal
+                | ExpressionBinaryOperator::NotEqual
+                | ExpressionBinaryOperator::Less
+                | ExpressionBinaryOperator::LessEqual
+                | ExpressionBinaryOperator::Greater
+                | ExpressionBinaryOperator::GreaterEqual
         )
     }
 }

@@ -1,5 +1,5 @@
 use crate::translator::common::{
-    AbstractSyntaxNode, RawAbstractSyntaxTree, RawExpression, ResBox, Type, Var,
+    AbstractSyntaxNode, RawAbstractSyntaxTree, RawExpression, ResBox, Type, Variable,
 };
 use crate::translator::expression::parse_expression;
 use crate::translator::parser::{SyntaxNode, SyntaxTree};
@@ -17,23 +17,26 @@ fn parse_type(s: &str) -> Type {
     }
 }
 
-fn parse_var(arg: &str) -> ResBox<Var> {
+fn parse_variable(arg: &str) -> ResBox<Variable> {
     let parts: Vec<&str> = arg.split_whitespace().collect();
     if parts.len() != 2 {
         return Err(format!("Invalid variable declaration: '{arg}'").into());
     }
-    Ok(Var {
+    Ok(Variable {
         typ: parse_type(parts[0]),
         name: parts[1].to_string(),
     })
 }
 
-fn parse_arguments(args_str: &str) -> ResBox<Vec<Var>> {
+fn parse_arguments(args_str: &str) -> ResBox<Vec<Variable>> {
     let trimmed = args_str.trim();
     if trimmed.is_empty() {
         return Ok(vec![]);
     }
-    trimmed.split(',').map(|s| parse_var(s.trim())).collect()
+    trimmed
+        .split(',')
+        .map(|s| parse_variable(s.trim()))
+        .collect()
 }
 
 fn parse_statement_keyword(value: &str) -> ResBox<Option<AbstractSyntaxNode<RawExpression>>> {

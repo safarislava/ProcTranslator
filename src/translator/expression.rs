@@ -4,7 +4,7 @@ use std::str::Chars;
 use std::vec::IntoIter;
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum BinaryOperator {
+pub enum ExpressionBinaryOperator {
     Assign,
     AssignAdd,
     AssignSub,
@@ -38,7 +38,7 @@ pub enum Expression<T> {
     BinaryOp {
         typ: T,
         left: Box<Expression<T>>,
-        op: BinaryOperator,
+        op: ExpressionBinaryOperator,
         right: Box<Expression<T>>,
     },
     FunctionCall {
@@ -314,7 +314,7 @@ impl Parser {
                 let right = self.parse_expression(right_order)?;
 
                 left = match op {
-                    BinaryOperator::Assign => {
+                    ExpressionBinaryOperator::Assign => {
                         if !Self::is_changeable(&left) {
                             return Err("Invalid assignment target".into());
                         }
@@ -460,46 +460,48 @@ impl Parser {
         Ok(args)
     }
 
-    fn link_binary_operator(op: &str) -> ResBox<BinaryOperator> {
+    fn link_binary_operator(op: &str) -> ResBox<ExpressionBinaryOperator> {
         match op {
-            "=" => Ok(BinaryOperator::Assign),
-            "+=" => Ok(BinaryOperator::AssignAdd),
-            "-=" => Ok(BinaryOperator::AssignSub),
-            "*=" => Ok(BinaryOperator::AssignMul),
-            "/=" => Ok(BinaryOperator::AssignDiv),
-            "||" => Ok(BinaryOperator::Or),
-            "&&" => Ok(BinaryOperator::And),
-            "==" => Ok(BinaryOperator::Equal),
-            "!=" => Ok(BinaryOperator::NotEqual),
-            "<" => Ok(BinaryOperator::Less),
-            "<=" => Ok(BinaryOperator::LessEqual),
-            ">" => Ok(BinaryOperator::Greater),
-            ">=" => Ok(BinaryOperator::GreaterEqual),
-            "+" => Ok(BinaryOperator::Plus),
-            "-" => Ok(BinaryOperator::Minus),
-            "*" => Ok(BinaryOperator::Multiply),
-            "/" => Ok(BinaryOperator::Divide),
-            "%" => Ok(BinaryOperator::Modulo),
+            "=" => Ok(ExpressionBinaryOperator::Assign),
+            "+=" => Ok(ExpressionBinaryOperator::AssignAdd),
+            "-=" => Ok(ExpressionBinaryOperator::AssignSub),
+            "*=" => Ok(ExpressionBinaryOperator::AssignMul),
+            "/=" => Ok(ExpressionBinaryOperator::AssignDiv),
+            "||" => Ok(ExpressionBinaryOperator::Or),
+            "&&" => Ok(ExpressionBinaryOperator::And),
+            "==" => Ok(ExpressionBinaryOperator::Equal),
+            "!=" => Ok(ExpressionBinaryOperator::NotEqual),
+            "<" => Ok(ExpressionBinaryOperator::Less),
+            "<=" => Ok(ExpressionBinaryOperator::LessEqual),
+            ">" => Ok(ExpressionBinaryOperator::Greater),
+            ">=" => Ok(ExpressionBinaryOperator::GreaterEqual),
+            "+" => Ok(ExpressionBinaryOperator::Plus),
+            "-" => Ok(ExpressionBinaryOperator::Minus),
+            "*" => Ok(ExpressionBinaryOperator::Multiply),
+            "/" => Ok(ExpressionBinaryOperator::Divide),
+            "%" => Ok(ExpressionBinaryOperator::Modulo),
             _ => Err("Unknown binary operator".into()),
         }
     }
 
-    fn binding_order(op: &BinaryOperator) -> (u8, u8) {
+    fn binding_order(op: &ExpressionBinaryOperator) -> (u8, u8) {
         match op {
-            BinaryOperator::Assign
-            | BinaryOperator::AssignAdd
-            | BinaryOperator::AssignSub
-            | BinaryOperator::AssignMul
-            | BinaryOperator::AssignDiv => (1, 2),
-            BinaryOperator::Or => (3, 4),
-            BinaryOperator::And => (5, 6),
-            BinaryOperator::Equal | BinaryOperator::NotEqual => (7, 8),
-            BinaryOperator::Less
-            | BinaryOperator::LessEqual
-            | BinaryOperator::Greater
-            | BinaryOperator::GreaterEqual => (9, 10),
-            BinaryOperator::Plus | BinaryOperator::Minus => (11, 12),
-            BinaryOperator::Multiply | BinaryOperator::Divide | BinaryOperator::Modulo => (13, 14),
+            ExpressionBinaryOperator::Assign
+            | ExpressionBinaryOperator::AssignAdd
+            | ExpressionBinaryOperator::AssignSub
+            | ExpressionBinaryOperator::AssignMul
+            | ExpressionBinaryOperator::AssignDiv => (1, 2),
+            ExpressionBinaryOperator::Or => (3, 4),
+            ExpressionBinaryOperator::And => (5, 6),
+            ExpressionBinaryOperator::Equal | ExpressionBinaryOperator::NotEqual => (7, 8),
+            ExpressionBinaryOperator::Less
+            | ExpressionBinaryOperator::LessEqual
+            | ExpressionBinaryOperator::Greater
+            | ExpressionBinaryOperator::GreaterEqual => (9, 10),
+            ExpressionBinaryOperator::Plus | ExpressionBinaryOperator::Minus => (11, 12),
+            ExpressionBinaryOperator::Multiply
+            | ExpressionBinaryOperator::Divide
+            | ExpressionBinaryOperator::Modulo => (13, 14),
         }
     }
 }

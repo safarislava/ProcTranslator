@@ -1,6 +1,6 @@
 ---
-source: tests/tests.rs
-expression: "format!(\"{:#?}\", tree)"
+source: tests/simplified_ast_tests.rs
+expression: "format!(\"{:#?}\", simple_ast)"
 ---
 AbstractSyntaxTree {
     node: File,
