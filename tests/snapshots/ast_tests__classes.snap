@@ -12,7 +12,7 @@ AbstractSyntaxTree {
             children: [
                 AbstractSyntaxTree {
                     node: Declaration {
-                        typ: Int,
+                        typ: Int
                         name: "counter",
                         expression: Some(
                             Literal {

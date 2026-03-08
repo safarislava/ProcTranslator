@@ -40,4 +40,3 @@ test:
     paths:
       - tests/snapshots/
     when: on_failure
-    expire_in: 1 week
