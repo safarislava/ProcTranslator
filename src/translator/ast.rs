@@ -58,13 +58,13 @@ fn parse_statement_keyword(value: &str) -> ResBox<Option<AbstractSyntaxNode<RawE
     Ok(None)
 }
 
-fn parse_declaration(raw_code: &str) -> ResBox<Option<DeclarationInfo>> {
-    let code = raw_code.trim();
-    if code.is_empty() {
+fn parse_declaration(code: &str) -> ResBox<Option<DeclarationInfo>> {
+    let trimmed = code.trim();
+    if trimmed.is_empty() {
         return Ok(None);
     }
 
-    let parts: Vec<&str> = code.splitn(2, ' ').collect();
+    let parts: Vec<&str> = trimmed.splitn(2, ' ').collect();
     if parts.len() < 2 {
         return Ok(None);
     }

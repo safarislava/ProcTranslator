@@ -4,4 +4,3 @@ pub mod data_path;
 mod isa;
 mod memory;
 pub mod nzcv;
-pub mod register;

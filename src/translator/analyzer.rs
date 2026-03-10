@@ -368,25 +368,28 @@ impl SemanticTable {
                     name: name.clone(),
                 })
             }
-            Expression::BinaryOp {
-                left, op, right, ..
+            Expression::BinaryOperator {
+                left,
+                operator,
+                right,
+                ..
             } => {
                 let typed_left = self.analyze_expression(left)?;
                 let typed_right = self.analyze_expression(right)?;
                 let left_type = typed_left.get_type();
                 let right_type = typed_right.get_type();
                 if left_type != right_type {
-                    return Err("Binary op type mismatch".into());
+                    return Err("Binary operator type mismatch".into());
                 }
-                let result_type = if Self::is_compering_binary_op(op) {
+                let result_type = if Self::is_compering_binary_op(operator) {
                     Type::Bool
                 } else {
                     left_type
                 };
-                Ok(Expression::BinaryOp {
+                Ok(Expression::BinaryOperator {
                     typ: result_type,
                     left: Box::new(typed_left),
-                    op: op.clone(),
+                    operator: operator.clone(),
                     right: Box::new(typed_right),
                 })
             }
@@ -605,9 +608,9 @@ impl SemanticTable {
         Ok(typed_args)
     }
 
-    fn is_compering_binary_op(op: &ExpressionBinaryOperator) -> bool {
+    fn is_compering_binary_op(operator: &ExpressionBinaryOperator) -> bool {
         matches!(
-            op,
+            operator,
             ExpressionBinaryOperator::Equal
                 | ExpressionBinaryOperator::NotEqual
                 | ExpressionBinaryOperator::Less

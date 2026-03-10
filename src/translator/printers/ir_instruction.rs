@@ -7,13 +7,13 @@ impl fmt::Display for IrInstruction {
             IrInstruction::LoadConst { destination, value } => {
                 write!(f, "{} = const {}", destination, value)
             }
-            IrInstruction::BinaryOp {
+            IrInstruction::BinaryOperator {
                 destination,
                 left,
-                op,
+                operator,
                 right,
             } => {
-                write!(f, "{} = {} {:?} {}", destination, left, op, right)
+                write!(f, "{} = {} {:?} {}", destination, left, operator, right)
             }
             IrInstruction::Call {
                 destination,
@@ -27,10 +27,10 @@ impl fmt::Display for IrInstruction {
                     .join(", ");
                 write!(f, "{} = call B{}({})", destination, block, args)
             }
-            IrInstruction::LoadParam { destination, index } => {
+            IrInstruction::LoadParameter { destination, index } => {
                 write!(f, "{} = param[{}]", destination, index)
             }
-            IrInstruction::StackAlloc { slot } => {
+            IrInstruction::StackAllocate { slot } => {
                 write!(f, "alloc {}", slot)
             }
             IrInstruction::StackStore { slot, value } => {
@@ -53,7 +53,7 @@ impl fmt::Display for IrInstruction {
             } => {
                 write!(f, "{}[{}] = {}", object, offset, value)
             }
-            IrInstruction::AllocObject {
+            IrInstruction::AllocateObject {
                 destination,
                 class_name,
             } => {

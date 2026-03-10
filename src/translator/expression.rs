@@ -35,10 +35,10 @@ pub enum Expression<T> {
         typ: T,
         name: String,
     },
-    BinaryOp {
+    BinaryOperator {
         typ: T,
         left: Box<Expression<T>>,
-        op: ExpressionBinaryOperator,
+        operator: ExpressionBinaryOperator,
         right: Box<Expression<T>>,
     },
     FunctionCall {
@@ -100,7 +100,7 @@ impl<T: Clone> Expression<T> {
         match self {
             Expression::Literal { typ, .. } => typ.clone(),
             Expression::Variable { typ, .. } => typ.clone(),
-            Expression::BinaryOp { typ, .. } => typ.clone(),
+            Expression::BinaryOperator { typ, .. } => typ.clone(),
             Expression::FunctionCall { typ, .. } => typ.clone(),
             Expression::MethodCall { typ, .. } => typ.clone(),
             Expression::Assign { typ, .. } => typ.clone(),
@@ -118,13 +118,13 @@ impl<T: Clone> Expression<T> {
 
 #[derive(Debug, Clone, PartialEq)]
 enum Token {
-    Num(String),
-    Str(String),
+    Number(String),
+    String(String),
     Bool(String),
     Id(String),
-    Op(String),
-    LParen,
-    RParen,
+    Operator(String),
+    LeftBracket,
+    RightBracket,
     Comma,
     Dot,
 }
@@ -175,13 +175,13 @@ impl<'a> Lexer<'a> {
 
         let token = match c {
             c if c.is_ascii_digit() => {
-                Token::Num(self.read_while(|c| c.is_ascii_digit() || c == '.'))
+                Token::Number(self.read_while(|c| c.is_ascii_digit() || c == '.'))
             }
             '"' => {
                 self.chars.next();
                 let s = self.read_while(|c| c != '"');
                 self.chars.next();
-                Token::Str(s)
+                Token::String(s)
             }
             c if c.is_alphabetic() || c == '_' => {
                 let id = self.read_while(|c| c.is_alphanumeric() || c == '_');
@@ -192,11 +192,11 @@ impl<'a> Lexer<'a> {
             }
             '(' => {
                 self.chars.next();
-                Token::LParen
+                Token::LeftBracket
             }
             ')' => {
                 self.chars.next();
-                Token::RParen
+                Token::RightBracket
             }
             ',' => {
                 self.chars.next();
@@ -212,7 +212,7 @@ impl<'a> Lexer<'a> {
                     self.chars.next();
                     return self.next_token();
                 }
-                Token::Op(op)
+                Token::Operator(op)
             }
         };
 
@@ -256,7 +256,7 @@ impl Parser {
                     _ => return Err("Expected identifier after '.'".into()),
                 };
 
-                if let Some(Token::LParen) = self.tokens.peek() {
+                if let Some(Token::LeftBracket) = self.tokens.peek() {
                     self.tokens.next();
                     let args = self.parse_arguments()?;
                     left = Expression::MethodCall {
@@ -275,7 +275,7 @@ impl Parser {
                 continue;
             }
 
-            if let Some(Token::Op(op)) = next.as_ref()
+            if let Some(Token::Operator(op)) = next.as_ref()
                 && (op == "++" || op == "--")
             {
                 let op_str = op.clone();
@@ -303,9 +303,9 @@ impl Parser {
                 continue;
             }
 
-            if let Some(Token::Op(op_str)) = next {
-                let op = Self::link_binary_operator(&op_str)?;
-                let (left_order, right_order) = Self::binding_order(&op);
+            if let Some(Token::Operator(op_str)) = next {
+                let operator = Self::link_binary_operator(&op_str)?;
+                let (left_order, right_order) = Self::binding_order(&operator);
                 if left_order < min_order {
                     break;
                 }
@@ -313,7 +313,7 @@ impl Parser {
 
                 let right = self.parse_expression(right_order)?;
 
-                left = match op {
+                left = match operator {
                     ExpressionBinaryOperator::Assign => {
                         if !Self::is_changeable(&left) {
                             return Err("Invalid assignment target".into());
@@ -337,10 +337,10 @@ impl Parser {
                             _ => unreachable!(),
                         }
                     }
-                    _ => Expression::BinaryOp {
+                    _ => Expression::BinaryOperator {
                         typ: (),
                         left: Box::new(left),
-                        op,
+                        operator,
                         right: Box::new(right),
                     },
                 };
@@ -354,8 +354,8 @@ impl Parser {
     fn parse_primary(&mut self) -> ResBox<RawExpression> {
         let token = self.tokens.next().ok_or("Unexpected end of expression")?;
         match token {
-            Token::Num(value) => Ok(Expression::Literal { typ: (), value }),
-            Token::Str(value) => Ok(Expression::Literal {
+            Token::Number(value) => Ok(Expression::Literal { typ: (), value }),
+            Token::String(value) => Ok(Expression::Literal {
                 typ: (),
                 value: format!("\"{}\"", value),
             }),
@@ -373,7 +373,7 @@ impl Parser {
                     })
                 }
                 name => {
-                    if let Some(Token::LParen) = self.tokens.peek() {
+                    if let Some(Token::LeftBracket) = self.tokens.peek() {
                         self.tokens.next();
                         let args = self.parse_arguments()?;
                         Ok(Expression::FunctionCall {
@@ -389,19 +389,19 @@ impl Parser {
                     }
                 }
             },
-            Token::LParen => {
-                let expr = self.parse_expression(0)?;
-                if self.tokens.next() != Some(Token::RParen) {
+            Token::LeftBracket => {
+                let expression = self.parse_expression(0)?;
+                if self.tokens.next() != Some(Token::RightBracket) {
                     return Err("Expected ')'".into());
                 }
-                Ok(expr)
+                Ok(expression)
             }
-            Token::Op(op) => {
-                match op.as_str() {
+            Token::Operator(operator) => {
+                match operator.as_str() {
                     "++" | "--" => {
                         let target = self.parse_primary()?;
                         if Self::is_changeable(&target) {
-                            Ok(if op == "++" {
+                            Ok(if operator == "++" {
                                 Expression::Increment {
                                     typ: (),
                                     expression: Box::new(target),
@@ -417,26 +417,26 @@ impl Parser {
                         } else {
                             Err(format!(
                                 "Operator '{}' can only be applied to a variable or field",
-                                op
+                                operator
                             )
                             .into())
                         }
                     }
                     "-" => {
-                        let expr = self.parse_expression(15)?; // Унарный минус имеет высокий приоритет
+                        let expression = self.parse_expression(15)?; // Унарный минус имеет высокий приоритет
                         Ok(Expression::Negate {
                             typ: (),
-                            expression: Box::new(expr),
+                            expression: Box::new(expression),
                         })
                     }
                     "!" => {
-                        let expr = self.parse_expression(15)?; // Унарное отрицание
+                        let expression = self.parse_expression(15)?; // Унарное отрицание
                         Ok(Expression::Not {
                             typ: (),
-                            expression: Box::new(expr),
+                            expression: Box::new(expression),
                         })
                     }
-                    _ => Err(format!("Unexpected unary operator: {}", op).into()),
+                    _ => Err(format!("Unexpected unary operator: {}", operator).into()),
                 }
             }
             _ => Err(format!("Unexpected token: {:?}", token).into()),
@@ -444,24 +444,24 @@ impl Parser {
     }
 
     fn parse_arguments(&mut self) -> ResBox<Vec<RawExpression>> {
-        let mut args = vec![];
-        if let Some(Token::RParen) = self.tokens.peek() {
+        let mut arguments = vec![];
+        if let Some(Token::RightBracket) = self.tokens.peek() {
             self.tokens.next();
-            return Ok(args);
+            return Ok(arguments);
         }
         loop {
-            args.push(self.parse_expression(0)?);
+            arguments.push(self.parse_expression(0)?);
             match self.tokens.next() {
                 Some(Token::Comma) => continue,
-                Some(Token::RParen) => break,
+                Some(Token::RightBracket) => break,
                 _ => return Err("Expected ',' or ')' in arguments".into()),
             }
         }
-        Ok(args)
+        Ok(arguments)
     }
 
-    fn link_binary_operator(op: &str) -> ResBox<ExpressionBinaryOperator> {
-        match op {
+    fn link_binary_operator(operator: &str) -> ResBox<ExpressionBinaryOperator> {
+        match operator {
             "=" => Ok(ExpressionBinaryOperator::Assign),
             "+=" => Ok(ExpressionBinaryOperator::AssignAdd),
             "-=" => Ok(ExpressionBinaryOperator::AssignSub),
@@ -484,8 +484,8 @@ impl Parser {
         }
     }
 
-    fn binding_order(op: &ExpressionBinaryOperator) -> (u8, u8) {
-        match op {
+    fn binding_order(operator: &ExpressionBinaryOperator) -> (u8, u8) {
+        match operator {
             ExpressionBinaryOperator::Assign
             | ExpressionBinaryOperator::AssignAdd
             | ExpressionBinaryOperator::AssignSub
@@ -506,8 +506,8 @@ impl Parser {
     }
 }
 
-pub fn parse_expression(raw_code: &str) -> ResBox<RawExpression> {
-    let trimmed = raw_code.trim().trim_end_matches(';');
+pub fn parse_expression(code: &str) -> ResBox<RawExpression> {
+    let trimmed = code.trim().trim_end_matches(';');
     if trimmed.is_empty() {
         return Err("Empty expression".into());
     }

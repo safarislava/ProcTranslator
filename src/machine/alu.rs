@@ -1,19 +1,22 @@
 use crate::machine::nzcv::NZCV;
 
-pub enum AluOp {
-    ADD(u64, u64),
-    SUB(u64, u64),
-    MUL(u64, u64),
-    DIV(u64, u64),
-    REM(u64, u64),
-    AND(u64, u64),
-    OR(u64, u64),
-    XOR(u64, u64),
-    NOT(u64),
-    LSL(u64, u64),
-    LSR(u64, u64),
-    ASL(u64, u64),
-    ASR(u64, u64),
+pub enum AluOperator {
+    Add,
+    Adc,
+    Sub,
+    Mul,
+    Div,
+    Rem,
+    And,
+    Or,
+    Xor,
+    Not,
+    Lsl,
+    Lsr,
+    Asl,
+    Asr,
+    Trl,
+    Trr,
 }
 
 pub struct ALU {
@@ -25,126 +28,102 @@ impl ALU {
         Self { nzcv }
     }
 
-    pub fn execute_op(&mut self, op: AluOp) -> u64 {
-        match op {
-            AluOp::ADD(a, b) => {
-                let (c, carry) = a.overflowing_add(b);
-                let overflow = (!(a ^ b) & (a ^ c)) >> 63 == 1;
-                self.set_flags(c, Some(carry), Some(overflow));
-                c
+    pub fn execute_operator(&mut self, operator: AluOperator, a: u64, b: u64) -> u64 {
+        let (result, carry, overflow) = match operator {
+            AluOperator::Add => {
+                let (result, carry) = a.overflowing_add(b);
+                let overflow = (!(a ^ b) & (a ^ result)) >> 63 == 1;
+                (result, Some(carry), Some(overflow))
             }
-            AluOp::SUB(a, b) => {
-                let (c, carry) = a.overflowing_sub(b);
-                let overflow = ((a ^ b) & (a ^ c)) >> 63 == 1;
-                self.set_flags(c, Some(carry), Some(overflow));
-                c
+            AluOperator::Adc => {
+                let old_carry = self.nzcv.carry as u64;
+                let full_result = (a as u128) + (b as u128) + (old_carry as u128);
+                let result = full_result as u64;
+                let carry = full_result > u64::MAX as u128;
+                let overflow = (!(a ^ b) & (a ^ result)) >> 63 == 1;
+                (result, Some(carry), Some(overflow))
             }
-            AluOp::MUL(a, b) => {
-                let c = a.wrapping_mul(b);
+            AluOperator::Sub => {
+                let (result, carry) = a.overflowing_sub(b);
+                let overflow = ((a ^ b) & (a ^ result)) >> 63 == 1;
+                (result, Some(carry), Some(overflow))
+            }
+            AluOperator::Mul => {
+                let result = a.wrapping_mul(b);
                 let carry = (a as u128 * b as u128) > (u64::MAX as u128);
-                let full_signed = (a as i64 as i128) * (b as i64 as i128);
-                let overflow = full_signed != (c as i64 as i128);
-                self.set_flags(c, Some(carry), Some(overflow));
-                c
+                let full_result = (a as i64 as i128) * (b as i64 as i128);
+                let overflow = full_result != (result as i64 as i128);
+                (result, Some(carry), Some(overflow))
             }
-            AluOp::DIV(a, b) => {
+            AluOperator::Div => {
                 if b == 0 {
-                    self.set_flags(0, Some(true), Some(false));
-                    return 0;
-                }
-                let (a_i, b_i) = (a as i64, b as i64);
-                if a_i == i64::MIN && b_i == -1 {
-                    self.set_flags(a, Some(false), Some(true));
-                    a
+                    (0u64, Some(true), Some(false))
                 } else {
-                    let c = (a_i / b_i) as u64;
-                    self.set_flags(c, Some(false), Some(false));
-                    c
+                    let (a_i, b_i) = (a as i64, b as i64);
+                    if a_i == i64::MIN && b_i == -1 {
+                        (a, Some(false), Some(true))
+                    } else {
+                        let result = (a_i / b_i) as u64;
+                        (result, Some(false), Some(false))
+                    }
                 }
             }
-            AluOp::REM(a, b) => {
+            AluOperator::Rem => {
                 if b == 0 {
-                    self.set_flags(0, Some(true), Some(false));
-                    return 0;
-                }
-                let (a_i, b_i) = (a as i64, b as i64);
-                if a_i == i64::MIN && b_i == -1 {
-                    self.set_flags(0, Some(false), Some(true));
-                    0
+                    (0u64, Some(true), Some(false))
                 } else {
-                    let c = (a_i % b_i) as u64;
-                    self.set_flags(c, Some(false), Some(false));
-                    c
+                    let (a_i, b_i) = (a as i64, b as i64);
+                    if a_i == i64::MIN && b_i == -1 {
+                        (0, Some(false), Some(true))
+                    } else {
+                        let result = (a_i % b_i) as u64;
+                        (result, Some(false), Some(false))
+                    }
                 }
             }
-            AluOp::AND(a, b) => {
-                let c = a & b;
-                self.set_flags(c, None, None);
-                c
-            }
-            AluOp::OR(a, b) => {
-                let c = a | b;
-                self.set_flags(c, None, None);
-                c
-            }
-            AluOp::XOR(a, b) => {
-                let c = a ^ b;
-                self.set_flags(c, None, None);
-                c
-            }
-            AluOp::NOT(a) => {
-                let c = !a;
-                self.set_flags(c, None, None);
-                c
-            }
-            AluOp::LSL(a, b) => {
-                let shift_count = (b & 63) as u32;
+            AluOperator::And => (a & b, None, None),
+            AluOperator::Or => (a | b, None, None),
+            AluOperator::Xor => (a ^ b, None, None),
+            AluOperator::Not => (!a, None, None),
+            AluOperator::Lsl => {
+                let shift_count = (a & 63) as u32;
                 if shift_count == 0 {
-                    self.set_flags(a, None, None);
-                    return a;
+                    (b, None, None)
+                } else {
+                    let carry = (b >> (64 - shift_count)) & 1 == 1;
+                    let result = b << shift_count;
+                    (result, Some(carry), None)
                 }
-                let carry = (a >> (64 - shift_count)) & 1 == 1;
-                let c = a << shift_count;
-                self.set_flags(c, Some(carry), None);
-                c
             }
-            AluOp::LSR(a, b) => {
-                let shift_count = (b & 63) as u32;
+            AluOperator::Lsr => {
+                let shift_count = (a & 63) as u32;
                 if shift_count == 0 {
-                    self.set_flags(a, None, None);
-                    return a;
+                    (b, None, None)
+                } else {
+                    let carry = (b >> (shift_count - 1)) & 1 == 1;
+                    let result = b >> shift_count;
+                    (result, Some(carry), None)
                 }
-                let carry = (a >> (shift_count - 1)) & 1 == 1;
-                let c = a >> shift_count;
-                self.set_flags(c, Some(carry), None);
-                c
             }
-            AluOp::ASL(a, b) => {
-                let shift_count = (b & 63) as u32;
-                if shift_count == 0 {
-                    self.set_flags(a, None, None);
-                    return a;
-                }
-                let c = a << shift_count;
-                self.set_flags(c, None, None);
-                c
+            AluOperator::Asl => {
+                let shift_count = (a & 63) as u32;
+                (b << shift_count, None, None)
             }
-            AluOp::ASR(a, b) => {
-                let shift_count = (b & 63) as u32;
-                if shift_count == 0 {
-                    self.set_flags(a, None, None);
-                    return a;
-                }
-                let c = ((a as i64) >> shift_count) as u64;
-                self.set_flags(c, None, None);
-                c
+            AluOperator::Asr => {
+                let shift_count = (a & 63) as u32;
+                let result = ((b as i64) >> shift_count) as u64;
+                (result, None, None)
             }
-        }
+            AluOperator::Trl => (a, None, None),
+            AluOperator::Trr => (b, None, None),
+        };
+        self.set_flags(result, carry, overflow);
+        result
     }
 
-    fn set_flags(&mut self, c: u64, carry: Option<bool>, overflow: Option<bool>) {
-        self.nzcv.negative = c >> 63 == 1;
-        self.nzcv.zero = c == 0;
+    fn set_flags(&mut self, result: u64, carry: Option<bool>, overflow: Option<bool>) {
+        self.nzcv.negative = result >> 63 == 1;
+        self.nzcv.zero = result == 0;
         if let Some(carry) = carry {
             self.nzcv.carry = carry;
         }
