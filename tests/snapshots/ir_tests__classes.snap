@@ -7,7 +7,7 @@ ControlFlowGraph {
         BasicBlock {
             id: 0,
             instructions: [
-                LoadParam {
+                LoadParameter {
                     destination: Register(
                         1,
                     ),
@@ -24,7 +24,7 @@ ControlFlowGraph {
                     ),
                     offset: 0,
                 },
-                BinaryOp {
+                BinaryOperator {
                     destination: Register(
                         3,
                     ),
@@ -33,7 +33,7 @@ ControlFlowGraph {
                             2,
                         ),
                     ),
-                    op: Plus,
+                    operator: Plus,
                     right: Constant(
                         "1",
                     ),
@@ -69,18 +69,18 @@ ControlFlowGraph {
         BasicBlock {
             id: 1,
             instructions: [
-                LoadParam {
+                LoadParameter {
                     destination: Register(
                         4,
                     ),
                     index: 0,
                 },
-                StackAlloc {
+                StackAllocate {
                     slot: StackSlot(
                         1,
                     ),
                 },
-                AllocObject {
+                AllocateObject {
                     destination: Register(
                         5,
                     ),

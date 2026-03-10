@@ -25,13 +25,13 @@ AbstractSyntaxTree {
                         AbstractSyntaxTree {
                             node: Return {
                                 value: Some(
-                                    BinaryOp {
+                                    BinaryOperator {
                                         typ: (),
                                         left: Variable {
                                             typ: (),
                                             name: "x",
                                         },
-                                        op: Plus,
+                                        operator: Plus,
                                         right: Literal {
                                             typ: (),
                                             value: "5",
@@ -78,13 +78,13 @@ AbstractSyntaxTree {
                         },
                         AbstractSyntaxTree {
                             node: If {
-                                condition: BinaryOp {
+                                condition: BinaryOperator {
                                     typ: (),
                                     left: Variable {
                                         typ: (),
                                         name: "x",
                                     },
-                                    op: Greater,
+                                    operator: Greater,
                                     right: Variable {
                                         typ: (),
                                         name: "b",
@@ -94,21 +94,21 @@ AbstractSyntaxTree {
                             children: [
                                 AbstractSyntaxTree {
                                     node: If {
-                                        condition: BinaryOp {
+                                        condition: BinaryOperator {
                                             typ: (),
-                                            left: BinaryOp {
+                                            left: BinaryOperator {
                                                 typ: (),
                                                 left: Variable {
                                                     typ: (),
                                                     name: "x",
                                                 },
-                                                op: Plus,
+                                                operator: Plus,
                                                 right: Literal {
                                                     typ: (),
                                                     value: "1",
                                                 },
                                             },
-                                            op: Greater,
+                                            operator: Greater,
                                             right: Variable {
                                                 typ: (),
                                                 name: "b",
@@ -125,13 +125,13 @@ AbstractSyntaxTree {
                         },
                         AbstractSyntaxTree {
                             node: ElseIf {
-                                condition: BinaryOp {
+                                condition: BinaryOperator {
                                     typ: (),
                                     left: Variable {
                                         typ: (),
                                         name: "x",
                                     },
-                                    op: Less,
+                                    operator: Less,
                                     right: Variable {
                                         typ: (),
                                         name: "b",
@@ -154,13 +154,13 @@ AbstractSyntaxTree {
                             children: [
                                 AbstractSyntaxTree {
                                     node: If {
-                                        condition: BinaryOp {
+                                        condition: BinaryOperator {
                                             typ: (),
                                             left: Variable {
                                                 typ: (),
                                                 name: "x",
                                             },
-                                            op: Equal,
+                                            operator: Equal,
                                             right: Literal {
                                                 typ: (),
                                                 value: "9",
@@ -185,13 +185,13 @@ AbstractSyntaxTree {
                                 },
                                 AbstractSyntaxTree {
                                     node: ElseIf {
-                                        condition: BinaryOp {
+                                        condition: BinaryOperator {
                                             typ: (),
                                             left: Variable {
                                                 typ: (),
                                                 name: "x",
                                             },
-                                            op: Equal,
+                                            operator: Equal,
                                             right: Literal {
                                                 typ: (),
                                                 value: "10",
@@ -217,13 +217,13 @@ AbstractSyntaxTree {
                                                 },
                                                 name: "f",
                                                 arguments: [
-                                                    BinaryOp {
+                                                    BinaryOperator {
                                                         typ: (),
                                                         left: Variable {
                                                             typ: (),
                                                             name: "x",
                                                         },
-                                                        op: Plus,
+                                                        operator: Plus,
                                                         right: Literal {
                                                             typ: (),
                                                             value: "1",
@@ -252,13 +252,13 @@ AbstractSyntaxTree {
                                     },
                                 ),
                                 condition: Some(
-                                    BinaryOp {
+                                    BinaryOperator {
                                         typ: (),
                                         left: Variable {
                                             typ: (),
                                             name: "i",
                                         },
-                                        op: Less,
+                                        operator: Less,
                                         right: Literal {
                                             typ: (),
                                             value: "10",
@@ -279,13 +279,13 @@ AbstractSyntaxTree {
                             children: [
                                 AbstractSyntaxTree {
                                     node: Expression {
-                                        expression: BinaryOp {
+                                        expression: BinaryOperator {
                                             typ: (),
                                             left: Variable {
                                                 typ: (),
                                                 name: "x",
                                             },
-                                            op: AssignAdd,
+                                            operator: AssignAdd,
                                             right: Literal {
                                                 typ: (),
                                                 value: "2",

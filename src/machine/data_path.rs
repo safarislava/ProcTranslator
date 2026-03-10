@@ -80,7 +80,8 @@ impl DataPath {
     }
 
     pub fn execute_alu(&mut self, operator: AluOperator) {
-        self.alu.execute_operator(operator, self.left_alu as u64, self.right_alu as u64);
+        self.alu
+            .execute_operator(operator, self.left_alu as u64, self.right_alu as u64);
     }
 
     pub fn latch_buffer(&mut self) {

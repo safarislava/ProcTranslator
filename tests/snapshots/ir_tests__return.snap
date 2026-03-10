@@ -7,7 +7,7 @@ ControlFlowGraph {
         BasicBlock {
             id: 0,
             instructions: [
-                LoadParam {
+                LoadParameter {
                     destination: Register(
                         0,
                     ),

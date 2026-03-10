@@ -7,18 +7,18 @@ ControlFlowGraph {
         BasicBlock {
             id: 0,
             instructions: [
-                LoadParam {
+                LoadParameter {
                     destination: Register(
                         0,
                     ),
                     index: 0,
                 },
-                StackAlloc {
+                StackAllocate {
                     slot: StackSlot(
                         0,
                     ),
                 },
-                LoadParam {
+                LoadParameter {
                     destination: Register(
                         1,
                     ),
@@ -48,7 +48,7 @@ ControlFlowGraph {
                     ),
                     value: "5",
                 },
-                BinaryOp {
+                BinaryOperator {
                     destination: Register(
                         4,
                     ),
@@ -57,7 +57,7 @@ ControlFlowGraph {
                             2,
                         ),
                     ),
-                    op: Plus,
+                    operator: Plus,
                     right: Value(
                         Register(
                             3,
@@ -82,13 +82,13 @@ ControlFlowGraph {
         BasicBlock {
             id: 1,
             instructions: [
-                LoadParam {
+                LoadParameter {
                     destination: Register(
                         5,
                     ),
                     index: 0,
                 },
-                StackAlloc {
+                StackAllocate {
                     slot: StackSlot(
                         1,
                     ),
@@ -109,7 +109,7 @@ ControlFlowGraph {
                         ),
                     ),
                 },
-                StackAlloc {
+                StackAllocate {
                     slot: StackSlot(
                         2,
                     ),
@@ -146,7 +146,7 @@ ControlFlowGraph {
                         2,
                     ),
                 },
-                BinaryOp {
+                BinaryOperator {
                     destination: Register(
                         10,
                     ),
@@ -155,7 +155,7 @@ ControlFlowGraph {
                             8,
                         ),
                     ),
-                    op: Greater,
+                    operator: Greater,
                     right: Value(
                         Register(
                             9,
@@ -197,7 +197,7 @@ ControlFlowGraph {
                     ),
                     value: "1",
                 },
-                BinaryOp {
+                BinaryOperator {
                     destination: Register(
                         13,
                     ),
@@ -206,7 +206,7 @@ ControlFlowGraph {
                             11,
                         ),
                     ),
-                    op: Plus,
+                    operator: Plus,
                     right: Value(
                         Register(
                             12,
@@ -221,7 +221,7 @@ ControlFlowGraph {
                         2,
                     ),
                 },
-                BinaryOp {
+                BinaryOperator {
                     destination: Register(
                         15,
                     ),
@@ -230,7 +230,7 @@ ControlFlowGraph {
                             13,
                         ),
                     ),
-                    op: Greater,
+                    operator: Greater,
                     right: Value(
                         Register(
                             14,
@@ -276,7 +276,7 @@ ControlFlowGraph {
                         2,
                     ),
                 },
-                BinaryOp {
+                BinaryOperator {
                     destination: Register(
                         18,
                     ),
@@ -285,7 +285,7 @@ ControlFlowGraph {
                             16,
                         ),
                     ),
-                    op: Less,
+                    operator: Less,
                     right: Value(
                         Register(
                             17,
@@ -467,7 +467,7 @@ ControlFlowGraph {
                     ),
                     value: "9",
                 },
-                BinaryOp {
+                BinaryOperator {
                     destination: Register(
                         22,
                     ),
@@ -476,7 +476,7 @@ ControlFlowGraph {
                             20,
                         ),
                     ),
-                    op: Equal,
+                    operator: Equal,
                     right: Value(
                         Register(
                             21,
@@ -506,7 +506,7 @@ ControlFlowGraph {
         BasicBlock {
             id: 13,
             instructions: [
-                StackAlloc {
+                StackAllocate {
                     slot: StackSlot(
                         3,
                     ),
@@ -552,7 +552,7 @@ ControlFlowGraph {
                         1,
                     ),
                 },
-                BinaryOp {
+                BinaryOperator {
                     destination: Register(
                         24,
                     ),
@@ -561,7 +561,7 @@ ControlFlowGraph {
                             23,
                         ),
                     ),
-                    op: Plus,
+                    operator: Plus,
                     right: Constant(
                         "1",
                     ),
@@ -606,7 +606,7 @@ ControlFlowGraph {
                     ),
                     value: "10",
                 },
-                BinaryOp {
+                BinaryOperator {
                     destination: Register(
                         27,
                     ),
@@ -615,7 +615,7 @@ ControlFlowGraph {
                             25,
                         ),
                     ),
-                    op: Equal,
+                    operator: Equal,
                     right: Value(
                         Register(
                             26,
@@ -705,7 +705,7 @@ ControlFlowGraph {
                     ),
                     value: "1",
                 },
-                BinaryOp {
+                BinaryOperator {
                     destination: Register(
                         30,
                     ),
@@ -714,7 +714,7 @@ ControlFlowGraph {
                             28,
                         ),
                     ),
-                    op: Plus,
+                    operator: Plus,
                     right: Value(
                         Register(
                             29,
@@ -779,7 +779,7 @@ ControlFlowGraph {
                     ),
                     value: "10",
                 },
-                BinaryOp {
+                BinaryOperator {
                     destination: Register(
                         35,
                     ),
@@ -788,7 +788,7 @@ ControlFlowGraph {
                             33,
                         ),
                     ),
-                    op: Less,
+                    operator: Less,
                     right: Value(
                         Register(
                             34,
@@ -833,7 +833,7 @@ ControlFlowGraph {
                     ),
                     value: "2",
                 },
-                BinaryOp {
+                BinaryOperator {
                     destination: Register(
                         38,
                     ),
@@ -842,7 +842,7 @@ ControlFlowGraph {
                             36,
                         ),
                     ),
-                    op: AssignAdd,
+                    operator: AssignAdd,
                     right: Value(
                         Register(
                             37,
@@ -857,7 +857,7 @@ ControlFlowGraph {
                         3,
                     ),
                 },
-                BinaryOp {
+                BinaryOperator {
                     destination: Register(
                         40,
                     ),
@@ -866,7 +866,7 @@ ControlFlowGraph {
                             39,
                         ),
                     ),
-                    op: Plus,
+                    operator: Plus,
                     right: Constant(
                         "1",
                     ),
