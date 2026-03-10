@@ -107,7 +107,7 @@ fn test_logical_ops() {
 fn test_lsl_carry() {
     let mut alu = ALU::default();
     let value = 1u64 << 63;
-    let result = alu.execute_operator(AluOperator::Lsl,1, value);
+    let result = alu.execute_operator(AluOperator::Lsl, 1, value);
     assert_eq!(result, 0);
     assert!(alu.nzcv.zero);
     assert!(alu.nzcv.carry);
@@ -137,7 +137,7 @@ fn test_lsr_carry() {
 #[test]
 fn test_lsr() {
     let mut alu = ALU::default();
-    let result = alu.execute_operator(AluOperator::Lsr, 63, 1u64 << 63,);
+    let result = alu.execute_operator(AluOperator::Lsr, 63, 1u64 << 63);
     assert_eq!(result, 1);
     assert!(!alu.nzcv.negative);
     assert!(!alu.nzcv.carry);
