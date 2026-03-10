@@ -14,7 +14,6 @@ pub enum PcSelector {
     SetByBuffer,
 }
 
-
 pub struct ControlUnit {
     instruction_parser: InstructionParser,
     data_path: DataPath,
@@ -69,44 +68,44 @@ impl ControlUnit {
             Operator::Sub => self.execute_standard_alu_instruction(AluOperator::Sub),
             Operator::Mul => self.execute_standard_alu_instruction(AluOperator::Mul),
             Operator::Div => self.execute_standard_alu_instruction(AluOperator::Div),
-            Operator::REM => self.execute_standard_alu_instruction(AluOperator::Rem),
-            Operator::AND => self.execute_standard_alu_instruction(AluOperator::And),
-            Operator::OR => self.execute_standard_alu_instruction(AluOperator::Or),
-            Operator::XOR => self.execute_standard_alu_instruction(AluOperator::Xor),
-            Operator::NOT => self.execute_standard_alu_instruction(AluOperator::Not),
-            Operator::LSL => self.execute_standard_alu_instruction(AluOperator::Lsl),
-            Operator::LSR => self.execute_standard_alu_instruction(AluOperator::Lsr),
-            Operator::ASL => self.execute_standard_alu_instruction(AluOperator::Asl),
-            Operator::ASR => self.execute_standard_alu_instruction(AluOperator::Asr),
-            Operator::JMP => {}
-            Operator::CALL => {}
-            Operator::FUNC => {}
-            Operator::RET => {}
-            Operator::LINK => {}
-            Operator::UNLK => {}
-            Operator::BEQ => self.execute_branch(self.data_path.transmit_nzcv().zero),
-            Operator::BNE => self.execute_branch(!self.data_path.transmit_nzcv().zero),
-            Operator::BGT => {
+            Operator::Rem => self.execute_standard_alu_instruction(AluOperator::Rem),
+            Operator::And => self.execute_standard_alu_instruction(AluOperator::And),
+            Operator::Or => self.execute_standard_alu_instruction(AluOperator::Or),
+            Operator::Xor => self.execute_standard_alu_instruction(AluOperator::Xor),
+            Operator::Not => self.execute_standard_alu_instruction(AluOperator::Not),
+            Operator::Lsl => self.execute_standard_alu_instruction(AluOperator::Lsl),
+            Operator::Lsr => self.execute_standard_alu_instruction(AluOperator::Lsr),
+            Operator::Asl => self.execute_standard_alu_instruction(AluOperator::Asl),
+            Operator::Asr => self.execute_standard_alu_instruction(AluOperator::Asr),
+            Operator::Jmp => {}
+            Operator::Call => {}
+            Operator::Func => {}
+            Operator::Ret => {}
+            Operator::Link => {}
+            Operator::Unlk => {}
+            Operator::Beq => self.execute_branch(self.data_path.transmit_nzcv().zero),
+            Operator::Bne => self.execute_branch(!self.data_path.transmit_nzcv().zero),
+            Operator::Bgt => {
                 let nzcv = self.data_path.transmit_nzcv();
                 self.execute_branch(!nzcv.zero && nzcv.negative == nzcv.overflow)
             }
-            Operator::BGE => {
+            Operator::Bge => {
                 let nzcv = self.data_path.transmit_nzcv();
                 self.execute_branch(nzcv.negative == nzcv.overflow)
             }
-            Operator::BLT => {
+            Operator::Blt => {
                 let nzcv = self.data_path.transmit_nzcv();
                 self.execute_branch(nzcv.negative != nzcv.overflow);
             }
-            Operator::BLE => {
+            Operator::Ble => {
                 let nzcv = self.data_path.transmit_nzcv();
                 self.execute_branch(nzcv.zero && nzcv.negative != nzcv.overflow);
             }
-            Operator::BCS => self.execute_branch(self.data_path.transmit_nzcv().carry),
-            Operator::BCC => self.execute_branch(!self.data_path.transmit_nzcv().carry),
-            Operator::BVS => self.execute_branch(self.data_path.transmit_nzcv().overflow),
-            Operator::BVC => self.execute_branch(!self.data_path.transmit_nzcv().overflow),
-            Operator::CMP => {
+            Operator::Bcs => self.execute_branch(self.data_path.transmit_nzcv().carry),
+            Operator::Bcc => self.execute_branch(!self.data_path.transmit_nzcv().carry),
+            Operator::Bvs => self.execute_branch(self.data_path.transmit_nzcv().overflow),
+            Operator::Bvc => self.execute_branch(!self.data_path.transmit_nzcv().overflow),
+            Operator::Cmp => {
                 let first = self.parse_data_readable();
                 let second = self.parse_data_readable();
                 self.prepare_operand(Order::First, &first);
