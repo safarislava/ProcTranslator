@@ -1,12 +1,12 @@
 State Views
 -
 D0 - D7, A0 - A7, NZCV, PC
-- A7 - stack pointer 
 
 Instructions
 -
-- first byte - operator code
-- next n bytes for operand descriptions, 
+- 7 bits - operator code
+- 1 bit - choice of size (0 - byte, 1 - long) 
+- next n bytes - operand's descriptions, 
 support concat for 64 bit
 
 Operand Description 
@@ -27,74 +27,74 @@ Mode:
 
 Operator code:
 - 
-0x01 - MOV from, to
+0x01 - MOV.size from, to
 - from = {#* | D* | MEMORY}
 - to = {D* | MEMORY}
 
-0x02 - MOVA from, to
+0x02 - MOVA.size from, to
 - from = {D* | A*}
 - to = {D* | A*}
 ---
-0x10 - ADD from, to
+0x10 - ADD.size from, to
 - from = {#* | D* | MEMORY}
 - to = {D* | MEMORY}
 - Set NZCV flags
 
-0x11 - ADC from, to
+0x11 - ADC.size from, to
 - from = {#* | D* | MEMORY}
 - to = {D* | MEMORY}
 - supposed Carry flag
 
-0x12 - SUB from, to
+0x12 - SUB.size from, to
 - from = {#* | D* | MEMORY}
 - to = {D* | MEMORY}
 - Set NZCV flags
 
-0x13 - MUL from, to
+0x13 - MUL.size from, to
 - from = {#* | D* | MEMORY}
 - to = {D* | MEMORY}
 - Set NZCV flags
 
-0x14 - DIV from, to
+0x14 - DIV.size from, to
 - from = {#* | D* | MEMORY}
 - to = {D* | MEMORY}
 - Set NZCV flags
 - set C-flag if zero-dived
 
-0x15 - REM from, to 
+0x15 - REM.size from, to 
 - from = {#* | D* | MEMORY}
 - to = {D* | MEMORY}
 - Set NZCV flags
 - set C-flag if zero-dived
 ---
-0x20 - AND from, to
+0x20 - AND.size from, to
 - from = {#* | D* | MEMORY}
 - to = {D* | MEMORY}
 
-0x21 - OR from, to
+0x21 - OR.size from, to
 - from = {#* | D* | MEMORY}
 - to = {D* | MEMORY}
 
-0x22 - XOR from, to
+0x22 - XOR.size from, to
 - from = {#* | D* | MEMORY}
 - to = {D* | MEMORY}
 
-0x23 - NOT from, to
+0x23 - NOT.size from, to
 - from = {#* | D* | MEMORY}
 - to = {D* | MEMORY}
 ---
-0x30 - LSL count, source
+0x30 - LSL.size count, source
 - source = {#* | D* | MEMORY}
 - use C-flag
 
-0x31 - LSR count, source
+0x31 - LSR.size count, source
 - source = {#* | D* | MEMORY}
 - use C-flag
 
-0x32 - ASL count, source
+0x32 - ASL.size count, source
 - source = {#* | D* | MEMORY}
 
-0x33 - ASR count, source
+0x33 - ASR.size count, source
 - source = {#* | D* | MEMORY}
 - sign saving
 ---
@@ -106,28 +106,8 @@ Operator code:
 - (A7) <- PC
 - PC <- label
 
-0x42 - FUNC label, args_count, arg0, arg1, ..
-- arg_i = {#* | D* | MEMORY}
-- for i from 0 to count - 1
-- - A7 <- A7 - 8
-- - (A7) <- arg_i
-- A7 <- A7 - 8
-- (A7) <- PC
-- PC <- label
-
-0x43 - RET 
+0x42 - RET 
 - PC <- (A7)
-- A7 <- A7 + 8
-
-0x44 - LINK A*, count_bytes
-- A7 <- A7 - 8
-- (A7) <- A*
-- A* <- A7
-- A7 <- A7 - count_bytes
-
-0x45 - UNLK A*
-- A7 <- A*
-- A6 <- (A7)
 - A7 <- A7 + 8
 ---
 
@@ -152,7 +132,7 @@ Operator code:
 0x59 - BVC label
 
 ---
-0x60 - CMP that, with
+0x60 - CMP.size that, with
 - that, with = {#* | D* | MEMORY}
 - set NZVC as for (that - with)
 

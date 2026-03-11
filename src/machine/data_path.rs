@@ -1,4 +1,5 @@
 use crate::machine::alu::{ALU, AluOperator};
+use crate::machine::isa::WordSize;
 use crate::machine::memory::Memory;
 use crate::machine::nzcv::NZCV;
 
@@ -9,6 +10,11 @@ pub type DataRegisterWriteSelector = u8;
 pub type AddressRegisterReadSelector = u8;
 
 pub type AddressRegisterWriteSelector = u8;
+
+pub enum WriteDataWordSizeSelector {
+    Byte,
+    Long,
+}
 
 pub enum AddressingModeSelector {
     DataRegister,
@@ -48,25 +54,39 @@ impl DataPath {
         self.d_registers_mux = self.d_registers[selector as usize];
     }
 
-    pub fn latch_data_register(&mut self, selector: DataRegisterWriteSelector) {
-        self.d_registers[selector as usize] = self.alu_output;
+    pub fn latch_data_register(
+        &mut self,
+        register_selector: DataRegisterWriteSelector,
+        word_size_selector: &WordSize,
+    ) {
+        match word_size_selector {
+            WordSize::Byte => self.d_registers[register_selector as usize] = self.alu_output & 0xFF,
+            WordSize::Long => self.d_registers[register_selector as usize] = self.alu_output,
+        }
     }
 
     pub fn read_address_register(&mut self, selector: AddressRegisterReadSelector) {
         self.a_registers_mux = self.a_registers[selector as usize];
     }
 
-    pub fn latch_address_register(&mut self, selector: AddressRegisterWriteSelector) {
-        self.a_registers[selector as usize] = self.alu_output;
+    pub fn latch_address_register(
+        &mut self,
+        register_selector: DataRegisterWriteSelector,
+        word_size_selector: &WordSize,
+    ) {
+        match word_size_selector {
+            WordSize::Byte => self.a_registers[register_selector as usize] = self.alu_output & 0xFF,
+            WordSize::Long => self.a_registers[register_selector as usize] = self.alu_output,
+        }
     }
 
     pub fn read_data_memory(&mut self) {
         self.memory_output = self.data_memory.read(self.data_address)
     }
 
-    pub fn write_data_memory(&mut self) {
+    pub fn write_data_memory(&mut self, selector: &WordSize) {
         self.data_memory
-            .write(self.data_address as usize, self.write_data)
+            .write(self.data_address as usize, self.write_data, selector)
     }
 
     pub fn update_alu_input_mux(&mut self, selector: AddressingModeSelector) {

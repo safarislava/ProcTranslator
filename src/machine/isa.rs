@@ -1,6 +1,12 @@
 use std::collections::HashMap;
 
 #[derive(Clone)]
+pub enum WordSize {
+    Byte,
+    Long,
+}
+
+#[derive(Clone)]
 pub struct Operand {
     pub mode: Mode,
     pub main_register: u8,
@@ -27,10 +33,7 @@ pub enum Operator {
     Asr,
     Jmp,
     Call,
-    Func,
     Ret,
-    Link,
-    Unlk,
     Beq,
     Bne,
     Bgt,
@@ -58,6 +61,7 @@ pub enum Mode {
 pub struct InstructionParser {
     operators: HashMap<u8, Operator>,
     modes: HashMap<u8, Mode>,
+    word_sizes: HashMap<u8, WordSize>,
 }
 
 impl InstructionParser {
@@ -81,10 +85,7 @@ impl InstructionParser {
             (0x33, Operator::Asr),
             (0x40, Operator::Jmp),
             (0x41, Operator::Call),
-            (0x42, Operator::Func),
-            (0x43, Operator::Ret),
-            (0x44, Operator::Link),
-            (0x45, Operator::Unlk),
+            (0x42, Operator::Ret),
             (0x50, Operator::Beq),
             (0x51, Operator::Bne),
             (0x52, Operator::Bgt),
@@ -106,11 +107,21 @@ impl InstructionParser {
             (0x5, Mode::IndirectPreDecrement),
             (0x6, Mode::IndirectOffset),
         ]);
-        Self { operators, modes }
+        let word_sizes = HashMap::from([(0b0, WordSize::Byte), (0b1, WordSize::Long)]);
+        Self {
+            operators,
+            modes,
+            word_sizes,
+        }
     }
 
-    pub fn parse_operator(&self, word: u8) -> Operator {
-        self.operators[&word].clone()
+    pub fn parse_operator(&self, word: u8) -> (Operator, WordSize) {
+        let operator_code = (word & 0b11111110) >> 1;
+        let word_size_code = word & 0b1;
+        (
+            self.operators[&operator_code].clone(),
+            self.word_sizes[&word_size_code].clone(),
+        )
     }
 
     pub fn parse_operand(&self, word: u8) -> Operand {
