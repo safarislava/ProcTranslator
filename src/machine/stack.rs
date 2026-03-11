@@ -4,9 +4,7 @@ pub struct Stack {
 
 impl Stack {
     pub fn new() -> Self {
-        Self {
-            data: Vec::new(),
-        }
+        Self { data: Vec::new() }
     }
 
     pub fn push(&mut self, value: u64) {

@@ -26,7 +26,10 @@ Mode:
 - 0x6 - (A*:D*) - indirect, with offset
 
 Operator code:
-- 
+---
+0x0 - HLT
+
+---
 0x01 - MOV.size from, to
 - from = {#* | D* | MEMORY}
 - to = {D* | MEMORY}

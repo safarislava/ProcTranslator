@@ -22,7 +22,6 @@ pub struct ControlUnit {
     program_memory: Memory<u8>,
     stack: Stack,
 
-    memory_output: u8,
     read_data: u8,
 
     data_path_output: i64,
@@ -46,21 +45,20 @@ impl ControlUnit {
     }
 
     pub fn latch_buffer_n_byte(&mut self, n: u8) {
-        self.buffer = (self.instruction_decoder_output as u64) << (8 * n);
-    }
-    pub fn read_program_memory(&mut self) {
-        self.memory_output = self.program_memory.read(self.pc);
+        self.buffer |= (self.instruction_decoder_output as u64) << (8 * n);
     }
 
     pub fn latch_read_data(&mut self) {
-        self.read_data = self.memory_output;
+        self.read_data = self.program_memory.read(self.pc);
     }
 
-    pub fn execute_instruction(&mut self) {
+    pub fn execute_instruction(&mut self) -> bool {
+        self.latch_read_data();
         let (operator, word_size) = self.instruction_parser.parse_operator(self.read_data);
         self.word_size = word_size;
         self.latch_pc(PcSelector::Next);
         match operator {
+            Operator::Hlt => return true,
             Operator::Mov => self.execute_standard_alu_instruction(AluOperator::Trl),
             Operator::Mova => {
                 let first = self.parse_register();
@@ -120,6 +118,7 @@ impl ControlUnit {
                 self.data_path.execute_alu(AluOperator::Sub);
             }
         }
+        false
     }
 
     pub fn fill_buffer(&mut self) {
@@ -131,6 +130,7 @@ impl ControlUnit {
     }
 
     pub fn parse_register(&mut self) -> Operand {
+        self.latch_read_data();
         let operand = self.instruction_parser.parse_operand(self.read_data);
         self.latch_pc(PcSelector::Next);
         assert!(operand.mode == Mode::AddressRegister || operand.mode == Mode::DataRegister);
@@ -138,6 +138,7 @@ impl ControlUnit {
     }
 
     pub fn parse_data_readable(&mut self) -> Operand {
+        self.latch_read_data();
         let operand = self.instruction_parser.parse_operand(self.read_data);
         self.latch_pc(PcSelector::Next);
         assert!(operand.mode != Mode::AddressRegister);
@@ -145,6 +146,7 @@ impl ControlUnit {
     }
 
     pub fn parse_data_writable(&mut self) -> Operand {
+        self.latch_read_data();
         let operand = self.instruction_parser.parse_operand(self.read_data);
         self.latch_pc(PcSelector::Next);
         assert!(operand.mode != Mode::AddressRegister);
@@ -175,8 +177,8 @@ impl ControlUnit {
     pub fn prepare_operand(&mut self, order: Order, operand: &Operand) {
         match operand.mode {
             Mode::Direct => {
-                self.pc += 1;
-                self.data_path.control_unit_output = self.program_memory.read(self.pc) as i64;
+                self.fill_buffer();
+                self.data_path.control_unit_output = self.buffer as i64;
                 self.data_path
                     .update_alu_input_mux(AddressingModeSelector::ControlUnit);
                 match order {
@@ -374,9 +376,8 @@ impl Default for ControlUnit {
         Self {
             instruction_parser: InstructionParser::new(),
             data_path: DataPath::default(),
-            program_memory: Memory::new(),
+            program_memory: Memory::new(100),
             stack: Stack::new(),
-            memory_output: 0,
             read_data: 0,
             pc: 0,
             data_path_output: 0,

@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 regex = "1.10.6"
+num = "0.4.3"
 
 [dev-dependencies]
 insta = "1.46.3"

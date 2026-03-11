@@ -1,17 +1,20 @@
 use crate::machine::isa::WordSize;
+use num::Integer;
 
 pub struct Memory<T> {
     data: Vec<T>,
 }
 
-impl<T: Copy> Memory<T> {
-    pub fn new() -> Self {
-        Self { data: Vec::new() }
+impl<T: Copy + Integer> Memory<T> {
+    pub fn new(size: usize) -> Self {
+        Self {
+            data: vec![T::zero(); size],
+        }
     }
 
     pub fn read(&self, address: u64) -> T {
         assert!(
-            address > 0 && address < self.data.len() as u64,
+            address < self.data.len() as u64,
             "Address {} is out of bounds",
             address
         );
@@ -38,7 +41,7 @@ impl Memory<i64> {
 impl Memory<u8> {
     pub fn write(&mut self, address: usize, value: u8) {
         assert!(
-            address > 0 && address < self.data.len(),
+            address < self.data.len(),
             "Address {} is out of bounds",
             address
         );

@@ -100,8 +100,10 @@ impl DataPath {
     }
 
     pub fn execute_alu(&mut self, operator: AluOperator) {
-        self.alu
-            .execute_operator(operator, self.left_alu as u64, self.right_alu as u64);
+        self.alu_output =
+            self.alu
+                .execute_operator(operator, self.left_alu as u64, self.right_alu as u64)
+                as i64;
     }
 
     pub fn latch_buffer(&mut self) {
@@ -136,7 +138,7 @@ impl DataPath {
 impl Default for DataPath {
     fn default() -> Self {
         Self {
-            data_memory: Memory::new(),
+            data_memory: Memory::new(100),
             alu: ALU::default(),
             alu_output: 0,
             alu_input_mux: 0,
@@ -144,9 +146,9 @@ impl Default for DataPath {
             left_alu: 0,
             right_alu: 0,
             d_registers_mux: 0,
-            d_registers: vec![],
+            d_registers: vec![0; 8],
             a_registers_mux: 0,
-            a_registers: vec![],
+            a_registers: vec![0; 8],
             memory_output: 0,
             data_address: 0,
             read_data: 0,

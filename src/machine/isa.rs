@@ -15,6 +15,7 @@ pub struct Operand {
 
 #[derive(Clone)]
 pub enum Operator {
+    Hlt,
     Mov,
     Mova,
     Add,
@@ -67,6 +68,7 @@ pub struct InstructionParser {
 impl InstructionParser {
     pub fn new() -> Self {
         let operators = HashMap::from([
+            (0x00, Operator::Hlt),
             (0x01, Operator::Mov),
             (0x02, Operator::Mova),
             (0x10, Operator::Add),
@@ -126,7 +128,7 @@ impl InstructionParser {
 
     pub fn parse_operand(&self, word: u8) -> Operand {
         let mode_code = (word & 0b11100000) >> 5;
-        let main_register = (word & 0b11100) >> 3;
+        let main_register = (word & 0b11100) >> 2;
         let offset_register = word & 0b11;
         Operand {
             mode: self.modes[&mode_code].clone(),
