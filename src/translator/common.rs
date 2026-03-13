@@ -1,6 +1,6 @@
 use crate::translator::expression::Expression;
-use crate::translator::ir::ControlFlowGraph;
-use crate::translator::{analyzer, ast, ir, parser, simplifier};
+use crate::translator::hir::ControlFlowGraph;
+use crate::translator::{analyzer, ast, hir, parser, simplifier};
 use std::error::Error;
 use std::fs::File;
 use std::io::Write;
@@ -99,7 +99,7 @@ pub fn compile_to_ir(content: &str) -> ResBox<ControlFlowGraph> {
     let ast = ast::build_ast(syntax_tree)?;
     let simple_ast = simplifier::simplify(ast);
     let typed_ast = analyzer::semantic_analyze(simple_ast)?;
-    let cfg = ir::compile(typed_ast);
+    let cfg = hir::compile_hir(typed_ast);
     Ok(cfg)
 }
 

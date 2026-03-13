@@ -1,5 +1,5 @@
+use crate::isa::WordSize;
 use crate::machine::alu::{ALU, AluOperator};
-use crate::machine::isa::WordSize;
 use crate::machine::memory::Memory;
 use crate::machine::nzcv::NZCV;
 

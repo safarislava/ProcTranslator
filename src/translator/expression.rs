@@ -207,12 +207,12 @@ impl<'a> Lexer<'a> {
                 Token::Dot
             }
             _ => {
-                let op = self.read_while(|c| "+-*/%=<>!&|".contains(c));
-                if op.is_empty() {
+                let operator = self.read_while(|c| "+-*/%=<>!&|".contains(c));
+                if operator.is_empty() {
                     self.chars.next();
                     return self.next_token();
                 }
-                Token::Operator(op)
+                Token::Operator(operator)
             }
         };
 
@@ -239,8 +239,11 @@ impl Parser {
         }
     }
 
-    fn is_changeable(expr: &RawExpression) -> bool {
-        matches!(expr, Expression::Variable { .. } | Expression::Field { .. })
+    fn is_changeable(expression: &RawExpression) -> bool {
+        matches!(
+            expression,
+            Expression::Variable { .. } | Expression::Field { .. }
+        )
     }
 
     fn parse_expression(&mut self, min_order: u8) -> ResBox<RawExpression> {
@@ -258,12 +261,12 @@ impl Parser {
 
                 if let Some(Token::LeftBracket) = self.tokens.peek() {
                     self.tokens.next();
-                    let args = self.parse_arguments()?;
+                    let arguments = self.parse_arguments()?;
                     left = Expression::MethodCall {
                         typ: (),
                         object: Box::new(left),
                         name: member,
-                        arguments: args,
+                        arguments,
                     };
                 } else {
                     left = Expression::Field {
@@ -275,14 +278,14 @@ impl Parser {
                 continue;
             }
 
-            if let Some(Token::Operator(op)) = next.as_ref()
-                && (op == "++" || op == "--")
+            if let Some(Token::Operator(operator)) = next.as_ref()
+                && (operator == "++" || operator == "--")
             {
-                let op_str = op.clone();
+                let operator_value = operator.clone();
                 self.tokens.next();
 
                 if Self::is_changeable(&left) {
-                    left = if op_str == "++" {
+                    left = if operator_value == "++" {
                         Expression::Increment {
                             typ: (),
                             expression: Box::new(left),
@@ -296,9 +299,11 @@ impl Parser {
                         }
                     };
                 } else {
-                    return Err(
-                        format!("Operator '{}' can only be applied to a variable", op_str).into(),
-                    );
+                    return Err(format!(
+                        "Operator '{}' can only be applied to a variable",
+                        operator_value
+                    )
+                    .into());
                 }
                 continue;
             }
@@ -375,11 +380,11 @@ impl Parser {
                 name => {
                     if let Some(Token::LeftBracket) = self.tokens.peek() {
                         self.tokens.next();
-                        let args = self.parse_arguments()?;
+                        let arguments = self.parse_arguments()?;
                         Ok(Expression::FunctionCall {
                             typ: (),
                             name: name.to_string(),
-                            arguments: args,
+                            arguments,
                         })
                     } else {
                         Ok(Expression::Variable {
@@ -507,11 +512,11 @@ impl Parser {
 }
 
 pub fn parse_expression(code: &str) -> ResBox<RawExpression> {
-    let trimmed = code.trim().trim_end_matches(';');
-    if trimmed.is_empty() {
+    let trimmed_code = code.trim().trim_end_matches(';');
+    if trimmed_code.is_empty() {
         return Err("Empty expression".into());
     }
-    let mut lexer = Lexer::new(trimmed);
+    let mut lexer = Lexer::new(trimmed_code);
     let tokens = lexer.tokenize()?;
     let mut parser = Parser::new(tokens);
     parser.parse_expression(0)

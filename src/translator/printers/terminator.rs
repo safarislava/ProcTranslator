@@ -1,11 +1,11 @@
-use crate::translator::ir::Terminator;
+use crate::translator::hir::HirTerminator;
 use std::fmt;
 
-impl fmt::Display for Terminator {
+impl fmt::Display for HirTerminator {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Terminator::Jump(target) => write!(f, "jump B{}", target),
-            Terminator::Branch {
+            HirTerminator::Jump(target) => write!(f, "jump B{}", target),
+            HirTerminator::Branch {
                 condition,
                 true_block,
                 false_block,
@@ -16,7 +16,7 @@ impl fmt::Display for Terminator {
                     condition, true_block, false_block
                 )
             }
-            Terminator::Return(val) => match val {
+            HirTerminator::Return(val) => match val {
                 Some(v) => write!(f, "return {}", v),
                 None => write!(f, "return"),
             },

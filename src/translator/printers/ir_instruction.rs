@@ -1,13 +1,13 @@
-use crate::translator::ir::IrInstruction;
+use crate::translator::hir::HirInstruction;
 use std::fmt;
 
-impl fmt::Display for IrInstruction {
+impl fmt::Display for HirInstruction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            IrInstruction::LoadConst { destination, value } => {
+            HirInstruction::LoadConst { destination, value } => {
                 write!(f, "{} = const {}", destination, value)
             }
-            IrInstruction::BinaryOperator {
+            HirInstruction::BinaryOperator {
                 destination,
                 left,
                 operator,
@@ -15,7 +15,7 @@ impl fmt::Display for IrInstruction {
             } => {
                 write!(f, "{} = {} {:?} {}", destination, left, operator, right)
             }
-            IrInstruction::Call {
+            HirInstruction::Call {
                 destination,
                 block,
                 arguments,
@@ -27,33 +27,36 @@ impl fmt::Display for IrInstruction {
                     .join(", ");
                 write!(f, "{} = call B{}({})", destination, block, args)
             }
-            IrInstruction::LoadParameter { destination, index } => {
+            HirInstruction::CallPrologue => {
+                write!(f, "call prologue")
+            }
+            HirInstruction::LoadParameter { destination, index } => {
                 write!(f, "{} = param[{}]", destination, index)
             }
-            IrInstruction::StackAllocate { slot } => {
+            HirInstruction::StackAllocate { slot } => {
                 write!(f, "alloc {}", slot)
             }
-            IrInstruction::StackStore { slot, value } => {
+            HirInstruction::StackStore { slot, value } => {
                 write!(f, "{} = {}", slot, value)
             }
-            IrInstruction::StackLoad { destination, slot } => {
+            HirInstruction::StackLoad { destination, slot } => {
                 write!(f, "{} = load {}", destination, slot)
             }
-            IrInstruction::GetField {
+            HirInstruction::GetField {
                 destination,
                 object,
                 offset,
             } => {
                 write!(f, "{} = getfield {}[{}]", destination, object, offset)
             }
-            IrInstruction::PutField {
+            HirInstruction::PutField {
                 object,
                 offset,
                 value,
             } => {
                 write!(f, "{}[{}] = {}", object, offset, value)
             }
-            IrInstruction::AllocateObject {
+            HirInstruction::AllocateObject {
                 destination,
                 class_name,
             } => {

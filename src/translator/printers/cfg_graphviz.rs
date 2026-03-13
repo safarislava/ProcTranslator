@@ -1,4 +1,4 @@
-use crate::translator::ir::{ControlFlowGraph, Terminator};
+use crate::translator::hir::{ControlFlowGraph, HirTerminator};
 
 impl ControlFlowGraph {
     pub fn to_dot(&self) -> String {
@@ -27,10 +27,10 @@ impl ControlFlowGraph {
         for block in &self.blocks {
             if let Some(term) = &block.terminator {
                 match term {
-                    Terminator::Jump(target) => {
+                    HirTerminator::Jump(target) => {
                         dot.push_str(&format!("  B{} -> B{};\n", block.id, target));
                     }
-                    Terminator::Branch {
+                    HirTerminator::Branch {
                         true_block,
                         false_block,
                         ..
@@ -44,7 +44,7 @@ impl ControlFlowGraph {
                             block.id, false_block
                         ));
                     }
-                    Terminator::Return(_) => {}
+                    HirTerminator::Return(_) => {}
                 }
             }
         }

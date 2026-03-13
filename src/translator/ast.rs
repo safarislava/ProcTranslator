@@ -29,42 +29,44 @@ fn parse_variable(s: &str) -> ResBox<Variable> {
 }
 
 fn parse_arguments(arguments: &str) -> ResBox<Vec<Variable>> {
-    let trimmed = arguments.trim();
-    if trimmed.is_empty() {
+    let trimmed_arguments = arguments.trim();
+    if trimmed_arguments.is_empty() {
         return Ok(vec![]);
     }
-    trimmed
+    trimmed_arguments
         .split(',')
         .map(|s| parse_variable(s.trim()))
         .collect()
 }
 
 fn parse_statement_keyword(value: &str) -> ResBox<Option<AbstractSyntaxNode<RawExpression>>> {
-    let trimmed = value.trim().trim_end_matches(';');
+    let trimmed_value = value.trim().trim_end_matches(';');
 
-    if trimmed == "return" {
+    if trimmed_value == "return" {
         return Ok(Some(AbstractSyntaxNode::Return { value: None }));
     }
-    if let Some(stripped) = trimmed.strip_prefix("return ") {
-        let expr = parse_expression(stripped.trim())?;
-        return Ok(Some(AbstractSyntaxNode::Return { value: Some(expr) }));
+    if let Some(stripped_value) = trimmed_value.strip_prefix("return ") {
+        let expression = parse_expression(stripped_value.trim())?;
+        return Ok(Some(AbstractSyntaxNode::Return {
+            value: Some(expression),
+        }));
     }
-    if trimmed == "break" {
+    if trimmed_value == "break" {
         return Ok(Some(AbstractSyntaxNode::Break));
     }
-    if trimmed == "continue" {
+    if trimmed_value == "continue" {
         return Ok(Some(AbstractSyntaxNode::Continue));
     }
     Ok(None)
 }
 
 fn parse_declaration(code: &str) -> ResBox<Option<DeclarationInfo>> {
-    let trimmed = code.trim();
-    if trimmed.is_empty() {
+    let trimmed_code = code.trim();
+    if trimmed_code.is_empty() {
         return Ok(None);
     }
 
-    let parts: Vec<&str> = trimmed.splitn(2, ' ').collect();
+    let parts: Vec<&str> = trimmed_code.splitn(2, ' ').collect();
     if parts.len() < 2 {
         return Ok(None);
     }
@@ -78,17 +80,17 @@ fn parse_declaration(code: &str) -> ResBox<Option<DeclarationInfo>> {
         return Ok(None);
     }
 
-    if let Some(eq_pos) = rest.find('=') {
-        let name = rest[..eq_pos].trim().to_string();
-        let value_expr = rest[eq_pos + 1..].trim();
+    if let Some(equal_position) = rest.find('=') {
+        let name = rest[..equal_position].trim().to_string();
+        let expression = rest[equal_position + 1..].trim();
         if name.is_empty() {
             return Ok(None);
         }
 
-        let value = if value_expr.is_empty() {
+        let value = if expression.is_empty() {
             None
         } else {
-            Some(parse_expression(value_expr)?)
+            Some(parse_expression(expression)?)
         };
         Ok(Some((first.to_string(), name, value)))
     } else {

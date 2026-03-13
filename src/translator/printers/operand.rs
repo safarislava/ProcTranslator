@@ -1,12 +1,12 @@
-use crate::translator::ir::Operand;
+use crate::translator::hir::HirOperand;
 use std::fmt;
 
-impl fmt::Display for Operand {
+impl fmt::Display for HirOperand {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Operand::Value(reg) => write!(f, "{}", reg),
-            Operand::Constant(val) => write!(f, "\"{}\"", val),
-            Operand::Void => write!(f, "void"),
+            HirOperand::Value(reg) => write!(f, "{}", reg),
+            HirOperand::Constant(val) => write!(f, "\"{}\"", val),
+            HirOperand::Void => write!(f, "void"),
         }
     }
 }

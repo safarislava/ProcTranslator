@@ -19,11 +19,12 @@ Mode:
 -
 - 0x0 - #* - direct (next word after current instruction)
 - 0x1 - D* - data register
-- 0x2 - A* - address register 
+- 0x2 - A* - address register
 - 0x3 - (A*) - indirect
 - 0x4 - (A*)+ - indirect, post-increment
 - 0x5 - -(A*) - indirect, pre-decrement
 - 0x6 - (A*:D*) - indirect, with offset
+- 0x7 - (#*) - indirect, direct
 
 Operator code:
 ---

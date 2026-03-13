@@ -1,6 +1,7 @@
+use crate::isa::{Mode, Operand, Operator, WordSize};
 use crate::machine::alu::AluOperator;
 use crate::machine::data_path::{AddressingModeSelector, DataPath};
-use crate::machine::isa::{InstructionParser, Mode, Operand, Operator, WordSize};
+use crate::machine::instruction_parser::InstructionParser;
 use crate::machine::memory::Memory;
 use crate::machine::stack::Stack;
 
@@ -338,6 +339,32 @@ impl ControlUnit {
                     Order::Second => self.data_path.latch_left_alu(),
                 }
             }
+            Mode::IndirectDirect => {
+                self.fill_buffer();
+                self.data_path.control_unit_output = self.buffer as i64;
+                self.data_path
+                    .update_alu_input_mux(AddressingModeSelector::ControlUnit);
+                match order {
+                    Order::First => {
+                        self.data_path.latch_left_alu();
+                        self.data_path.execute_alu(AluOperator::Trl);
+                    }
+                    Order::Second => {
+                        self.data_path.latch_right_alu();
+                        self.data_path.execute_alu(AluOperator::Trr);
+                    }
+                }
+                self.data_path.latch_data_address();
+                self.data_path.read_data_memory();
+                self.data_path.latch_read_data();
+
+                self.data_path
+                    .update_alu_input_mux(AddressingModeSelector::ReadData);
+                match order {
+                    Order::First => self.data_path.latch_left_alu(),
+                    Order::Second => self.data_path.latch_right_alu(),
+                }
+            }
         }
     }
 
@@ -354,7 +381,8 @@ impl ControlUnit {
             Mode::Indirect
             | Mode::IndirectPostIncrement
             | Mode::IndirectPreDecrement
-            | Mode::IndirectOffset => {
+            | Mode::IndirectOffset
+            | Mode::IndirectDirect => {
                 self.data_path.latch_write_data();
                 self.data_path.write_data_memory(&self.word_size);
             }

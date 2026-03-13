@@ -267,7 +267,7 @@ impl SemanticTable {
                 )
             }
             AbstractSyntaxNode::Return { value } => {
-                let func_type = self
+                let function_type = self
                     .stacktrace
                     .iter()
                     .rev()
@@ -280,11 +280,11 @@ impl SemanticTable {
                     })
                     .ok_or("Return outside function")?;
                 let typed_value = match value {
-                    Some(expr) => Some(self.analyze_expression(expr)?),
+                    Some(expression) => Some(self.analyze_expression(expression)?),
                     None => None,
                 };
-                let val_type = typed_value.as_ref().map_or(Type::Void, |v| v.get_type());
-                if val_type != *func_type {
+                let typ = typed_value.as_ref().map_or(Type::Void, |v| v.get_type());
+                if typ != *function_type {
                     return Err("Return type mismatch".into());
                 }
                 (AbstractSyntaxNode::Return { value: typed_value }, vec![])
@@ -337,8 +337,8 @@ impl SemanticTable {
         {
             return Err(format!("Unknown type {}", c).into());
         }
-        if let Some(expr) = expression
-            && expr.get_type() != *typ
+        if let Some(expression) = expression
+            && expression.get_type() != *typ
         {
             return Err("Declaration type mismatch".into());
         }
@@ -396,11 +396,11 @@ impl SemanticTable {
             Expression::FunctionCall {
                 name, arguments, ..
             } => {
-                let (ret, params) = self
+                let (ret, parameters) = self
                     .functions
                     .get(name)
                     .ok_or(format!("Func {} not found", name))?;
-                let typed_args = self.analyze_args(params, arguments)?;
+                let typed_args = self.analyze_arguments(parameters, arguments)?;
                 Ok(Expression::FunctionCall {
                     typ: ret.clone(),
                     name: name.clone(),
@@ -414,18 +414,18 @@ impl SemanticTable {
                 ..
             } => {
                 let typed_object = self.analyze_expression(object)?;
-                if let Type::Class(c_name) = typed_object.get_type() {
-                    let class = self.classes.get(&c_name).ok_or("Class not found")?;
-                    let (ret, params) = class
+                if let Type::Class(class_name) = typed_object.get_type() {
+                    let class = self.classes.get(&class_name).ok_or("Class not found")?;
+                    let (ret, parameters) = class
                         .methods
                         .get(method)
-                        .ok_or(format!("Method {} not found in {}", method, c_name))?;
-                    let typed_args = self.analyze_args(params, arguments)?;
+                        .ok_or(format!("Method {} not found in {}", method, class_name))?;
+                    let typed_arguments = self.analyze_arguments(parameters, arguments)?;
                     Ok(Expression::MethodCall {
                         typ: ret.clone(),
                         object: Box::new(typed_object),
                         name: method.clone(),
-                        arguments: typed_args,
+                        arguments: typed_arguments,
                     })
                 } else {
                     Err("Method call on non-object".into())
@@ -437,8 +437,8 @@ impl SemanticTable {
                 ..
             } => {
                 let typed_object = self.analyze_expression(object)?;
-                if let Type::Class(c_name) = typed_object.get_type() {
-                    let class = self.classes.get(&c_name).ok_or("Class not found")?;
+                if let Type::Class(class_name) = typed_object.get_type() {
+                    let class = self.classes.get(&class_name).ok_or("Class not found")?;
                     let field_type = class
                         .fields
                         .get(member)
@@ -454,16 +454,16 @@ impl SemanticTable {
                 }
             }
             Expression::Assign { name, value, .. } => {
-                let var_type = self
+                let variable_type = self
                     .find_var(name)
                     .ok_or(format!("Undefined {}", name))?
                     .clone();
                 let typed_value = self.analyze_expression(value)?;
-                if var_type != typed_value.get_type() {
+                if variable_type != typed_value.get_type() {
                     return Err("Assign type mismatch".into());
                 }
                 Ok(Expression::Assign {
-                    typ: var_type,
+                    typ: variable_type,
                     name: name.clone(),
                     value: Box::new(typed_value),
                 })
@@ -503,16 +503,16 @@ impl SemanticTable {
                 postfix,
                 ..
             } => {
-                let typed_expr = self.analyze_expression(expression)?;
+                let typed_expression = self.analyze_expression(expression)?;
                 if !matches!(
-                    typed_expr,
+                    typed_expression,
                     Expression::Variable { .. } | Expression::Field { .. }
                 ) {
                     return Err(
                         "Increment/Decrement can only be applied to a variable or field".into(),
                     );
                 }
-                let typ = typed_expr.get_type();
+                let typ = typed_expression.get_type();
                 if typ != Type::Int && typ != Type::Float {
                     return Err(
                         format!("Operator ++/-- cannot be applied to type {:?}", typ).into(),
@@ -520,7 +520,7 @@ impl SemanticTable {
                 }
                 Ok(Expression::Increment {
                     typ: typ.clone(),
-                    expression: Box::new(typed_expr),
+                    expression: Box::new(typed_expression),
                     postfix: *postfix,
                 })
             }
@@ -529,16 +529,16 @@ impl SemanticTable {
                 postfix,
                 ..
             } => {
-                let typed_expr = self.analyze_expression(expression)?;
+                let typed_expression = self.analyze_expression(expression)?;
                 if !matches!(
-                    typed_expr,
+                    typed_expression,
                     Expression::Variable { .. } | Expression::Field { .. }
                 ) {
                     return Err(
                         "Increment/Decrement can only be applied to a variable or field".into(),
                     );
                 }
-                let typ = typed_expr.get_type();
+                let typ = typed_expression.get_type();
                 if typ != Type::Int && typ != Type::Float {
                     return Err(
                         format!("Operator ++/-- cannot be applied to type {:?}", typ).into(),
@@ -546,29 +546,29 @@ impl SemanticTable {
                 }
                 Ok(Expression::Decrement {
                     typ: typ.clone(),
-                    expression: Box::new(typed_expr),
+                    expression: Box::new(typed_expression),
                     postfix: *postfix,
                 })
             }
             Expression::Negate { expression, .. } => {
                 let typed_expr = self.analyze_expression(expression)?;
-                let t = typed_expr.get_type();
-                if t != Type::Int && t != Type::Float {
+                let typ = typed_expr.get_type();
+                if typ != Type::Int && typ != Type::Float {
                     return Err("Need numeric for minus".into());
                 }
                 Ok(Expression::Negate {
-                    typ: t,
+                    typ,
                     expression: Box::new(typed_expr),
                 })
             }
             Expression::Not { expression, .. } => {
-                let typed_expr = self.analyze_expression(expression)?;
-                if typed_expr.get_type() != Type::Bool {
+                let typed_expression = self.analyze_expression(expression)?;
+                if typed_expression.get_type() != Type::Bool {
                     return Err("Need bool for !".into());
                 }
                 Ok(Expression::Not {
                     typ: Type::Bool,
-                    expression: Box::new(typed_expr),
+                    expression: Box::new(typed_expression),
                 })
             }
             Expression::New { class_name, .. } => {
@@ -589,23 +589,23 @@ impl SemanticTable {
         }
     }
 
-    fn analyze_args(
+    fn analyze_arguments(
         &self,
-        params: &[Type],
-        args: &[RawExpression],
+        parameters: &[Type],
+        arguments: &[RawExpression],
     ) -> ResBox<Vec<TypedExpression>> {
-        if params.len() != args.len() {
+        if parameters.len() != arguments.len() {
             return Err("Arg count mismatch".into());
         }
-        let mut typed_args = Vec::new();
-        for (p, a) in params.iter().zip(args) {
-            let typed_a = self.analyze_expression(a)?;
-            if *p != typed_a.get_type() {
+        let mut typed_arguments = Vec::new();
+        for (parameter, argument) in parameters.iter().zip(arguments) {
+            let typed_argument = self.analyze_expression(argument)?;
+            if *parameter != typed_argument.get_type() {
                 return Err("Arg type mismatch".into());
             }
-            typed_args.push(typed_a);
+            typed_arguments.push(typed_argument);
         }
-        Ok(typed_args)
+        Ok(typed_arguments)
     }
 
     fn is_compering_binary_op(operator: &ExpressionBinaryOperator) -> bool {

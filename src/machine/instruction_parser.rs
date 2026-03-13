@@ -1,63 +1,5 @@
+use crate::isa::{Mode, Operand, Operator, WordSize};
 use std::collections::HashMap;
-
-#[derive(Clone)]
-pub enum WordSize {
-    Byte,
-    Long,
-}
-
-#[derive(Clone)]
-pub struct Operand {
-    pub mode: Mode,
-    pub main_register: u8,
-    pub offset_register: u8,
-}
-
-#[derive(Clone)]
-pub enum Operator {
-    Hlt,
-    Mov,
-    Mova,
-    Add,
-    Adc,
-    Sub,
-    Mul,
-    Div,
-    Rem,
-    And,
-    Or,
-    Xor,
-    Not,
-    Lsl,
-    Lsr,
-    Asl,
-    Asr,
-    Jmp,
-    Call,
-    Ret,
-    Beq,
-    Bne,
-    Bgt,
-    Bge,
-    Blt,
-    Ble,
-    Bcs,
-    Bcc,
-    Bvs,
-    Bvc,
-    Cmp,
-}
-
-#[derive(Clone, Eq, PartialEq)]
-pub enum Mode {
-    Direct,
-    DataRegister,
-    AddressRegister,
-    Indirect,
-    IndirectPostIncrement,
-    IndirectPreDecrement,
-    IndirectOffset,
-}
 
 pub struct InstructionParser {
     operators: HashMap<u8, Operator>,
@@ -108,6 +50,7 @@ impl InstructionParser {
             (0x4, Mode::IndirectPostIncrement),
             (0x5, Mode::IndirectPreDecrement),
             (0x6, Mode::IndirectOffset),
+            (0x7, Mode::IndirectDirect),
         ]);
         let word_sizes = HashMap::from([(0b0, WordSize::Byte), (0b1, WordSize::Long)]);
         Self {

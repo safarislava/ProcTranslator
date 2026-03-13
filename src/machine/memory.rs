@@ -1,4 +1,4 @@
-use crate::machine::isa::WordSize;
+use crate::isa::WordSize;
 use num::Integer;
 
 pub struct Memory<T> {

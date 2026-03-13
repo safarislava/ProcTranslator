@@ -7,37 +7,39 @@ use std::iter;
 
 pub type BlockId = usize;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Register(pub usize);
+pub struct HirRegister(pub u64);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct StackSlot(pub usize);
+pub struct StackSlot(pub u64);
 
 #[derive(Debug, Clone)]
-pub enum Operand {
-    Value(Register),
+pub enum HirOperand {
+    Value(HirRegister),
     Constant(String),
     Void,
 }
 
 #[derive(Debug, Clone)]
-pub enum IrInstruction {
+pub enum HirInstruction {
     LoadConst {
-        destination: Register,
+        destination: HirRegister,
         value: String,
     },
     BinaryOperator {
-        destination: Register,
-        left: Operand,
+        destination: HirRegister,
+        left: HirOperand,
         operator: ExpressionBinaryOperator,
-        right: Operand,
+        right: HirOperand,
     },
     Call {
-        destination: Register,
+        destination: HirRegister,
         block: BlockId,
-        arguments: Vec<Operand>,
+        arguments: Vec<HirOperand>,
     },
+    CallPrologue,
+
     LoadParameter {
-        destination: Register,
+        destination: HirRegister,
         index: usize,
     },
 
@@ -46,50 +48,50 @@ pub enum IrInstruction {
     },
     StackStore {
         slot: StackSlot,
-        value: Operand,
+        value: HirOperand,
     },
     StackLoad {
-        destination: Register,
+        destination: HirRegister,
         slot: StackSlot,
     },
 
     GetField {
-        destination: Register,
-        object: Operand,
+        destination: HirRegister,
+        object: HirOperand,
         offset: usize,
     },
     PutField {
-        object: Operand,
+        object: HirOperand,
         offset: usize,
-        value: Operand,
+        value: HirOperand,
     },
     AllocateObject {
-        destination: Register,
+        destination: HirRegister,
         class_name: String,
     },
 }
 
 #[derive(Debug, Clone)]
-pub enum Terminator {
+pub enum HirTerminator {
     Jump(BlockId),
     Branch {
-        condition: Operand,
+        condition: HirOperand,
         true_block: BlockId,
         false_block: BlockId,
     },
-    Return(Option<Operand>),
+    Return(Option<HirOperand>),
 }
 
 #[derive(Debug, Clone)]
-pub struct BasicBlock {
+pub struct HirBasicBlock {
     pub id: BlockId,
-    pub instructions: Vec<IrInstruction>,
-    pub terminator: Option<Terminator>,
+    pub instructions: Vec<HirInstruction>,
+    pub terminator: Option<HirTerminator>,
     pub predecessors: Vec<BlockId>,
     pub successors: Vec<BlockId>,
 }
 
-impl BasicBlock {
+impl HirBasicBlock {
     pub fn new(id: BlockId) -> Self {
         Self {
             id,
@@ -115,23 +117,23 @@ impl ClassInfo {
     }
 }
 
-struct IrContext {
-    pub blocks: Vec<BasicBlock>,
+struct HirContext {
+    pub blocks: Vec<HirBasicBlock>,
     current_block: Option<BlockId>,
-    register_counter: usize,
-    slot_counter: usize,
+    register_counter: u64,
+    slot_counter: u64,
     scopes: Vec<HashMap<String, StackSlot>>,
     loop_stack: Vec<(BlockId, BlockId)>,
     functions: HashMap<String, BlockId>,
     classes: HashMap<String, ClassInfo>,
     current_class: Option<String>,
-    this_register: Option<Register>,
+    this_register: Option<HirRegister>,
     main_block: Option<BlockId>,
 }
 
-impl IrContext {
+impl HirContext {
     pub fn new() -> Self {
-        IrContext {
+        HirContext {
             register_counter: 0,
             slot_counter: 0,
             blocks: vec![],
@@ -146,10 +148,10 @@ impl IrContext {
         }
     }
 
-    fn new_register(&mut self) -> Register {
+    fn new_register(&mut self) -> HirRegister {
         let id = self.register_counter;
         self.register_counter += 1;
-        Register(id)
+        HirRegister(id)
     }
 
     fn new_slot(&mut self) -> StackSlot {
@@ -160,7 +162,7 @@ impl IrContext {
 
     fn create_block(&mut self) -> BlockId {
         let id = self.blocks.len();
-        self.blocks.push(BasicBlock::new(id));
+        self.blocks.push(HirBasicBlock::new(id));
         id
     }
 
@@ -176,7 +178,7 @@ impl IrContext {
         }
     }
 
-    fn emit(&mut self, instruction: IrInstruction) {
+    fn emit(&mut self, instruction: HirInstruction) {
         if let Some(block_id) = self.current_block
             && self.blocks[block_id].terminator.is_none()
         {
@@ -184,17 +186,17 @@ impl IrContext {
         }
     }
 
-    fn emit_terminator(&mut self, term: Terminator) {
+    fn emit_terminator(&mut self, term: HirTerminator) {
         if let Some(source_block) = self.current_block {
             if self.blocks[source_block].terminator.is_some() {
                 return;
             }
 
             match &term {
-                Terminator::Jump(target) => {
+                HirTerminator::Jump(target) => {
                     self.link_blocks(source_block, *target);
                 }
-                Terminator::Branch {
+                HirTerminator::Branch {
                     true_block,
                     false_block,
                     ..
@@ -202,7 +204,7 @@ impl IrContext {
                     self.link_blocks(source_block, *true_block);
                     self.link_blocks(source_block, *false_block);
                 }
-                Terminator::Return(_) => {}
+                HirTerminator::Return(_) => {}
             }
 
             self.blocks[source_block].terminator = Some(term);
@@ -225,7 +227,7 @@ impl IrContext {
 
     fn declare_variable(&mut self, name: String) -> StackSlot {
         let slot = self.new_slot();
-        self.emit(IrInstruction::StackAllocate { slot });
+        self.emit(HirInstruction::StackAllocate { slot });
 
         let current_scope = self.scopes.last_mut().expect("No scope active");
         current_scope.insert(name, slot);
@@ -254,14 +256,14 @@ impl IrContext {
     }
 }
 
-impl IrContext {
+impl HirContext {
     pub fn generate_statement(&mut self, ast: TypedAbstractSyntaxTree) {
         match ast.node {
             AbstractSyntaxNode::If { condition } => {
                 let condition = self.generate_expression(condition);
                 let true_block = self.create_block();
                 let false_block = self.create_block();
-                self.emit_terminator(Terminator::Branch {
+                self.emit_terminator(HirTerminator::Branch {
                     condition,
                     true_block,
                     false_block,
@@ -290,10 +292,10 @@ impl IrContext {
                 let true_terminated = self.is_current_terminated();
                 if !true_terminated {
                     if else_if_node.is_some() || has_else {
-                        self.emit_terminator(Terminator::Jump(false_block));
+                        self.emit_terminator(HirTerminator::Jump(false_block));
                     } else {
                         let merge_block = self.create_block();
-                        self.emit_terminator(Terminator::Jump(merge_block));
+                        self.emit_terminator(HirTerminator::Jump(merge_block));
                         self.set_current_block(merge_block);
                         return;
                     }
@@ -314,7 +316,7 @@ impl IrContext {
                     self.exit_scope();
                 } else if !true_terminated {
                     let merge_block = self.create_block();
-                    self.emit_terminator(Terminator::Jump(merge_block));
+                    self.emit_terminator(HirTerminator::Jump(merge_block));
                     self.set_current_block(merge_block);
                     return;
                 }
@@ -322,7 +324,7 @@ impl IrContext {
                 let false_terminated = self.is_current_terminated();
                 if !false_terminated {
                     let merge_block = self.create_block();
-                    self.emit_terminator(Terminator::Jump(merge_block));
+                    self.emit_terminator(HirTerminator::Jump(merge_block));
                     self.set_current_block(merge_block);
                 }
             }
@@ -330,11 +332,11 @@ impl IrContext {
                 let condition_block = self.create_block();
                 let true_block = self.create_block();
                 let false_block = self.create_block();
-                self.emit_terminator(Terminator::Jump(condition_block));
+                self.emit_terminator(HirTerminator::Jump(condition_block));
 
                 self.set_current_block(condition_block);
                 let condition = self.generate_expression(condition);
-                self.emit_terminator(Terminator::Branch {
+                self.emit_terminator(HirTerminator::Branch {
                     condition,
                     true_block,
                     false_block,
@@ -348,7 +350,7 @@ impl IrContext {
                 }
                 self.loop_stack.pop();
                 self.exit_scope();
-                self.emit_terminator(Terminator::Jump(condition_block));
+                self.emit_terminator(HirTerminator::Jump(condition_block));
 
                 self.set_current_block(false_block);
             }
@@ -362,11 +364,11 @@ impl IrContext {
                 let value = if let Some(expr) = expression {
                     self.generate_expression(expr)
                 } else {
-                    Operand::Constant("0".into())
+                    HirOperand::Constant("0".into())
                 };
 
-                if !matches!(value, Operand::Void) {
-                    self.emit(IrInstruction::StackStore { slot, value });
+                if !matches!(value, HirOperand::Void) {
+                    self.emit(HirInstruction::StackStore { slot, value });
                 }
             }
             AbstractSyntaxNode::Callable {
@@ -379,11 +381,12 @@ impl IrContext {
 
                 self.set_current_block(block_id);
                 self.enter_scope();
+                self.emit(HirInstruction::CallPrologue);
 
                 let mut parameter_offset = 0;
                 if self.current_class.is_some() {
                     let register = self.new_register();
-                    self.emit(IrInstruction::LoadParameter {
+                    self.emit(HirInstruction::LoadParameter {
                         destination: register,
                         index: 0,
                     });
@@ -394,13 +397,13 @@ impl IrContext {
                 for (i, argument) in arguments.into_iter().enumerate() {
                     let slot = self.declare_variable(argument.name);
                     let register = self.new_register();
-                    self.emit(IrInstruction::LoadParameter {
+                    self.emit(HirInstruction::LoadParameter {
                         destination: register,
                         index: i + parameter_offset,
                     });
-                    self.emit(IrInstruction::StackStore {
+                    self.emit(HirInstruction::StackStore {
                         slot,
-                        value: Operand::Value(register),
+                        value: HirOperand::Value(register),
                     });
                 }
 
@@ -419,18 +422,18 @@ impl IrContext {
             }
             AbstractSyntaxNode::Return { value } => {
                 let operand = value.map(|value| self.generate_expression(value));
-                self.emit_terminator(Terminator::Return(operand))
+                self.emit_terminator(HirTerminator::Return(operand))
             }
             AbstractSyntaxNode::Break => {
                 if let Some((_, break_target)) = self.loop_stack.last() {
-                    self.emit_terminator(Terminator::Jump(*break_target));
+                    self.emit_terminator(HirTerminator::Jump(*break_target));
                 } else {
                     unreachable!();
                 }
             }
             AbstractSyntaxNode::Continue => {
                 if let Some((continue_target, _)) = self.loop_stack.last() {
-                    self.emit_terminator(Terminator::Jump(*continue_target));
+                    self.emit_terminator(HirTerminator::Jump(*continue_target));
                 } else {
                     unreachable!();
                 }
@@ -451,18 +454,18 @@ impl IrContext {
         }
     }
 
-    pub fn generate_expression(&mut self, expression: TypedExpression) -> Operand {
+    pub fn generate_expression(&mut self, expression: TypedExpression) -> HirOperand {
         match expression {
             TypedExpression::Literal { value, .. } => {
                 let destination = self.new_register();
-                self.emit(IrInstruction::LoadConst { destination, value });
-                Operand::Value(destination)
+                self.emit(HirInstruction::LoadConst { destination, value });
+                HirOperand::Value(destination)
             }
             TypedExpression::Variable { name, .. } => {
                 let slot = self.resolve_variable_address(&name);
                 let destination = self.new_register();
-                self.emit(IrInstruction::StackLoad { destination, slot });
-                Operand::Value(destination)
+                self.emit(HirInstruction::StackLoad { destination, slot });
+                HirOperand::Value(destination)
             }
             TypedExpression::BinaryOperator {
                 left,
@@ -473,13 +476,13 @@ impl IrContext {
                 let left = self.generate_expression(*left);
                 let right = self.generate_expression(*right);
                 let destination = self.new_register();
-                self.emit(IrInstruction::BinaryOperator {
+                self.emit(HirInstruction::BinaryOperator {
                     destination,
                     left,
                     operator,
                     right,
                 });
-                Operand::Value(destination)
+                HirOperand::Value(destination)
             }
             TypedExpression::FunctionCall {
                 name, arguments, ..
@@ -490,19 +493,19 @@ impl IrContext {
                     .collect();
                 let destination = self.new_register();
                 let block = self.functions[&name];
-                self.emit(IrInstruction::Call {
+                self.emit(HirInstruction::Call {
                     destination,
                     block,
                     arguments,
                 });
-                Operand::Value(destination)
+                HirOperand::Value(destination)
             }
             TypedExpression::Assign { name, value, .. } => {
                 let slot = self.resolve_variable_address(&name);
                 let value = self.generate_expression(*value);
 
-                self.emit(IrInstruction::StackStore { slot, value });
-                Operand::Void
+                self.emit(HirInstruction::StackStore { slot, value });
+                HirOperand::Void
             }
             TypedExpression::Increment {
                 expression,
@@ -525,26 +528,26 @@ impl IrContext {
             TypedExpression::Negate { expression, .. } => {
                 let operand = self.generate_expression(*expression);
                 let destination = self.new_register();
-                let zero_const = Operand::Constant("0".to_string());
-                self.emit(IrInstruction::BinaryOperator {
+                let zero_const = HirOperand::Constant("0".to_string());
+                self.emit(HirInstruction::BinaryOperator {
                     destination,
                     left: zero_const,
                     operator: ExpressionBinaryOperator::Minus,
                     right: operand,
                 });
-                Operand::Value(destination)
+                HirOperand::Value(destination)
             }
             TypedExpression::Not { expression, .. } => {
                 let operand = self.generate_expression(*expression);
                 let destination = self.new_register();
-                let false_const = Operand::Constant("false".to_string());
-                self.emit(IrInstruction::BinaryOperator {
+                let false_const = HirOperand::Constant("false".to_string());
+                self.emit(HirInstruction::BinaryOperator {
                     destination,
                     left: operand,
                     operator: ExpressionBinaryOperator::Equal,
                     right: false_const,
                 });
-                Operand::Value(destination)
+                HirOperand::Value(destination)
             }
             TypedExpression::MethodCall {
                 object,
@@ -565,13 +568,13 @@ impl IrContext {
 
                 let block = self.classes[&class_name].methods[&name];
                 let destination = self.new_register();
-                self.emit(IrInstruction::Call {
+                self.emit(HirInstruction::Call {
                     destination,
                     block,
                     arguments,
                 });
 
-                Operand::Value(destination)
+                HirOperand::Value(destination)
             }
             TypedExpression::AssignField {
                 object,
@@ -583,20 +586,20 @@ impl IrContext {
                 let object = self.generate_expression(*object);
                 let value = self.generate_expression(*value);
 
-                self.emit(IrInstruction::PutField {
+                self.emit(HirInstruction::PutField {
                     object,
                     offset,
                     value,
                 });
-                Operand::Void
+                HirOperand::Void
             }
             TypedExpression::New { class_name, .. } => {
                 let destination = self.new_register();
-                self.emit(IrInstruction::AllocateObject {
+                self.emit(HirInstruction::AllocateObject {
                     destination,
                     class_name: class_name.clone(),
                 });
-                let object = Operand::Value(destination);
+                let object = HirOperand::Value(destination);
 
                 let class_info = &self.classes[&class_name];
                 let mut fields: Vec<_> = class_info
@@ -609,7 +612,7 @@ impl IrContext {
 
                 for (expression, offset) in fields {
                     let value = self.generate_expression(expression);
-                    self.emit(IrInstruction::PutField {
+                    self.emit(HirInstruction::PutField {
                         object: object.clone(),
                         offset,
                         value,
@@ -621,14 +624,14 @@ impl IrContext {
                 let offset = self.resolve_field_offset(&object.get_type(), &name);
                 let object = self.generate_expression(*object);
                 let destination = self.new_register();
-                self.emit(IrInstruction::GetField {
+                self.emit(HirInstruction::GetField {
                     destination,
                     object,
                     offset,
                 });
-                Operand::Value(destination)
+                HirOperand::Value(destination)
             }
-            TypedExpression::This { .. } => Operand::Value(
+            TypedExpression::This { .. } => HirOperand::Value(
                 self.this_register
                     .expect("Usage of 'this' outside of method"),
             ),
@@ -640,33 +643,33 @@ impl IrContext {
         expression: TypedExpression,
         postfix: bool,
         operator: ExpressionBinaryOperator,
-    ) -> Operand {
+    ) -> HirOperand {
         match expression {
             TypedExpression::Variable { name, .. } => {
                 let slot = self.resolve_variable_address(&name);
                 let old_value = self.new_register();
-                self.emit(IrInstruction::StackLoad {
+                self.emit(HirInstruction::StackLoad {
                     destination: old_value,
                     slot,
                 });
 
                 let new_value = self.new_register();
-                let one_const = Operand::Constant("1".to_string());
-                self.emit(IrInstruction::BinaryOperator {
+                let one_const = HirOperand::Constant("1".to_string());
+                self.emit(HirInstruction::BinaryOperator {
                     destination: new_value,
-                    left: Operand::Value(old_value),
+                    left: HirOperand::Value(old_value),
                     operator,
                     right: one_const,
                 });
-                self.emit(IrInstruction::StackStore {
+                self.emit(HirInstruction::StackStore {
                     slot,
-                    value: Operand::Value(new_value),
+                    value: HirOperand::Value(new_value),
                 });
 
                 if postfix {
-                    Operand::Value(old_value)
+                    HirOperand::Value(old_value)
                 } else {
-                    Operand::Value(new_value)
+                    HirOperand::Value(new_value)
                 }
             }
             TypedExpression::Field { object, name, .. } => {
@@ -678,30 +681,30 @@ impl IrContext {
                 let offset = self.classes[&class_name].fields[&name].1;
 
                 let old_value = self.new_register();
-                self.emit(IrInstruction::GetField {
+                self.emit(HirInstruction::GetField {
                     destination: old_value,
                     object: object.clone(),
                     offset,
                 });
 
                 let new_value = self.new_register();
-                let one_const = Operand::Constant("1".to_string());
-                self.emit(IrInstruction::BinaryOperator {
+                let one_const = HirOperand::Constant("1".to_string());
+                self.emit(HirInstruction::BinaryOperator {
                     destination: new_value,
-                    left: Operand::Value(old_value),
+                    left: HirOperand::Value(old_value),
                     operator,
                     right: one_const,
                 });
-                self.emit(IrInstruction::PutField {
+                self.emit(HirInstruction::PutField {
                     object,
                     offset,
-                    value: Operand::Value(new_value),
+                    value: HirOperand::Value(new_value),
                 });
 
                 if postfix {
-                    Operand::Value(old_value)
+                    HirOperand::Value(old_value)
                 } else {
-                    Operand::Value(new_value)
+                    HirOperand::Value(new_value)
                 }
             }
             _ => unreachable!(),
@@ -709,7 +712,7 @@ impl IrContext {
     }
 }
 
-impl IrContext {
+impl HirContext {
     pub fn scan_signatures(&mut self, ast: &TypedAbstractSyntaxTree) {
         match &ast.node {
             AbstractSyntaxNode::File => {
@@ -758,20 +761,20 @@ impl IrContext {
 
 #[derive(Debug)]
 pub struct ControlFlowGraph {
-    pub blocks: Vec<BasicBlock>,
+    pub blocks: Vec<HirBasicBlock>,
     pub entry_block: BlockId,
 }
 
-pub fn compile(ast: TypedAbstractSyntaxTree) -> ControlFlowGraph {
-    let mut ctx = IrContext::new();
-    ctx.scan_signatures(&ast);
-    let entry_block = ctx.main_block.unwrap();
-    ctx.generate_statement(ast);
-    if !ctx.is_current_terminated() {
-        ctx.emit_terminator(Terminator::Return(None));
+pub fn compile_hir(ast: TypedAbstractSyntaxTree) -> ControlFlowGraph {
+    let mut context = HirContext::new();
+    context.scan_signatures(&ast);
+    let entry_block = context.main_block.unwrap();
+    context.generate_statement(ast);
+    if !context.is_current_terminated() {
+        context.emit_terminator(HirTerminator::Return(None));
     }
     ControlFlowGraph {
-        blocks: ctx.blocks,
+        blocks: context.blocks,
         entry_block,
     }
 }
