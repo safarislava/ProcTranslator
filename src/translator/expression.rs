@@ -18,8 +18,8 @@ pub enum ExpressionBinaryOperator {
     LessEqual,
     Greater,
     GreaterEqual,
-    Plus,
-    Minus,
+    Add,
+    Sub,
     Multiply,
     Divide,
     Modulo,
@@ -129,11 +129,11 @@ enum Token {
     Dot,
 }
 
-struct Lexer<'a> {
+struct Tokenizer<'a> {
     chars: Peekable<Chars<'a>>,
 }
 
-impl<'a> Lexer<'a> {
+impl<'a> Tokenizer<'a> {
     fn new(input: &'a str) -> Self {
         Self {
             chars: input.chars().peekable(),
@@ -219,7 +219,7 @@ impl<'a> Lexer<'a> {
         Ok(Some(token))
     }
 
-    fn tokenize(&mut self) -> ResBox<Vec<Token>> {
+    fn get_tokens(&mut self) -> ResBox<Vec<Token>> {
         let mut tokens = vec![];
         while let Some(token) = self.next_token()? {
             tokens.push(token);
@@ -480,8 +480,8 @@ impl Parser {
             "<=" => Ok(ExpressionBinaryOperator::LessEqual),
             ">" => Ok(ExpressionBinaryOperator::Greater),
             ">=" => Ok(ExpressionBinaryOperator::GreaterEqual),
-            "+" => Ok(ExpressionBinaryOperator::Plus),
-            "-" => Ok(ExpressionBinaryOperator::Minus),
+            "+" => Ok(ExpressionBinaryOperator::Add),
+            "-" => Ok(ExpressionBinaryOperator::Sub),
             "*" => Ok(ExpressionBinaryOperator::Multiply),
             "/" => Ok(ExpressionBinaryOperator::Divide),
             "%" => Ok(ExpressionBinaryOperator::Modulo),
@@ -503,7 +503,7 @@ impl Parser {
             | ExpressionBinaryOperator::LessEqual
             | ExpressionBinaryOperator::Greater
             | ExpressionBinaryOperator::GreaterEqual => (9, 10),
-            ExpressionBinaryOperator::Plus | ExpressionBinaryOperator::Minus => (11, 12),
+            ExpressionBinaryOperator::Add | ExpressionBinaryOperator::Sub => (11, 12),
             ExpressionBinaryOperator::Multiply
             | ExpressionBinaryOperator::Divide
             | ExpressionBinaryOperator::Modulo => (13, 14),
@@ -516,8 +516,8 @@ pub fn parse_expression(code: &str) -> ResBox<RawExpression> {
     if trimmed_code.is_empty() {
         return Err("Empty expression".into());
     }
-    let mut lexer = Lexer::new(trimmed_code);
-    let tokens = lexer.tokenize()?;
+    let mut tokemizer = Tokenizer::new(trimmed_code);
+    let tokens = tokemizer.get_tokens()?;
     let mut parser = Parser::new(tokens);
     parser.parse_expression(0)
 }

@@ -1,50 +1,58 @@
-use crate::isa::WordSize;
-use num::Integer;
-
-pub struct Memory<T> {
-    data: Vec<T>,
+pub struct Memory {
+    data: Vec<u8>,
 }
 
-impl<T: Copy + Integer> Memory<T> {
+impl Memory {
     pub fn new(size: usize) -> Self {
         Self {
-            data: vec![T::zero(); size],
+            data: vec![0; size],
         }
     }
 
-    pub fn read(&self, address: u64) -> T {
+    pub fn read_u32(&self, address: u64) -> u32 {
         assert!(
             address < self.data.len() as u64,
             "Address {} is out of bounds",
             address
         );
-        self.data[address as usize]
+        let mut result = 0;
+        for i in 0..4 {
+            result |= (self.data[address as usize + i] as u32) << ((3 - i) * 8);
+        }
+        result
     }
-}
 
-impl Memory<i64> {
-    pub fn write(&mut self, address: usize, value: i64, selector: &WordSize) {
+    pub fn read_u64(&self, address: u64) -> u64 {
         assert!(
-            address > 0 && address < self.data.len(),
+            address < self.data.len() as u64,
             "Address {} is out of bounds",
             address
         );
-        match selector {
-            WordSize::Byte => {
-                self.data[address] = (self.data[address] & 0xFFFFFF00) | (value & 0xFF)
-            }
-            WordSize::Long => self.data[address] = value,
+        let mut result = 0;
+        for i in 0..8 {
+            result |= (self.data[address as usize + i] as u64) << ((7 - i) * 8);
+        }
+        result
+    }
+
+    pub fn write_u8(&mut self, address: u64, value: u8) {
+        assert!(
+            address < self.data.len() as u64,
+            "Address {} is out of bounds",
+            address
+        );
+        self.data[address as usize] = value;
+    }
+
+    pub fn write_u32(&mut self, address: u64, value: u32) {
+        for i in 0..4 {
+            self.data[address as usize + i] = ((value >> ((3 - i) * 8)) & 0xff) as u8;
         }
     }
-}
 
-impl Memory<u8> {
-    pub fn write(&mut self, address: usize, value: u8) {
-        assert!(
-            address < self.data.len(),
-            "Address {} is out of bounds",
-            address
-        );
-        self.data[address] = value;
+    pub fn write_u64(&mut self, address: u64, value: u64) {
+        for i in 0..8 {
+            self.data[address as usize + i] = ((value >> ((7 - i) * 8)) & 0xff) as u8;
+        }
     }
 }

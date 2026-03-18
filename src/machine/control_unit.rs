@@ -11,7 +11,8 @@ pub enum Order {
 }
 
 pub enum PcSelector {
-    Next,
+    NextByte,
+    NextWord,
     SetByDataPath,
     SetByBuffer,
     SetByStack,
@@ -20,15 +21,15 @@ pub enum PcSelector {
 pub struct ControlUnit {
     instruction_parser: InstructionParser,
     data_path: DataPath,
-    program_memory: Memory<u8>,
+    program_memory: Memory,
     stack: Stack,
 
-    read_data: u8,
+    read_data: u32,
 
     data_path_output: i64,
 
     buffer: u64,
-    instruction_decoder_output: u8,
+    instruction_decoder_output: u32,
 
     word_size: WordSize,
 
@@ -38,32 +39,33 @@ pub struct ControlUnit {
 impl ControlUnit {
     pub fn latch_pc(&mut self, signal: PcSelector) {
         self.pc = match signal {
-            PcSelector::Next => self.pc + 1,
+            PcSelector::NextByte => self.pc + 1,
+            PcSelector::NextWord => self.pc + 4,
             PcSelector::SetByDataPath => self.data_path_output as u64,
             PcSelector::SetByBuffer => self.buffer,
             PcSelector::SetByStack => self.stack.pop(),
         };
     }
 
-    pub fn latch_buffer_n_byte(&mut self, n: u8) {
-        self.buffer |= (self.instruction_decoder_output as u64) << (8 * n);
+    pub fn latch_buffer_n_word(&mut self, n: u8) {
+        self.buffer |= (self.instruction_decoder_output as u64) << (32 * (1 - n));
     }
 
     pub fn latch_read_data(&mut self) {
-        self.read_data = self.program_memory.read(self.pc);
+        self.read_data = self.program_memory.read_u32(self.pc);
     }
 
     pub fn execute_instruction(&mut self) -> bool {
         self.latch_read_data();
         let (operator, word_size) = self.instruction_parser.parse_operator(self.read_data);
         self.word_size = word_size;
-        self.latch_pc(PcSelector::Next);
         match operator {
             Operator::Hlt => return true,
             Operator::Mov => self.execute_standard_alu_instruction(AluOperator::Trl),
             Operator::Mova => {
-                let first = self.parse_register();
-                let second = self.parse_register();
+                self.latch_pc(PcSelector::NextWord);
+                let first = self.parse_register(1);
+                let second = self.parse_register(2);
                 self.prepare_operand(Order::First, &first);
                 self.prepare_operand(Order::Second, &second);
                 self.data_path.execute_alu(AluOperator::Trl);
@@ -83,8 +85,12 @@ impl ControlUnit {
             Operator::Lsr => self.execute_standard_alu_instruction(AluOperator::Lsr),
             Operator::Asl => self.execute_standard_alu_instruction(AluOperator::Asl),
             Operator::Asr => self.execute_standard_alu_instruction(AluOperator::Asr),
-            Operator::Jmp => self.execute_jump(),
+            Operator::Jmp => {
+                self.latch_pc(PcSelector::NextByte);
+                self.execute_jump()
+            }
             Operator::Call => {
+                self.latch_pc(PcSelector::NextByte);
                 self.stack.push(self.pc);
                 self.execute_jump();
             }
@@ -112,8 +118,9 @@ impl ControlUnit {
             Operator::Bvs => self.execute_branch(self.data_path.transmit_nzcv().overflow),
             Operator::Bvc => self.execute_branch(!self.data_path.transmit_nzcv().overflow),
             Operator::Cmp => {
-                let first = self.parse_data_readable();
-                let second = self.parse_data_readable();
+                self.latch_pc(PcSelector::NextWord);
+                let first = self.parse_data_readable(1);
+                let second = self.parse_data_readable(2);
                 self.prepare_operand(Order::First, &first);
                 self.prepare_operand(Order::Second, &second);
                 self.data_path.execute_alu(AluOperator::Sub);
@@ -122,42 +129,53 @@ impl ControlUnit {
         false
     }
 
-    pub fn fill_buffer(&mut self) {
-        for i in 0..8 {
-            self.instruction_decoder_output = self.program_memory.read(self.pc);
-            self.latch_pc(PcSelector::Next);
-            self.latch_buffer_n_byte(i);
+    pub fn extend_buffer(&mut self) {
+        let value = (self.buffer & 0xff_ff_ff_ff) as u32;
+        if value >> 31 == 0 {
+            self.buffer = value as u64;
+        } else {
+            self.buffer = (value as u64) | (0xff_ff_ff_ff << 32);
         }
     }
 
-    pub fn parse_register(&mut self) -> Operand {
-        self.latch_read_data();
-        let operand = self.instruction_parser.parse_operand(self.read_data);
-        self.latch_pc(PcSelector::Next);
+    pub fn fill_buffer(&mut self) {
+        for i in 0..2 {
+            self.latch_read_data();
+            self.instruction_decoder_output = self.program_memory.read_u32(self.pc);
+            self.latch_pc(PcSelector::NextWord);
+            self.latch_buffer_n_word(i);
+        }
+    }
+
+    pub fn parse_register(&mut self, byte: u8) -> Operand {
+        let offset = (4 - byte) * 8;
+        let operand = (self.read_data & (0xff << offset) >> offset) as u8;
+        let operand = self.instruction_parser.parse_operand(operand);
         assert!(operand.mode == Mode::AddressRegister || operand.mode == Mode::DataRegister);
         operand
     }
 
-    pub fn parse_data_readable(&mut self) -> Operand {
-        self.latch_read_data();
-        let operand = self.instruction_parser.parse_operand(self.read_data);
-        self.latch_pc(PcSelector::Next);
+    pub fn parse_data_readable(&mut self, byte: u8) -> Operand {
+        let offset = (4 - byte) * 8;
+        let operand = (self.read_data & (0xff << offset) >> offset) as u8;
+        let operand = self.instruction_parser.parse_operand(operand);
         assert!(operand.mode != Mode::AddressRegister);
         operand
     }
 
-    pub fn parse_data_writable(&mut self) -> Operand {
-        self.latch_read_data();
-        let operand = self.instruction_parser.parse_operand(self.read_data);
-        self.latch_pc(PcSelector::Next);
+    pub fn parse_data_writable(&mut self, byte: u8) -> Operand {
+        let offset = (4 - byte) * 8;
+        let operand = (self.read_data & (0xff << offset) >> offset) as u8;
+        let operand = self.instruction_parser.parse_operand(operand);
         assert!(operand.mode != Mode::AddressRegister);
         assert!(operand.mode != Mode::Direct);
         operand
     }
 
     pub fn execute_standard_alu_instruction(&mut self, operator: AluOperator) {
-        let first = self.parse_data_readable();
-        let second = self.parse_data_writable();
+        self.latch_pc(PcSelector::NextWord);
+        let first = self.parse_data_readable(1);
+        let second = self.parse_data_writable(2);
         self.prepare_operand(Order::First, &first);
         self.prepare_operand(Order::Second, &second);
         self.data_path.execute_alu(operator);
@@ -170,6 +188,7 @@ impl ControlUnit {
     }
 
     pub fn execute_branch(&mut self, condition: bool) {
+        self.latch_pc(PcSelector::NextByte);
         if condition {
             self.execute_jump();
         }
@@ -178,7 +197,12 @@ impl ControlUnit {
     pub fn prepare_operand(&mut self, order: Order, operand: &Operand) {
         match operand.mode {
             Mode::Direct => {
-                self.fill_buffer();
+                self.latch_read_data();
+                self.instruction_decoder_output = self.program_memory.read_u32(self.pc);
+                self.latch_pc(PcSelector::NextWord);
+                self.latch_buffer_n_word(1);
+                self.extend_buffer();
+
                 self.data_path.control_unit_output = self.buffer as i64;
                 self.data_path
                     .update_alu_input_mux(AddressingModeSelector::ControlUnit);
@@ -392,9 +416,9 @@ impl ControlUnit {
 }
 
 impl ControlUnit {
-    pub fn load_program(&mut self, program: &[u8]) {
+    pub fn load_program(&mut self, program: &[u32]) {
         for (i, word) in program.iter().enumerate() {
-            self.program_memory.write(i, *word);
+            self.program_memory.write_u32(i as u64, *word);
         }
     }
 }

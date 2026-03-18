@@ -25,7 +25,7 @@ pub enum AddressingModeSelector {
 }
 
 pub struct DataPath {
-    data_memory: Memory<i64>,
+    data_memory: Memory,
 
     alu: ALU,
     alu_output: i64,
@@ -81,12 +81,20 @@ impl DataPath {
     }
 
     pub fn read_data_memory(&mut self) {
-        self.memory_output = self.data_memory.read(self.data_address)
+        self.memory_output = self.data_memory.read_u64(self.data_address) as i64;
     }
 
     pub fn write_data_memory(&mut self, selector: &WordSize) {
-        self.data_memory
-            .write(self.data_address as usize, self.write_data, selector)
+        match selector {
+            WordSize::Byte => {
+                self.data_memory
+                    .write_u8(self.data_address, (self.write_data & 0xff) as u8);
+            }
+            WordSize::Long => {
+                self.data_memory
+                    .write_u64(self.data_address, self.write_data as u64);
+            }
+        }
     }
 
     pub fn update_alu_input_mux(&mut self, selector: AddressingModeSelector) {

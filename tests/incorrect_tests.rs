@@ -1,5 +1,5 @@
 use insta::{Settings, assert_snapshot};
-use proc_translator::translator::common::compile_to_ir;
+use proc_translator::translator::common::compile_to_hir;
 use std::fs;
 
 fn get_settings() -> Settings {
@@ -18,7 +18,7 @@ fn test_incorrect_examples_snapshots() {
         glob::glob(&pattern).unwrap().for_each(|entry| {
             let path = entry.unwrap();
             let content = fs::read_to_string(&path).unwrap();
-            let result = compile_to_ir(&content);
+            let result = compile_to_hir(&content);
 
             assert!(result.is_err(), "File {:?} should fail to compile", path);
 

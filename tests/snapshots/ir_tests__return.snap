@@ -3,18 +3,20 @@ source: tests/ir_tests.rs
 expression: "format!(\"{:#?}\", cfg)"
 ---
 ControlFlowGraph {
+    register_counter: 3,
     blocks: [
-        BasicBlock {
+        HirBasicBlock {
             id: 0,
             instructions: [
+                CallPrologue,
                 LoadParameter {
-                    destination: Register(
+                    destination: HirRegister(
                         0,
                     ),
                     index: 0,
                 },
                 LoadConst {
-                    destination: Register(
+                    destination: HirRegister(
                         1,
                     ),
                     value: "false",
@@ -23,7 +25,7 @@ ControlFlowGraph {
             terminator: Some(
                 Branch {
                     condition: Value(
-                        Register(
+                        HirRegister(
                             1,
                         ),
                     ),
@@ -37,7 +39,7 @@ ControlFlowGraph {
                 2,
             ],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 1,
             instructions: [],
             terminator: Some(
@@ -50,11 +52,11 @@ ControlFlowGraph {
             ],
             successors: [],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 2,
             instructions: [
                 LoadConst {
-                    destination: Register(
+                    destination: HirRegister(
                         2,
                     ),
                     value: "false",
@@ -63,7 +65,7 @@ ControlFlowGraph {
             terminator: Some(
                 Branch {
                     condition: Value(
-                        Register(
+                        HirRegister(
                             2,
                         ),
                     ),
@@ -79,7 +81,7 @@ ControlFlowGraph {
                 4,
             ],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 3,
             instructions: [],
             terminator: Some(
@@ -92,7 +94,7 @@ ControlFlowGraph {
             ],
             successors: [],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 4,
             instructions: [],
             terminator: Some(

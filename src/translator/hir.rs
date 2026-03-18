@@ -103,17 +103,23 @@ impl HirBasicBlock {
     }
 }
 
-struct ClassInfo {
+pub struct ClassInfo {
     pub fields: HashMap<String, (Option<TypedExpression>, usize)>,
     pub methods: HashMap<String, BlockId>,
 }
 
 impl ClassInfo {
-    pub fn new() -> Self {
-        ClassInfo {
-            fields: HashMap::new(),
-            methods: HashMap::new(),
-        }
+    pub fn new(
+        fields: HashMap<String, (Option<TypedExpression>, usize)>,
+        methods: HashMap<String, BlockId>,
+    ) -> Self {
+        ClassInfo { fields, methods }
+    }
+}
+
+impl Default for ClassInfo {
+    fn default() -> Self {
+        Self::new(HashMap::new(), HashMap::new())
     }
 }
 
@@ -361,10 +367,10 @@ impl HirContext {
                 name, expression, ..
             } => {
                 let slot = self.declare_variable(name);
-                let value = if let Some(expr) = expression {
-                    self.generate_expression(expr)
+                let value = if let Some(expression) = expression {
+                    self.generate_expression(expression)
                 } else {
-                    HirOperand::Constant("0".into())
+                    HirOperand::Void
                 };
 
                 if !matches!(value, HirOperand::Void) {
@@ -514,7 +520,7 @@ impl HirContext {
             } => self.generate_increment_or_decrement(
                 *expression,
                 postfix,
-                ExpressionBinaryOperator::Plus,
+                ExpressionBinaryOperator::Add,
             ),
             TypedExpression::Decrement {
                 expression,
@@ -523,7 +529,7 @@ impl HirContext {
             } => self.generate_increment_or_decrement(
                 *expression,
                 postfix,
-                ExpressionBinaryOperator::Minus,
+                ExpressionBinaryOperator::Sub,
             ),
             TypedExpression::Negate { expression, .. } => {
                 let operand = self.generate_expression(*expression);
@@ -532,7 +538,7 @@ impl HirContext {
                 self.emit(HirInstruction::BinaryOperator {
                     destination,
                     left: zero_const,
-                    operator: ExpressionBinaryOperator::Minus,
+                    operator: ExpressionBinaryOperator::Sub,
                     right: operand,
                 });
                 HirOperand::Value(destination)
@@ -721,7 +727,7 @@ impl HirContext {
                 }
             }
             AbstractSyntaxNode::Class { name } => {
-                let mut class_info = ClassInfo::new();
+                let mut class_info = ClassInfo::default();
                 let mut field_counter = 0;
 
                 for child in &ast.children {
@@ -761,11 +767,12 @@ impl HirContext {
 
 #[derive(Debug)]
 pub struct ControlFlowGraph {
+    pub register_counter: u64,
     pub blocks: Vec<HirBasicBlock>,
     pub entry_block: BlockId,
 }
 
-pub fn compile_hir(ast: TypedAbstractSyntaxTree) -> ControlFlowGraph {
+pub fn compile_hir(ast: TypedAbstractSyntaxTree) -> (ControlFlowGraph, HashMap<String, ClassInfo>) {
     let mut context = HirContext::new();
     context.scan_signatures(&ast);
     let entry_block = context.main_block.unwrap();
@@ -773,8 +780,12 @@ pub fn compile_hir(ast: TypedAbstractSyntaxTree) -> ControlFlowGraph {
     if !context.is_current_terminated() {
         context.emit_terminator(HirTerminator::Return(None));
     }
-    ControlFlowGraph {
-        blocks: context.blocks,
-        entry_block,
-    }
+    (
+        ControlFlowGraph {
+            register_counter: context.register_counter,
+            blocks: context.blocks,
+            entry_block,
+        },
+        context.classes,
+    )
 }

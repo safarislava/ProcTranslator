@@ -1,8 +1,10 @@
 use crate::translator::expression::ExpressionBinaryOperator;
 use crate::translator::hir::{
-    BlockId, ControlFlowGraph, HirInstruction, HirOperand, HirRegister, HirTerminator, StackSlot,
+    BlockId, ClassInfo, ControlFlowGraph, HirInstruction, HirOperand, HirRegister, HirTerminator,
+    StackSlot,
 };
 use std::collections::HashMap;
+use std::vec;
 
 pub struct ConstantId(pub u64);
 
@@ -113,7 +115,7 @@ pub enum LirInstruction {
         with: LirOperand,
     },
 
-    SetCond {
+    SetBool {
         condition: Condition,
         destination: LirOperand,
     },
@@ -129,15 +131,19 @@ pub enum LirInstruction {
         label: BlockId,
     },
     Ret,
+
+    AllocateStackFrame,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LirBlock {
     pub id: BlockId,
     pub instructions: Vec<LirInstruction>,
 }
 
 pub struct LirContext {
+    classes_size: HashMap<String, u64>,
+
     pub blocks: Vec<LirBlock>,
     virtual_register_counter: usize,
 
@@ -147,32 +153,65 @@ pub struct LirContext {
     pub constants_size: u64,
     pub constants: HashMap<String, ConstantId>,
 
+    return_registers: LirOperand,
+    offset_register: LirOperand,
+
+    restore_data_registers: Vec<LirOperand>,
+    restore_address_registers: Vec<LirOperand>,
+
+    heap_pointer: LirOperand,
     frame_pointer: LirOperand,
     stack_pointer: LirOperand,
+
+    allocated_data_registers: HashMap<usize, u8>,
+    allocated_address_registers: HashMap<usize, u8>,
+
+    spilled_data_registers: HashMap<usize, i32>,
+    spilled_address_registers: HashMap<usize, i32>,
 }
 
 impl LirContext {
-    pub fn new() -> Self {
+    pub fn new(register_counter: u64) -> Self {
         Self {
+            classes_size: HashMap::new(),
             blocks: vec![],
-            virtual_register_counter: 0,
+            virtual_register_counter: register_counter as usize,
             stack_size: 0,
             stack_offsets: HashMap::new(),
             constants_size: 0,
             constants: HashMap::new(),
+            return_registers: LirOperand::Register(0, RegisterType::Data),
+            offset_register: LirOperand::Register(5, RegisterType::Data),
+            restore_data_registers: vec![
+                LirOperand::Register(6, RegisterType::Data),
+                LirOperand::Register(7, RegisterType::Data),
+            ],
+            restore_address_registers: vec![
+                LirOperand::Register(3, RegisterType::Address),
+                LirOperand::Register(4, RegisterType::Address),
+            ],
+            heap_pointer: LirOperand::Register(5, RegisterType::Address),
             frame_pointer: LirOperand::Register(6, RegisterType::Address),
             stack_pointer: LirOperand::Register(7, RegisterType::Address),
+            allocated_data_registers: HashMap::new(),
+            allocated_address_registers: HashMap::new(),
+            spilled_data_registers: HashMap::new(),
+            spilled_address_registers: HashMap::new(),
         }
     }
 
-    fn next_virtual_register(&mut self, reg_type: RegisterType) -> LirOperand {
+    fn next_virtual_register(&mut self, register_type: RegisterType) -> LirOperand {
         let id = self.virtual_register_counter;
         self.virtual_register_counter += 1;
-        LirOperand::VirtualRegister(id, reg_type)
+        LirOperand::VirtualRegister(id, register_type)
     }
 
-    fn get_virtual_data_register(&self, reg: HirRegister) -> LirOperand {
-        LirOperand::VirtualRegister(reg.0 as usize, RegisterType::Data)
+    fn get_virtual_data_register(&self, register: HirRegister) -> LirOperand {
+        LirOperand::VirtualRegister(register.0 as usize, RegisterType::Data)
+    }
+
+    fn get_virtual_address_register(&self, register: HirRegister) -> LirOperand {
+        LirOperand::VirtualRegister(register.0 as usize, RegisterType::Address)
     }
 
     fn get_constant_address(&mut self, value: String) -> u64 {
@@ -249,12 +288,12 @@ impl LirContext {
                 });
 
                 match operator {
-                    ExpressionBinaryOperator::Plus => out.push(LirInstruction::Add {
+                    ExpressionBinaryOperator::Add => out.push(LirInstruction::Add {
                         size: WordSize::Long,
                         source: left_operand,
                         destination,
                     }),
-                    ExpressionBinaryOperator::Minus => out.push(LirInstruction::Sub {
+                    ExpressionBinaryOperator::Sub => out.push(LirInstruction::Sub {
                         size: WordSize::Long,
                         source: left_operand,
                         destination,
@@ -297,12 +336,12 @@ impl LirContext {
                             _ => unreachable!(),
                         };
 
-                        out.push(LirInstruction::SetCond {
+                        out.push(LirInstruction::SetBool {
                             condition,
                             destination,
                         });
-                    },
-                    _ => unreachable!()
+                    }
+                    _ => unreachable!(),
                 }
             }
             HirInstruction::Call {
@@ -335,7 +374,7 @@ impl LirContext {
 
                 out.push(LirInstruction::Mov {
                     size: WordSize::Long,
-                    source: LirOperand::Register(0, RegisterType::Data),
+                    source: self.return_registers.clone(),
                     destination: self.get_virtual_data_register(destination),
                 });
             }
@@ -351,7 +390,9 @@ impl LirContext {
                 out.push(LirInstruction::Mov {
                     size: WordSize::Long,
                     source: temp_register,
-                    destination: LirOperand::IndirectPreDecrement(Box::new(self.stack_pointer.clone())),
+                    destination: LirOperand::IndirectPreDecrement(Box::new(
+                        self.stack_pointer.clone(),
+                    )),
                 });
 
                 out.push(LirInstruction::Mova {
@@ -359,6 +400,8 @@ impl LirContext {
                     source: self.stack_pointer.clone(),
                     destination: self.frame_pointer.clone(),
                 });
+
+                out.push(LirInstruction::AllocateStackFrame);
             }
             HirInstruction::LoadParameter { destination, index } => {
                 let offset = index as u64 * 8 + 8;
@@ -382,12 +425,6 @@ impl LirContext {
             HirInstruction::StackAllocate { slot } => {
                 self.stack_size += 8;
                 self.stack_offsets.insert(slot, -self.stack_size);
-
-                out.push(LirInstruction::Sub {
-                    size: WordSize::Long,
-                    source: LirOperand::Direct(8),
-                    destination: self.stack_pointer.clone(),
-                });
             }
             HirInstruction::StackStore { slot, value } => {
                 let offset = *self.stack_offsets.get(&slot).unwrap() as i64;
@@ -491,14 +528,19 @@ impl LirContext {
             }
             HirInstruction::AllocateObject {
                 destination,
-                class_name: _,
+                class_name,
             } => {
-                let destination = self.get_virtual_data_register(destination);
-                out.push(LirInstruction::Call { label: 0 });
-                out.push(LirInstruction::Mov {
+                out.push(LirInstruction::Mova {
                     size: WordSize::Long,
-                    source: LirOperand::Register(0, RegisterType::Data),
-                    destination,
+                    source: self.heap_pointer.clone(),
+                    destination: self.get_virtual_address_register(destination),
+                });
+
+                let size = *self.classes_size.get(&class_name).unwrap();
+                out.push(LirInstruction::Add {
+                    size: WordSize::Long,
+                    source: LirOperand::Direct(size),
+                    destination: self.heap_pointer.clone(),
                 });
             }
         }
@@ -535,7 +577,7 @@ impl LirContext {
                     out.push(LirInstruction::Mov {
                         size: WordSize::Long,
                         source: return_value,
-                        destination: LirOperand::Register(0, RegisterType::Data),
+                        destination: self.return_registers.clone(),
                     });
                 }
 
@@ -563,15 +605,556 @@ impl LirContext {
     }
 }
 
+enum MemorySignal {
+    Read,
+    Write,
+    ReadWrite,
+}
+
+#[derive(Clone)]
+struct LifeInterval {
+    pub start: usize,
+    pub end: usize,
+}
+
+struct RegisterBatch {
+    registers: Vec<Option<(usize, LifeInterval)>>,
+    active_count: usize,
+    max_count: usize,
+    offset: usize,
+}
+
+impl RegisterBatch {
+    pub fn new(max_count: usize, offset: usize) -> Self {
+        Self {
+            registers: vec![None; max_count],
+            active_count: 0,
+            max_count,
+            offset,
+        }
+    }
+
+    pub fn clear_old_registers(&mut self, instruction_counter: usize) {
+        for register in self.registers.iter_mut() {
+            if let Some((_, register_interval)) = register
+                && register_interval.end < instruction_counter
+            {
+                *register = None;
+                self.active_count -= 1;
+            }
+        }
+    }
+}
+
+impl LirContext {
+    fn analyze_instruction(
+        counter: usize,
+        instruction: &LirInstruction,
+        data_interval: &mut HashMap<usize, LifeInterval>,
+        address_interval: &mut HashMap<usize, LifeInterval>,
+    ) {
+        let mut add_interval = |operand: &LirOperand| {
+            Self::record_operand_life_interval(operand, counter, data_interval, address_interval);
+        };
+
+        match instruction {
+            LirInstruction::Mov {
+                source,
+                destination,
+                ..
+            }
+            | LirInstruction::Mova {
+                source,
+                destination,
+                ..
+            }
+            | LirInstruction::Add {
+                source,
+                destination,
+                ..
+            }
+            | LirInstruction::Sub {
+                source,
+                destination,
+                ..
+            }
+            | LirInstruction::Mul {
+                source,
+                destination,
+                ..
+            }
+            | LirInstruction::Div {
+                source,
+                destination,
+                ..
+            }
+            | LirInstruction::Rem {
+                source,
+                destination,
+                ..
+            }
+            | LirInstruction::And {
+                source,
+                destination,
+                ..
+            }
+            | LirInstruction::Or {
+                source,
+                destination,
+                ..
+            }
+            | LirInstruction::Xor {
+                source,
+                destination,
+                ..
+            }
+            | LirInstruction::Not {
+                source,
+                destination,
+                ..
+            } => {
+                add_interval(source);
+                add_interval(destination);
+            }
+            LirInstruction::Cmp { that, with, .. } => {
+                add_interval(that);
+                add_interval(with);
+            }
+            LirInstruction::SetBool { destination, .. } => {
+                add_interval(destination);
+            }
+            _ => {}
+        }
+    }
+
+    fn record_operand_life_interval(
+        operand: &LirOperand,
+        counter: usize,
+        data_interval: &mut HashMap<usize, LifeInterval>,
+        address_interval: &mut HashMap<usize, LifeInterval>,
+    ) {
+        match operand {
+            LirOperand::VirtualRegister(register, register_type) => {
+                let events = match register_type {
+                    RegisterType::Data => &mut *data_interval,
+                    RegisterType::Address => &mut *address_interval,
+                };
+                events
+                    .entry(*register)
+                    .and_modify(|event| event.end = counter)
+                    .or_insert(LifeInterval {
+                        start: counter,
+                        end: counter,
+                    });
+            }
+            LirOperand::Indirect(register)
+            | LirOperand::IndirectPostIncrement(register)
+            | LirOperand::IndirectPreDecrement(register) => {
+                Self::record_operand_life_interval(
+                    register,
+                    counter,
+                    data_interval,
+                    address_interval,
+                );
+            }
+            LirOperand::IndirectOffset {
+                base,
+                offset_register,
+            } => {
+                Self::record_operand_life_interval(base, counter, data_interval, address_interval);
+                Self::record_operand_life_interval(
+                    offset_register,
+                    counter,
+                    data_interval,
+                    address_interval,
+                );
+            }
+            _ => {}
+        }
+    }
+
+    fn process_intervals(
+        &mut self,
+        intervals: &[(usize, LifeInterval)],
+        register_batch: &mut RegisterBatch,
+        register_type: RegisterType,
+    ) {
+        let (allocated_registers, spilled_registers) = match register_type {
+            RegisterType::Data => (
+                &mut self.allocated_data_registers,
+                &mut self.spilled_data_registers,
+            ),
+            RegisterType::Address => (
+                &mut self.allocated_address_registers,
+                &mut self.spilled_address_registers,
+            ),
+        };
+
+        for (virtual_register, interval) in intervals {
+            register_batch.clear_old_registers(interval.start);
+
+            if register_batch.active_count < register_batch.max_count {
+                for (i, slot) in register_batch.registers.iter_mut().enumerate() {
+                    if slot.is_none() {
+                        *slot = Some((*virtual_register, interval.clone()));
+                        register_batch.active_count += 1;
+                        allocated_registers
+                            .insert(*virtual_register, (i + register_batch.offset) as u8);
+                        break;
+                    }
+                }
+            } else {
+                let mut spill_candidate = None;
+                let mut farthest_end = 0;
+
+                for (i, register) in register_batch.registers.iter().enumerate() {
+                    if let Some((_, interval)) = register
+                        && interval.end > farthest_end
+                    {
+                        farthest_end = interval.end;
+                        spill_candidate = Some(i);
+                    }
+                }
+
+                if farthest_end > interval.end {
+                    let i = spill_candidate.unwrap();
+                    let (spilled_virtual_register, _) = register_batch.registers[i].take().unwrap();
+
+                    register_batch.registers[i] = Some((*virtual_register, interval.clone()));
+                    allocated_registers
+                        .insert(*virtual_register, (i + register_batch.offset) as u8);
+                    allocated_registers.remove(&spilled_virtual_register);
+
+                    self.stack_size += 8;
+                    spilled_registers.insert(spilled_virtual_register, -self.stack_size);
+                } else {
+                    self.stack_size += 8;
+                    spilled_registers.insert(*virtual_register, -self.stack_size);
+                }
+            }
+        }
+    }
+
+    fn compile_virtual_registers(&mut self) {
+        let mut instruction_counter = 0;
+        let mut data_register_life_interval: HashMap<usize, LifeInterval> = HashMap::new();
+        let mut address_register_life_interval: HashMap<usize, LifeInterval> = HashMap::new();
+
+        for block in &mut self.blocks {
+            for instruction in &mut block.instructions {
+                instruction_counter += 10;
+                Self::analyze_instruction(
+                    instruction_counter,
+                    instruction,
+                    &mut data_register_life_interval,
+                    &mut address_register_life_interval,
+                );
+            }
+        }
+
+        let mut data_intervals: Vec<(usize, LifeInterval)> =
+            data_register_life_interval.into_iter().collect();
+        data_intervals.sort_by_key(|(_, event)| event.start);
+
+        let mut address_intervals: Vec<(usize, LifeInterval)> =
+            address_register_life_interval.into_iter().collect();
+        address_intervals.sort_by_key(|(_, event)| event.start);
+
+        let mut data_register_batch = RegisterBatch::new(4, 1);
+        let mut address_register_batch = RegisterBatch::new(3, 0);
+
+        self.process_intervals(
+            &data_intervals,
+            &mut data_register_batch,
+            RegisterType::Data,
+        );
+
+        self.process_intervals(
+            &address_intervals,
+            &mut address_register_batch,
+            RegisterType::Address,
+        );
+
+        if self.stack_size > 0 {
+            for block in &mut self.blocks {
+                for instruction in &mut block.instructions {
+                    if matches!(instruction, LirInstruction::AllocateStackFrame) {
+                        *instruction = LirInstruction::Sub {
+                            size: WordSize::Long,
+                            source: LirOperand::Direct(self.stack_size as u64),
+                            destination: self.stack_pointer.clone(),
+                        };
+                    }
+                }
+            }
+        }
+
+        let mut blocks = self.blocks.clone();
+        for block in &mut blocks {
+            let mut new_instructions = Vec::new();
+            for mut instruction in block.instructions.drain(..) {
+                let mut pre_instructions = Vec::new();
+                let mut post_instructions = Vec::new();
+
+                self.allocate_instruction(
+                    &mut instruction,
+                    &mut pre_instructions,
+                    &mut post_instructions,
+                );
+
+                new_instructions.extend(pre_instructions);
+                new_instructions.push(instruction);
+                new_instructions.extend(post_instructions);
+            }
+            block.instructions = new_instructions;
+        }
+        self.blocks = blocks;
+    }
+
+    fn allocate_instruction(
+        &self,
+        instruction: &mut LirInstruction,
+        pre: &mut Vec<LirInstruction>,
+        post: &mut Vec<LirInstruction>,
+    ) {
+        let mut next_data_restore = 0;
+        let mut next_address_restore = 0;
+
+        let mut allocate_operand = |operand: &mut LirOperand, signal: MemorySignal| {
+            self.allocate_operand(
+                operand,
+                signal,
+                &mut next_data_restore,
+                &mut next_address_restore,
+                pre,
+                post,
+            );
+        };
+
+        match instruction {
+            LirInstruction::Mov {
+                source,
+                destination,
+                ..
+            }
+            | LirInstruction::Mova {
+                source,
+                destination,
+                ..
+            } => {
+                allocate_operand(source, MemorySignal::Read);
+                allocate_operand(destination, MemorySignal::Write);
+            }
+            LirInstruction::Add {
+                source,
+                destination,
+                ..
+            }
+            | LirInstruction::Sub {
+                source,
+                destination,
+                ..
+            }
+            | LirInstruction::Mul {
+                source,
+                destination,
+                ..
+            }
+            | LirInstruction::Div {
+                source,
+                destination,
+                ..
+            }
+            | LirInstruction::Rem {
+                source,
+                destination,
+                ..
+            }
+            | LirInstruction::And {
+                source,
+                destination,
+                ..
+            }
+            | LirInstruction::Or {
+                source,
+                destination,
+                ..
+            }
+            | LirInstruction::Xor {
+                source,
+                destination,
+                ..
+            } => {
+                allocate_operand(source, MemorySignal::Read);
+                allocate_operand(destination, MemorySignal::ReadWrite);
+            }
+            LirInstruction::Not {
+                source,
+                destination,
+                ..
+            } => {
+                allocate_operand(source, MemorySignal::Read);
+                allocate_operand(destination, MemorySignal::Write);
+            }
+            LirInstruction::Cmp { that, with, .. } => {
+                allocate_operand(that, MemorySignal::Read);
+                allocate_operand(with, MemorySignal::Read);
+            }
+            LirInstruction::SetBool { destination, .. } => {
+                allocate_operand(destination, MemorySignal::Write);
+            }
+            _ => {}
+        }
+    }
+
+    fn allocate_operand(
+        &self,
+        operand: &mut LirOperand,
+        signal: MemorySignal,
+        data_restore_register: &mut usize,
+        address_restore_register: &mut usize,
+        pre: &mut Vec<LirInstruction>,
+        post: &mut Vec<LirInstruction>,
+    ) {
+        match operand {
+            LirOperand::VirtualRegister(virtual_register, register_type) => {
+                let (register_map, spilled_map, restore_registers, next_restore_register) =
+                    match register_type {
+                        RegisterType::Data => (
+                            &self.allocated_data_registers,
+                            &self.spilled_data_registers,
+                            &self.restore_data_registers,
+                            data_restore_register,
+                        ),
+                        RegisterType::Address => (
+                            &self.allocated_address_registers,
+                            &self.spilled_address_registers,
+                            &self.restore_address_registers,
+                            address_restore_register,
+                        ),
+                    };
+
+                if let Some(&register) = register_map.get(virtual_register) {
+                    *operand = LirOperand::Register(register, *register_type);
+                } else if let Some(&offset) = spilled_map.get(virtual_register) {
+                    if *next_restore_register >= restore_registers.len() {
+                        panic!("Not enough restore registers for this instruction!");
+                    }
+                    let restore_register = restore_registers[*next_restore_register].clone();
+                    *next_restore_register += 1;
+
+                    let load_spilled = vec![
+                        LirInstruction::Mov {
+                            size: WordSize::Long,
+                            source: LirOperand::Direct(offset as u64),
+                            destination: self.offset_register.clone(),
+                        },
+                        LirInstruction::Mov {
+                            size: WordSize::Long,
+                            source: LirOperand::IndirectOffset {
+                                base: Box::new(self.frame_pointer.clone()),
+                                offset_register: Box::new(self.offset_register.clone()),
+                            },
+                            destination: restore_register.clone(),
+                        },
+                    ];
+
+                    let store_spilled = vec![
+                        LirInstruction::Mov {
+                            size: WordSize::Long,
+                            source: LirOperand::Direct(offset as u64),
+                            destination: self.offset_register.clone(),
+                        },
+                        LirInstruction::Mov {
+                            size: WordSize::Long,
+                            source: restore_register.clone(),
+                            destination: LirOperand::IndirectOffset {
+                                base: Box::new(self.frame_pointer.clone()),
+                                offset_register: Box::new(self.offset_register.clone()),
+                            },
+                        },
+                    ];
+
+                    match signal {
+                        MemorySignal::Read => {
+                            pre.extend(load_spilled);
+                        }
+                        MemorySignal::Write => {
+                            post.extend(store_spilled);
+                        }
+                        MemorySignal::ReadWrite => {
+                            pre.extend(load_spilled);
+                            post.extend(store_spilled);
+                        }
+                    }
+                    *operand = restore_register;
+                }
+            }
+            LirOperand::Indirect(register) => {
+                self.allocate_operand(
+                    register,
+                    MemorySignal::Read,
+                    data_restore_register,
+                    address_restore_register,
+                    pre,
+                    post,
+                );
+            }
+            LirOperand::IndirectPostIncrement(register)
+            | LirOperand::IndirectPreDecrement(register) => {
+                self.allocate_operand(
+                    register,
+                    MemorySignal::ReadWrite,
+                    data_restore_register,
+                    address_restore_register,
+                    pre,
+                    post,
+                );
+            }
+            LirOperand::IndirectOffset {
+                base,
+                offset_register,
+            } => {
+                self.allocate_operand(
+                    base,
+                    MemorySignal::Read,
+                    data_restore_register,
+                    address_restore_register,
+                    pre,
+                    post,
+                );
+                self.allocate_operand(
+                    offset_register,
+                    MemorySignal::Read,
+                    data_restore_register,
+                    address_restore_register,
+                    pre,
+                    post,
+                );
+            }
+            _ => {}
+        }
+    }
+}
+
+impl LirContext {
+    fn calculate_classes_size(&mut self, classes: HashMap<String, ClassInfo>) {
+        for (name, class) in &classes {
+            let class_size = (class.fields.len() * 8) as u64;
+            self.classes_size.insert(name.clone(), class_size);
+        }
+    }
+}
+
 pub fn compile_lir(
     control_flow_graph: ControlFlowGraph,
+    classes: HashMap<String, ClassInfo>,
 ) -> (Vec<LirBlock>, HashMap<String, ConstantId>) {
-    let mut context = LirContext::new();
+    let mut context = LirContext::new(control_flow_graph.register_counter);
+    context.calculate_classes_size(classes);
+
     context.lower(control_flow_graph);
+    context.compile_virtual_registers();
 
     (context.blocks, context.constants)
 }
-
-// A5 - heap, of course without gc
-// Check that new virtual registers don't conflict with elder
-// SetCond

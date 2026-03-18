@@ -1,4 +1,4 @@
-mod cfg_graphviz;
+mod control_flow_graph_graphviz;
 mod ir_instruction;
 mod operand;
 mod register;

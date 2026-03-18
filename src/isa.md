@@ -4,10 +4,17 @@ D0 - D7, A0 - A7, NZCV, PC
 
 Instructions
 -
+4 bytes - word size
+
+n operands instructions 
 - 7 bits - operator code
 - 1 bit - choice of size (0 - byte, 1 - long) 
-- next n bytes - operand's descriptions, 
-support concat for 64 bit
+- i byte - i operand
+
+Branch instructions
+- 7 bits - operator code
+- 1 bit - reserved
+- 8 bytes - address
 
 Operand Description 
 -
@@ -17,14 +24,14 @@ Operand Description
 
 Mode:
 -
-- 0x0 - #* - direct (next word after current instruction)
+- 0x0 - #* - direct (next word, it extends with sign)
 - 0x1 - D* - data register
 - 0x2 - A* - address register
 - 0x3 - (A*) - indirect
 - 0x4 - (A*)+ - indirect, post-increment
 - 0x5 - -(A*) - indirect, pre-decrement
 - 0x6 - (A*:D*) - indirect, with offset
-- 0x7 - (#*) - indirect, direct
+- 0x7 - (#*) - indirect, direct (next 2 words)
 
 Operator code:
 ---
@@ -123,7 +130,7 @@ Operator code:
 
 0x53 - BGE label
 
-0x54 BLT label
+0x54 - BLT label
 
 0x55 - BLE label
 

@@ -3,12 +3,14 @@ source: tests/ir_tests.rs
 expression: "format!(\"{:#?}\", cfg)"
 ---
 ControlFlowGraph {
+    register_counter: 41,
     blocks: [
-        BasicBlock {
+        HirBasicBlock {
             id: 0,
             instructions: [
+                CallPrologue,
                 LoadParameter {
-                    destination: Register(
+                    destination: HirRegister(
                         0,
                     ),
                     index: 0,
@@ -19,7 +21,7 @@ ControlFlowGraph {
                     ),
                 },
                 LoadParameter {
-                    destination: Register(
+                    destination: HirRegister(
                         1,
                     ),
                     index: 1,
@@ -29,13 +31,13 @@ ControlFlowGraph {
                         0,
                     ),
                     value: Value(
-                        Register(
+                        HirRegister(
                             1,
                         ),
                     ),
                 },
                 StackLoad {
-                    destination: Register(
+                    destination: HirRegister(
                         2,
                     ),
                     slot: StackSlot(
@@ -43,23 +45,23 @@ ControlFlowGraph {
                     ),
                 },
                 LoadConst {
-                    destination: Register(
+                    destination: HirRegister(
                         3,
                     ),
                     value: "5",
                 },
                 BinaryOperator {
-                    destination: Register(
+                    destination: HirRegister(
                         4,
                     ),
                     left: Value(
-                        Register(
+                        HirRegister(
                             2,
                         ),
                     ),
-                    operator: Plus,
+                    operator: Add,
                     right: Value(
-                        Register(
+                        HirRegister(
                             3,
                         ),
                     ),
@@ -69,7 +71,7 @@ ControlFlowGraph {
                 Return(
                     Some(
                         Value(
-                            Register(
+                            HirRegister(
                                 4,
                             ),
                         ),
@@ -79,11 +81,12 @@ ControlFlowGraph {
             predecessors: [],
             successors: [],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 1,
             instructions: [
+                CallPrologue,
                 LoadParameter {
-                    destination: Register(
+                    destination: HirRegister(
                         5,
                     ),
                     index: 0,
@@ -94,7 +97,7 @@ ControlFlowGraph {
                     ),
                 },
                 LoadConst {
-                    destination: Register(
+                    destination: HirRegister(
                         6,
                     ),
                     value: "0",
@@ -104,7 +107,7 @@ ControlFlowGraph {
                         1,
                     ),
                     value: Value(
-                        Register(
+                        HirRegister(
                             6,
                         ),
                     ),
@@ -115,7 +118,7 @@ ControlFlowGraph {
                     ),
                 },
                 LoadConst {
-                    destination: Register(
+                    destination: HirRegister(
                         7,
                     ),
                     value: "1",
@@ -125,13 +128,13 @@ ControlFlowGraph {
                         2,
                     ),
                     value: Value(
-                        Register(
+                        HirRegister(
                             7,
                         ),
                     ),
                 },
                 StackLoad {
-                    destination: Register(
+                    destination: HirRegister(
                         8,
                     ),
                     slot: StackSlot(
@@ -139,7 +142,7 @@ ControlFlowGraph {
                     ),
                 },
                 StackLoad {
-                    destination: Register(
+                    destination: HirRegister(
                         9,
                     ),
                     slot: StackSlot(
@@ -147,17 +150,17 @@ ControlFlowGraph {
                     ),
                 },
                 BinaryOperator {
-                    destination: Register(
+                    destination: HirRegister(
                         10,
                     ),
                     left: Value(
-                        Register(
+                        HirRegister(
                             8,
                         ),
                     ),
                     operator: Greater,
                     right: Value(
-                        Register(
+                        HirRegister(
                             9,
                         ),
                     ),
@@ -166,7 +169,7 @@ ControlFlowGraph {
             terminator: Some(
                 Branch {
                     condition: Value(
-                        Register(
+                        HirRegister(
                             10,
                         ),
                     ),
@@ -180,11 +183,11 @@ ControlFlowGraph {
                 3,
             ],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 2,
             instructions: [
                 StackLoad {
-                    destination: Register(
+                    destination: HirRegister(
                         11,
                     ),
                     slot: StackSlot(
@@ -192,29 +195,29 @@ ControlFlowGraph {
                     ),
                 },
                 LoadConst {
-                    destination: Register(
+                    destination: HirRegister(
                         12,
                     ),
                     value: "1",
                 },
                 BinaryOperator {
-                    destination: Register(
+                    destination: HirRegister(
                         13,
                     ),
                     left: Value(
-                        Register(
+                        HirRegister(
                             11,
                         ),
                     ),
-                    operator: Plus,
+                    operator: Add,
                     right: Value(
-                        Register(
+                        HirRegister(
                             12,
                         ),
                     ),
                 },
                 StackLoad {
-                    destination: Register(
+                    destination: HirRegister(
                         14,
                     ),
                     slot: StackSlot(
@@ -222,17 +225,17 @@ ControlFlowGraph {
                     ),
                 },
                 BinaryOperator {
-                    destination: Register(
+                    destination: HirRegister(
                         15,
                     ),
                     left: Value(
-                        Register(
+                        HirRegister(
                             13,
                         ),
                     ),
                     operator: Greater,
                     right: Value(
-                        Register(
+                        HirRegister(
                             14,
                         ),
                     ),
@@ -241,7 +244,7 @@ ControlFlowGraph {
             terminator: Some(
                 Branch {
                     condition: Value(
-                        Register(
+                        HirRegister(
                             15,
                         ),
                     ),
@@ -257,11 +260,11 @@ ControlFlowGraph {
                 5,
             ],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 3,
             instructions: [
                 StackLoad {
-                    destination: Register(
+                    destination: HirRegister(
                         16,
                     ),
                     slot: StackSlot(
@@ -269,7 +272,7 @@ ControlFlowGraph {
                     ),
                 },
                 StackLoad {
-                    destination: Register(
+                    destination: HirRegister(
                         17,
                     ),
                     slot: StackSlot(
@@ -277,17 +280,17 @@ ControlFlowGraph {
                     ),
                 },
                 BinaryOperator {
-                    destination: Register(
+                    destination: HirRegister(
                         18,
                     ),
                     left: Value(
-                        Register(
+                        HirRegister(
                             16,
                         ),
                     ),
                     operator: Less,
                     right: Value(
-                        Register(
+                        HirRegister(
                             17,
                         ),
                     ),
@@ -296,7 +299,7 @@ ControlFlowGraph {
             terminator: Some(
                 Branch {
                     condition: Value(
-                        Register(
+                        HirRegister(
                             18,
                         ),
                     ),
@@ -313,7 +316,7 @@ ControlFlowGraph {
                 8,
             ],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 4,
             instructions: [],
             terminator: Some(
@@ -328,7 +331,7 @@ ControlFlowGraph {
                 5,
             ],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 5,
             instructions: [],
             terminator: Some(
@@ -344,7 +347,7 @@ ControlFlowGraph {
                 6,
             ],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 6,
             instructions: [],
             terminator: Some(
@@ -359,7 +362,7 @@ ControlFlowGraph {
                 3,
             ],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 7,
             instructions: [],
             terminator: Some(
@@ -374,7 +377,7 @@ ControlFlowGraph {
                 8,
             ],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 8,
             instructions: [],
             terminator: Some(
@@ -390,7 +393,7 @@ ControlFlowGraph {
                 9,
             ],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 9,
             instructions: [],
             terminator: Some(
@@ -405,7 +408,7 @@ ControlFlowGraph {
                 10,
             ],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 10,
             instructions: [],
             terminator: Some(
@@ -420,11 +423,11 @@ ControlFlowGraph {
                 11,
             ],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 11,
             instructions: [
                 LoadConst {
-                    destination: Register(
+                    destination: HirRegister(
                         19,
                     ),
                     value: "true",
@@ -433,7 +436,7 @@ ControlFlowGraph {
             terminator: Some(
                 Branch {
                     condition: Value(
-                        Register(
+                        HirRegister(
                             19,
                         ),
                     ),
@@ -450,11 +453,11 @@ ControlFlowGraph {
                 13,
             ],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 12,
             instructions: [
                 StackLoad {
-                    destination: Register(
+                    destination: HirRegister(
                         20,
                     ),
                     slot: StackSlot(
@@ -462,23 +465,23 @@ ControlFlowGraph {
                     ),
                 },
                 LoadConst {
-                    destination: Register(
+                    destination: HirRegister(
                         21,
                     ),
                     value: "9",
                 },
                 BinaryOperator {
-                    destination: Register(
+                    destination: HirRegister(
                         22,
                     ),
                     left: Value(
-                        Register(
+                        HirRegister(
                             20,
                         ),
                     ),
                     operator: Equal,
                     right: Value(
-                        Register(
+                        HirRegister(
                             21,
                         ),
                     ),
@@ -487,7 +490,7 @@ ControlFlowGraph {
             terminator: Some(
                 Branch {
                     condition: Value(
-                        Register(
+                        HirRegister(
                             22,
                         ),
                     ),
@@ -503,7 +506,7 @@ ControlFlowGraph {
                 15,
             ],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 13,
             instructions: [
                 StackAllocate {
@@ -512,7 +515,7 @@ ControlFlowGraph {
                     ),
                 },
                 LoadConst {
-                    destination: Register(
+                    destination: HirRegister(
                         32,
                     ),
                     value: "2",
@@ -522,7 +525,7 @@ ControlFlowGraph {
                         3,
                     ),
                     value: Value(
-                        Register(
+                        HirRegister(
                             32,
                         ),
                     ),
@@ -541,11 +544,11 @@ ControlFlowGraph {
                 20,
             ],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 14,
             instructions: [
                 StackLoad {
-                    destination: Register(
+                    destination: HirRegister(
                         23,
                     ),
                     slot: StackSlot(
@@ -553,15 +556,15 @@ ControlFlowGraph {
                     ),
                 },
                 BinaryOperator {
-                    destination: Register(
+                    destination: HirRegister(
                         24,
                     ),
                     left: Value(
-                        Register(
+                        HirRegister(
                             23,
                         ),
                     ),
-                    operator: Plus,
+                    operator: Add,
                     right: Constant(
                         "1",
                     ),
@@ -571,7 +574,7 @@ ControlFlowGraph {
                         1,
                     ),
                     value: Value(
-                        Register(
+                        HirRegister(
                             24,
                         ),
                     ),
@@ -589,11 +592,11 @@ ControlFlowGraph {
                 15,
             ],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 15,
             instructions: [
                 StackLoad {
-                    destination: Register(
+                    destination: HirRegister(
                         25,
                     ),
                     slot: StackSlot(
@@ -601,23 +604,23 @@ ControlFlowGraph {
                     ),
                 },
                 LoadConst {
-                    destination: Register(
+                    destination: HirRegister(
                         26,
                     ),
                     value: "10",
                 },
                 BinaryOperator {
-                    destination: Register(
+                    destination: HirRegister(
                         27,
                     ),
                     left: Value(
-                        Register(
+                        HirRegister(
                             25,
                         ),
                     ),
                     operator: Equal,
                     right: Value(
-                        Register(
+                        HirRegister(
                             26,
                         ),
                     ),
@@ -626,7 +629,7 @@ ControlFlowGraph {
             terminator: Some(
                 Branch {
                     condition: Value(
-                        Register(
+                        HirRegister(
                             27,
                         ),
                     ),
@@ -643,7 +646,7 @@ ControlFlowGraph {
                 17,
             ],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 16,
             instructions: [],
             terminator: Some(
@@ -658,7 +661,7 @@ ControlFlowGraph {
                 13,
             ],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 17,
             instructions: [],
             terminator: Some(
@@ -673,7 +676,7 @@ ControlFlowGraph {
                 18,
             ],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 18,
             instructions: [],
             terminator: Some(
@@ -688,11 +691,11 @@ ControlFlowGraph {
                 19,
             ],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 19,
             instructions: [
                 StackLoad {
-                    destination: Register(
+                    destination: HirRegister(
                         28,
                     ),
                     slot: StackSlot(
@@ -700,40 +703,40 @@ ControlFlowGraph {
                     ),
                 },
                 LoadConst {
-                    destination: Register(
+                    destination: HirRegister(
                         29,
                     ),
                     value: "1",
                 },
                 BinaryOperator {
-                    destination: Register(
+                    destination: HirRegister(
                         30,
                     ),
                     left: Value(
-                        Register(
+                        HirRegister(
                             28,
                         ),
                     ),
-                    operator: Plus,
+                    operator: Add,
                     right: Value(
-                        Register(
+                        HirRegister(
                             29,
                         ),
                     ),
                 },
                 Call {
-                    destination: Register(
+                    destination: HirRegister(
                         31,
                     ),
                     block: 0,
                     arguments: [
                         Value(
-                            Register(
+                            HirRegister(
                                 5,
                             ),
                         ),
                         Value(
-                            Register(
+                            HirRegister(
                                 30,
                             ),
                         ),
@@ -744,7 +747,7 @@ ControlFlowGraph {
                         1,
                     ),
                     value: Value(
-                        Register(
+                        HirRegister(
                             31,
                         ),
                     ),
@@ -762,11 +765,11 @@ ControlFlowGraph {
                 11,
             ],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 20,
             instructions: [
                 StackLoad {
-                    destination: Register(
+                    destination: HirRegister(
                         33,
                     ),
                     slot: StackSlot(
@@ -774,23 +777,23 @@ ControlFlowGraph {
                     ),
                 },
                 LoadConst {
-                    destination: Register(
+                    destination: HirRegister(
                         34,
                     ),
                     value: "10",
                 },
                 BinaryOperator {
-                    destination: Register(
+                    destination: HirRegister(
                         35,
                     ),
                     left: Value(
-                        Register(
+                        HirRegister(
                             33,
                         ),
                     ),
                     operator: Less,
                     right: Value(
-                        Register(
+                        HirRegister(
                             34,
                         ),
                     ),
@@ -799,7 +802,7 @@ ControlFlowGraph {
             terminator: Some(
                 Branch {
                     condition: Value(
-                        Register(
+                        HirRegister(
                             35,
                         ),
                     ),
@@ -816,11 +819,11 @@ ControlFlowGraph {
                 22,
             ],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 21,
             instructions: [
                 StackLoad {
-                    destination: Register(
+                    destination: HirRegister(
                         36,
                     ),
                     slot: StackSlot(
@@ -828,29 +831,29 @@ ControlFlowGraph {
                     ),
                 },
                 LoadConst {
-                    destination: Register(
+                    destination: HirRegister(
                         37,
                     ),
                     value: "2",
                 },
                 BinaryOperator {
-                    destination: Register(
+                    destination: HirRegister(
                         38,
                     ),
                     left: Value(
-                        Register(
+                        HirRegister(
                             36,
                         ),
                     ),
                     operator: AssignAdd,
                     right: Value(
-                        Register(
+                        HirRegister(
                             37,
                         ),
                     ),
                 },
                 StackLoad {
-                    destination: Register(
+                    destination: HirRegister(
                         39,
                     ),
                     slot: StackSlot(
@@ -858,15 +861,15 @@ ControlFlowGraph {
                     ),
                 },
                 BinaryOperator {
-                    destination: Register(
+                    destination: HirRegister(
                         40,
                     ),
                     left: Value(
-                        Register(
+                        HirRegister(
                             39,
                         ),
                     ),
-                    operator: Plus,
+                    operator: Add,
                     right: Constant(
                         "1",
                     ),
@@ -876,7 +879,7 @@ ControlFlowGraph {
                         3,
                     ),
                     value: Value(
-                        Register(
+                        HirRegister(
                             40,
                         ),
                     ),
@@ -894,7 +897,7 @@ ControlFlowGraph {
                 20,
             ],
         },
-        BasicBlock {
+        HirBasicBlock {
             id: 22,
             instructions: [],
             terminator: Some(
