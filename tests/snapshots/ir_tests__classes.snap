@@ -5,7 +5,7 @@ expression: "format!(\"{:#?}\", cfg)"
 ControlFlowGraph {
     register_counter: 11,
     blocks: [
-        HirBasicBlock {
+        HirBlock {
             id: 0,
             instructions: [
                 CallPrologue,
@@ -68,7 +68,7 @@ ControlFlowGraph {
             predecessors: [],
             successors: [],
         },
-        HirBasicBlock {
+        HirBlock {
             id: 1,
             instructions: [
                 CallPrologue,

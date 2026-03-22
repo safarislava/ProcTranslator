@@ -5,7 +5,7 @@ expression: "format!(\"{:#?}\", cfg)"
 ControlFlowGraph {
     register_counter: 41,
     blocks: [
-        HirBasicBlock {
+        HirBlock {
             id: 0,
             instructions: [
                 CallPrologue,
@@ -81,7 +81,7 @@ ControlFlowGraph {
             predecessors: [],
             successors: [],
         },
-        HirBasicBlock {
+        HirBlock {
             id: 1,
             instructions: [
                 CallPrologue,
@@ -183,7 +183,7 @@ ControlFlowGraph {
                 3,
             ],
         },
-        HirBasicBlock {
+        HirBlock {
             id: 2,
             instructions: [
                 StackLoad {
@@ -260,7 +260,7 @@ ControlFlowGraph {
                 5,
             ],
         },
-        HirBasicBlock {
+        HirBlock {
             id: 3,
             instructions: [
                 StackLoad {
@@ -316,7 +316,7 @@ ControlFlowGraph {
                 8,
             ],
         },
-        HirBasicBlock {
+        HirBlock {
             id: 4,
             instructions: [],
             terminator: Some(
@@ -331,7 +331,7 @@ ControlFlowGraph {
                 5,
             ],
         },
-        HirBasicBlock {
+        HirBlock {
             id: 5,
             instructions: [],
             terminator: Some(
@@ -347,7 +347,7 @@ ControlFlowGraph {
                 6,
             ],
         },
-        HirBasicBlock {
+        HirBlock {
             id: 6,
             instructions: [],
             terminator: Some(
@@ -362,7 +362,7 @@ ControlFlowGraph {
                 3,
             ],
         },
-        HirBasicBlock {
+        HirBlock {
             id: 7,
             instructions: [],
             terminator: Some(
@@ -377,7 +377,7 @@ ControlFlowGraph {
                 8,
             ],
         },
-        HirBasicBlock {
+        HirBlock {
             id: 8,
             instructions: [],
             terminator: Some(
@@ -393,7 +393,7 @@ ControlFlowGraph {
                 9,
             ],
         },
-        HirBasicBlock {
+        HirBlock {
             id: 9,
             instructions: [],
             terminator: Some(
@@ -408,7 +408,7 @@ ControlFlowGraph {
                 10,
             ],
         },
-        HirBasicBlock {
+        HirBlock {
             id: 10,
             instructions: [],
             terminator: Some(
@@ -423,7 +423,7 @@ ControlFlowGraph {
                 11,
             ],
         },
-        HirBasicBlock {
+        HirBlock {
             id: 11,
             instructions: [
                 LoadConst {
@@ -453,7 +453,7 @@ ControlFlowGraph {
                 13,
             ],
         },
-        HirBasicBlock {
+        HirBlock {
             id: 12,
             instructions: [
                 StackLoad {
@@ -506,7 +506,7 @@ ControlFlowGraph {
                 15,
             ],
         },
-        HirBasicBlock {
+        HirBlock {
             id: 13,
             instructions: [
                 StackAllocate {
@@ -544,7 +544,7 @@ ControlFlowGraph {
                 20,
             ],
         },
-        HirBasicBlock {
+        HirBlock {
             id: 14,
             instructions: [
                 StackLoad {
@@ -592,7 +592,7 @@ ControlFlowGraph {
                 15,
             ],
         },
-        HirBasicBlock {
+        HirBlock {
             id: 15,
             instructions: [
                 StackLoad {
@@ -646,7 +646,7 @@ ControlFlowGraph {
                 17,
             ],
         },
-        HirBasicBlock {
+        HirBlock {
             id: 16,
             instructions: [],
             terminator: Some(
@@ -661,7 +661,7 @@ ControlFlowGraph {
                 13,
             ],
         },
-        HirBasicBlock {
+        HirBlock {
             id: 17,
             instructions: [],
             terminator: Some(
@@ -676,7 +676,7 @@ ControlFlowGraph {
                 18,
             ],
         },
-        HirBasicBlock {
+        HirBlock {
             id: 18,
             instructions: [],
             terminator: Some(
@@ -691,7 +691,7 @@ ControlFlowGraph {
                 19,
             ],
         },
-        HirBasicBlock {
+        HirBlock {
             id: 19,
             instructions: [
                 StackLoad {
@@ -765,7 +765,7 @@ ControlFlowGraph {
                 11,
             ],
         },
-        HirBasicBlock {
+        HirBlock {
             id: 20,
             instructions: [
                 StackLoad {
@@ -819,7 +819,7 @@ ControlFlowGraph {
                 22,
             ],
         },
-        HirBasicBlock {
+        HirBlock {
             id: 21,
             instructions: [
                 StackLoad {
@@ -897,7 +897,7 @@ ControlFlowGraph {
                 20,
             ],
         },
-        HirBasicBlock {
+        HirBlock {
             id: 22,
             instructions: [],
             terminator: Some(

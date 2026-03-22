@@ -1,3 +1,4 @@
+use crate::isa::WordSize;
 use crate::translator::expression::ExpressionBinaryOperator;
 use crate::translator::hir::{
     BlockId, ClassInfo, ControlFlowGraph, HirInstruction, HirOperand, HirRegister, HirTerminator,
@@ -6,13 +7,7 @@ use crate::translator::hir::{
 use std::collections::HashMap;
 use std::vec;
 
-pub struct ConstantId(pub u64);
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum WordSize {
-    Byte = 0,
-    Long = 1,
-}
+pub type ConstantAddress = u64;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RegisterType {
@@ -22,7 +17,7 @@ pub enum RegisterType {
 
 #[derive(Debug, Clone)]
 pub enum LirOperand {
-    Direct(u64),
+    Direct(u32),
     VirtualRegister(usize, RegisterType),
     Register(u8, RegisterType),
     Indirect(Box<LirOperand>),
@@ -124,7 +119,7 @@ pub enum LirInstruction {
         label: BlockId,
     },
     Branch {
-        cond: Condition,
+        condition: Condition,
         label: BlockId,
     },
     Call {
@@ -142,7 +137,7 @@ pub struct LirBlock {
 }
 
 pub struct LirContext {
-    classes_size: HashMap<String, u64>,
+    classes_size: HashMap<String, u32>,
 
     pub blocks: Vec<LirBlock>,
     virtual_register_counter: usize,
@@ -151,7 +146,7 @@ pub struct LirContext {
     stack_offsets: HashMap<StackSlot, i32>,
 
     pub constants_size: u64,
-    pub constants: HashMap<String, ConstantId>,
+    pub constants: HashMap<String, ConstantAddress>,
 
     return_registers: LirOperand,
     offset_register: LirOperand,
@@ -216,11 +211,11 @@ impl LirContext {
 
     fn get_constant_address(&mut self, value: String) -> u64 {
         if let Some(id) = self.constants.get(&value) {
-            id.0
+            *id
         } else {
             let address = self.constants_size;
-            self.constants.insert(value, ConstantId(address));
-            self.constants_size += 8;
+            self.constants.insert(value, address);
+            self.constants_size += 8; // todo
             address
         }
     }
@@ -367,7 +362,7 @@ impl LirContext {
                 if arguments_count > 0 {
                     out.push(LirInstruction::Add {
                         size: WordSize::Long,
-                        source: LirOperand::Direct((arguments_count * 8) as u64),
+                        source: LirOperand::Direct((arguments_count * 8) as u32),
                         destination: self.stack_pointer.clone(),
                     });
                 }
@@ -404,7 +399,7 @@ impl LirContext {
                 out.push(LirInstruction::AllocateStackFrame);
             }
             HirInstruction::LoadParameter { destination, index } => {
-                let offset = index as u64 * 8 + 8;
+                let offset = index as u32 * 8 + 8;
                 let offset_register = self.next_virtual_register(RegisterType::Data);
 
                 out.push(LirInstruction::Mov {
@@ -433,7 +428,7 @@ impl LirContext {
 
                 out.push(LirInstruction::Mov {
                     size: WordSize::Long,
-                    source: LirOperand::Direct(offset as u64),
+                    source: LirOperand::Direct(offset as u32),
                     destination: offset_register.clone(),
                 });
                 out.push(LirInstruction::Mov {
@@ -451,7 +446,7 @@ impl LirContext {
 
                 out.push(LirInstruction::Mov {
                     size: WordSize::Long,
-                    source: LirOperand::Direct(offset as u64),
+                    source: LirOperand::Direct(offset as u32),
                     destination: offset_register.clone(),
                 });
                 out.push(LirInstruction::Mov {
@@ -469,7 +464,7 @@ impl LirContext {
                 offset,
             } => {
                 let object = self.lower_operand(object);
-                let offset = (offset * 8) as u64;
+                let offset = (offset * 8) as u32;
 
                 let object_address_register = self.next_virtual_register(RegisterType::Address);
                 let offset_register = self.next_virtual_register(RegisterType::Data);
@@ -501,7 +496,7 @@ impl LirContext {
             } => {
                 let object = self.lower_operand(object);
                 let value = self.lower_operand(value);
-                let offset = (offset * 8) as u64;
+                let offset = (offset * 8) as u32;
 
                 let object_address_register = self.next_virtual_register(RegisterType::Address);
                 let offset_register = self.next_virtual_register(RegisterType::Data);
@@ -565,7 +560,7 @@ impl LirContext {
                 });
 
                 out.push(LirInstruction::Branch {
-                    cond: Condition::Equal,
+                    condition: Condition::Equal,
                     label: false_block,
                 });
 
@@ -602,6 +597,31 @@ impl LirContext {
                 out.push(LirInstruction::Ret);
             }
         }
+    }
+
+    fn create_entry_point(&mut self, main_block_id: BlockId) {
+        let instructions = vec![
+            LirInstruction::Mov {
+                size: WordSize::Long,
+                source: LirOperand::Direct(99999),
+                destination: self.stack_pointer.clone(),
+            },
+            LirInstruction::Mov {
+                size: WordSize::Long,
+                source: LirOperand::Direct(40000),
+                destination: self.heap_pointer.clone(),
+            },
+            LirInstruction::Call {
+                label: main_block_id,
+            },
+        ];
+
+        let entry_block = LirBlock {
+            id: BlockId::MAX,
+            instructions,
+        };
+
+        self.blocks.insert(0, entry_block);
     }
 }
 
@@ -881,9 +901,9 @@ impl LirContext {
                     if matches!(instruction, LirInstruction::AllocateStackFrame) {
                         *instruction = LirInstruction::Sub {
                             size: WordSize::Long,
-                            source: LirOperand::Direct(self.stack_size as u64),
+                            source: LirOperand::Direct(self.stack_size as u32),
                             destination: self.stack_pointer.clone(),
-                        };
+                        }; // todo
                     }
                 }
             }
@@ -1046,7 +1066,7 @@ impl LirContext {
                     let load_spilled = vec![
                         LirInstruction::Mov {
                             size: WordSize::Long,
-                            source: LirOperand::Direct(offset as u64),
+                            source: LirOperand::Direct(offset as u32),
                             destination: self.offset_register.clone(),
                         },
                         LirInstruction::Mov {
@@ -1062,7 +1082,7 @@ impl LirContext {
                     let store_spilled = vec![
                         LirInstruction::Mov {
                             size: WordSize::Long,
-                            source: LirOperand::Direct(offset as u64),
+                            source: LirOperand::Direct(offset as u32),
                             destination: self.offset_register.clone(),
                         },
                         LirInstruction::Mov {
@@ -1131,6 +1151,22 @@ impl LirContext {
                     pre,
                     post,
                 );
+                if let LirOperand::Register(register, RegisterType::Data) = **offset_register
+                    && register < 4
+                {
+                    if *data_restore_register >= self.restore_data_registers.len() {
+                        panic!("Not enough restore registers to legalize IndirectOffset index!");
+                    }
+                    let valid_register =
+                        self.restore_data_registers[*data_restore_register].clone();
+                    *data_restore_register += 1;
+                    pre.push(LirInstruction::Mov {
+                        size: WordSize::Long,
+                        source: LirOperand::Register(register, RegisterType::Data),
+                        destination: valid_register.clone(),
+                    });
+                    **offset_register = valid_register;
+                }
             }
             _ => {}
         }
@@ -1140,7 +1176,7 @@ impl LirContext {
 impl LirContext {
     fn calculate_classes_size(&mut self, classes: HashMap<String, ClassInfo>) {
         for (name, class) in &classes {
-            let class_size = (class.fields.len() * 8) as u64;
+            let class_size = (class.fields.len() * 8) as u32;
             self.classes_size.insert(name.clone(), class_size);
         }
     }
@@ -1149,11 +1185,14 @@ impl LirContext {
 pub fn compile_lir(
     control_flow_graph: ControlFlowGraph,
     classes: HashMap<String, ClassInfo>,
-) -> (Vec<LirBlock>, HashMap<String, ConstantId>) {
+) -> (Vec<LirBlock>, HashMap<String, ConstantAddress>) {
     let mut context = LirContext::new(control_flow_graph.register_counter);
     context.calculate_classes_size(classes);
 
+    let entry_point = control_flow_graph.entry_block;
     context.lower(control_flow_graph);
+    context.create_entry_point(entry_point);
+
     context.compile_virtual_registers();
 
     (context.blocks, context.constants)

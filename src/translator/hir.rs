@@ -83,7 +83,7 @@ pub enum HirTerminator {
 }
 
 #[derive(Debug, Clone)]
-pub struct HirBasicBlock {
+pub struct HirBlock {
     pub id: BlockId,
     pub instructions: Vec<HirInstruction>,
     pub terminator: Option<HirTerminator>,
@@ -91,7 +91,7 @@ pub struct HirBasicBlock {
     pub successors: Vec<BlockId>,
 }
 
-impl HirBasicBlock {
+impl HirBlock {
     pub fn new(id: BlockId) -> Self {
         Self {
             id,
@@ -124,7 +124,7 @@ impl Default for ClassInfo {
 }
 
 struct HirContext {
-    pub blocks: Vec<HirBasicBlock>,
+    pub blocks: Vec<HirBlock>,
     current_block: Option<BlockId>,
     register_counter: u64,
     slot_counter: u64,
@@ -168,7 +168,7 @@ impl HirContext {
 
     fn create_block(&mut self) -> BlockId {
         let id = self.blocks.len();
-        self.blocks.push(HirBasicBlock::new(id));
+        self.blocks.push(HirBlock::new(id));
         id
     }
 
@@ -768,7 +768,7 @@ impl HirContext {
 #[derive(Debug)]
 pub struct ControlFlowGraph {
     pub register_counter: u64,
-    pub blocks: Vec<HirBasicBlock>,
+    pub blocks: Vec<HirBlock>,
     pub entry_block: BlockId,
 }
 

@@ -39,15 +39,15 @@ Operator code:
 
 ---
 0x01 - MOV.size from, to
-- from = {#* | D* | MEMORY}
-- to = {D* | MEMORY}
+- from = {#* | D* | A* | MEMORY}
+- to = {D* | A* | MEMORY}
 
 0x02 - MOVA.size from, to
 - from = {D* | A*}
 - to = {D* | A*}
 ---
 0x10 - ADD.size from, to
-- from = {#* | D* | MEMORY}
+- from = {#* | D* | A* | MEMORY}
 - to = {D* | MEMORY}
 - Set NZCV flags
 

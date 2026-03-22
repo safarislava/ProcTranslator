@@ -1,23 +1,29 @@
 use proc_translator::machine::control_unit::ControlUnit;
-use proc_translator::translator::common::{ResBox, compile_to_hir, dump_to_file};
+use proc_translator::translator::asm_translator::{translate};
+use proc_translator::translator::common::{ResBox, compile_to_hir, compile_to_lir, dump_to_file};
 
 fn main() {
-    let program = vec![
-        0b00000011_00000000_00100000_00000000,
-        0x00_00_00_04,
-        0b00000011_00000000_00100100_00000000,
-        0x00_00_00_05,
-        0b00000101_00100000_00100100_00000000,
-    ];
+    let content = std::fs::read_to_string("examples/correct/calc.java").unwrap();
+    let (text_section, data_section) = compile_to_lir(&content).unwrap();
+    let program = translate(text_section, data_section);
+    machine(24, &program);
+    println!("End of program");
+}
+
+fn machine(start: u64, program: &[u8]) {
     let mut control_unit = ControlUnit::default();
-    control_unit.load_program(&program);
+    control_unit.load_program(program);
+    control_unit.set_pc(start);
     loop {
         let stop = control_unit.execute_instruction();
         if stop {
             break;
         }
     }
+}
 
+#[allow(dead_code)]
+fn create_cfg_schemes() {
     create_cfg_scheme("return").unwrap();
     create_cfg_scheme("classes").unwrap();
     create_cfg_scheme("scopes").unwrap();

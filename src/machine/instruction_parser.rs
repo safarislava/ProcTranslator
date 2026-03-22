@@ -61,7 +61,7 @@ impl InstructionParser {
     }
 
     pub fn parse_operator(&self, word: u32) -> (Operator, WordSize) {
-        let operator_code = ((word >> 25) & 0x7) as u8;
+        let operator_code = ((word >> 25) & 0x7f) as u8;
         let word_size_code = ((word >> 24) & 0x1) as u8;
         (
             self.operators[&operator_code].clone(),
@@ -72,7 +72,7 @@ impl InstructionParser {
     pub fn parse_operand(&self, word: u8) -> Operand {
         let mode_code = (word >> 5) & 0x7;
         let main_register = (word >> 2) & 0x7;
-        let offset_register = word & 0x3;
+        let offset_register = (word & 0x3) + 4;
         Operand {
             mode: self.modes[&mode_code].clone(),
             main_register,

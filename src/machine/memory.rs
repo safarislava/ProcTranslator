@@ -44,6 +44,7 @@ impl Memory {
         self.data[address as usize] = value;
     }
 
+    #[allow(dead_code)]
     pub fn write_u32(&mut self, address: u64, value: u32) {
         for i in 0..4 {
             self.data[address as usize + i] = ((value >> ((3 - i) * 8)) & 0xff) as u8;

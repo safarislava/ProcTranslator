@@ -34,9 +34,15 @@ pub struct ControlUnit {
     word_size: WordSize,
 
     pc: u64,
+
+    debug: u64,
 }
 
 impl ControlUnit {
+    pub fn set_pc(&mut self, pc: u64) {
+        self.pc = pc;
+    }
+
     pub fn latch_pc(&mut self, signal: PcSelector) {
         self.pc = match signal {
             PcSelector::NextByte => self.pc + 1,
@@ -48,6 +54,7 @@ impl ControlUnit {
     }
 
     pub fn latch_buffer_n_word(&mut self, n: u8) {
+        self.buffer &= 0xffffffff << (32 * n);
         self.buffer |= (self.instruction_decoder_output as u64) << (32 * (1 - n));
     }
 
@@ -58,6 +65,7 @@ impl ControlUnit {
     pub fn execute_instruction(&mut self) -> bool {
         self.latch_read_data();
         let (operator, word_size) = self.instruction_parser.parse_operator(self.read_data);
+        self.debug += 1;
         self.word_size = word_size;
         match operator {
             Operator::Hlt => return true,
@@ -148,26 +156,23 @@ impl ControlUnit {
     }
 
     pub fn parse_register(&mut self, byte: u8) -> Operand {
-        let offset = (4 - byte) * 8;
-        let operand = (self.read_data & (0xff << offset) >> offset) as u8;
+        let offset = (3 - byte) * 8;
+        let operand = ((self.read_data & (0xff << offset)) >> offset) as u8;
         let operand = self.instruction_parser.parse_operand(operand);
         assert!(operand.mode == Mode::AddressRegister || operand.mode == Mode::DataRegister);
         operand
     }
 
     pub fn parse_data_readable(&mut self, byte: u8) -> Operand {
-        let offset = (4 - byte) * 8;
-        let operand = (self.read_data & (0xff << offset) >> offset) as u8;
-        let operand = self.instruction_parser.parse_operand(operand);
-        assert!(operand.mode != Mode::AddressRegister);
-        operand
+        let offset = (3 - byte) * 8;
+        let operand = ((self.read_data & (0xff << offset)) >> offset) as u8;
+        self.instruction_parser.parse_operand(operand)
     }
 
     pub fn parse_data_writable(&mut self, byte: u8) -> Operand {
-        let offset = (4 - byte) * 8;
-        let operand = (self.read_data & (0xff << offset) >> offset) as u8;
+        let offset = (3 - byte) * 8;
+        let operand = ((self.read_data & (0xff << offset)) >> offset) as u8;
         let operand = self.instruction_parser.parse_operand(operand);
-        assert!(operand.mode != Mode::AddressRegister);
         assert!(operand.mode != Mode::Direct);
         operand
     }
@@ -251,7 +256,7 @@ impl ControlUnit {
             Mode::IndirectPostIncrement => {
                 match order {
                     Order::First => self.data_path.execute_alu(AluOperator::Trr),
-                    Order::Second => self.data_path.execute_alu(AluOperator::Trr),
+                    Order::Second => self.data_path.execute_alu(AluOperator::Trl),
                 }
                 self.data_path.latch_buffer();
 
@@ -291,7 +296,7 @@ impl ControlUnit {
             Mode::IndirectPreDecrement => {
                 match order {
                     Order::First => self.data_path.execute_alu(AluOperator::Trr),
-                    Order::Second => self.data_path.execute_alu(AluOperator::Trr),
+                    Order::Second => self.data_path.execute_alu(AluOperator::Trl),
                 }
                 self.data_path.latch_buffer();
 
@@ -331,7 +336,7 @@ impl ControlUnit {
             Mode::IndirectOffset => {
                 match order {
                     Order::First => self.data_path.execute_alu(AluOperator::Trr),
-                    Order::Second => self.data_path.execute_alu(AluOperator::Trr),
+                    Order::Second => self.data_path.execute_alu(AluOperator::Trl),
                 }
                 self.data_path.latch_buffer();
 
@@ -416,9 +421,9 @@ impl ControlUnit {
 }
 
 impl ControlUnit {
-    pub fn load_program(&mut self, program: &[u32]) {
+    pub fn load_program(&mut self, program: &[u8]) {
         for (i, word) in program.iter().enumerate() {
-            self.program_memory.write_u32(i as u64, *word);
+            self.program_memory.write_u8(i as u64, *word);
         }
     }
 }
@@ -428,7 +433,7 @@ impl Default for ControlUnit {
         Self {
             instruction_parser: InstructionParser::new(),
             data_path: DataPath::default(),
-            program_memory: Memory::new(100),
+            program_memory: Memory::new(100000),
             stack: Stack::new(),
             read_data: 0,
             pc: 0,
@@ -436,6 +441,7 @@ impl Default for ControlUnit {
             buffer: 0,
             instruction_decoder_output: 0,
             word_size: WordSize::Long,
+            debug: 0,
         }
     }
 }

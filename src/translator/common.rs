@@ -1,6 +1,6 @@
 use crate::translator::expression::Expression;
 use crate::translator::hir::ControlFlowGraph;
-use crate::translator::lir::{ConstantId, LirBlock};
+use crate::translator::lir::{ConstantAddress, LirBlock};
 use crate::translator::{analyzer, ast, hir, lir, parser, simplifier};
 use std::collections::HashMap;
 use std::error::Error;
@@ -105,7 +105,7 @@ pub fn compile_to_hir(content: &str) -> ResBox<ControlFlowGraph> {
     Ok(control_flow_graph)
 }
 
-pub fn compile_to_lir(content: &str) -> ResBox<(Vec<LirBlock>, HashMap<String, ConstantId>)> {
+pub fn compile_to_lir(content: &str) -> ResBox<(Vec<LirBlock>, HashMap<String, ConstantAddress>)> {
     let syntax_tree = parser::parse_syntax_tree(content)?;
     let ast = ast::build_ast(syntax_tree)?;
     let simple_ast = simplifier::simplify(ast);

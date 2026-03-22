@@ -146,7 +146,7 @@ impl DataPath {
 impl Default for DataPath {
     fn default() -> Self {
         Self {
-            data_memory: Memory::new(100),
+            data_memory: Memory::new(100000),
             alu: ALU::default(),
             alu_output: 0,
             alu_input_mux: 0,
