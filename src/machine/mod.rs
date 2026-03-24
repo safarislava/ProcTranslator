@@ -4,4 +4,5 @@ pub mod data_path;
 mod instruction_parser;
 mod memory;
 pub mod nzcv;
+mod printers;
 mod stack;

@@ -53,67 +53,60 @@ AbstractSyntaxTree {
             ],
         },
         AbstractSyntaxTree {
-            node: Class {
-                name: "App",
+            node: Callable {
+                result_type: Void,
+                name: "Main",
+                arguments: [],
             },
             children: [
                 AbstractSyntaxTree {
-                    node: Callable {
-                        result_type: Void,
-                        name: "Main",
-                        arguments: [],
+                    node: Declaration {
+                        typ: Class(
+                            "Node",
+                        ),
+                        name: "node",
+                        expression: Some(
+                            New {
+                                typ: (),
+                                class_name: "Node",
+                            },
+                        ),
                     },
-                    children: [
-                        AbstractSyntaxTree {
-                            node: Declaration {
-                                typ: Class(
-                                    "Node",
-                                ),
+                    children: [],
+                },
+                AbstractSyntaxTree {
+                    node: Expression {
+                        expression: MethodCall {
+                            typ: (),
+                            object: Variable {
+                                typ: (),
                                 name: "node",
-                                expression: Some(
-                                    New {
-                                        typ: (),
-                                        class_name: "Node",
-                                    },
-                                ),
                             },
-                            children: [],
+                            name: "Increment",
+                            arguments: [],
                         },
-                        AbstractSyntaxTree {
-                            node: Expression {
-                                expression: MethodCall {
-                                    typ: (),
-                                    object: Variable {
-                                        typ: (),
-                                        name: "node",
-                                    },
-                                    name: "Increment",
-                                    arguments: [],
-                                },
+                    },
+                    children: [],
+                },
+                AbstractSyntaxTree {
+                    node: Expression {
+                        expression: MethodCall {
+                            typ: (),
+                            object: Variable {
+                                typ: (),
+                                name: "node",
                             },
-                            children: [],
+                            name: "Increment",
+                            arguments: [],
                         },
-                        AbstractSyntaxTree {
-                            node: Expression {
-                                expression: MethodCall {
-                                    typ: (),
-                                    object: Variable {
-                                        typ: (),
-                                        name: "node",
-                                    },
-                                    name: "Increment",
-                                    arguments: [],
-                                },
-                            },
-                            children: [],
-                        },
-                        AbstractSyntaxTree {
-                            node: Return {
-                                value: None,
-                            },
-                            children: [],
-                        },
-                    ],
+                    },
+                    children: [],
+                },
+                AbstractSyntaxTree {
+                    node: Return {
+                        value: None,
+                    },
+                    children: [],
                 },
             ],
         },

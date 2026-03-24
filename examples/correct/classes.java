@@ -6,11 +6,9 @@ class Node {
     }
 }
 
-class App {
-    void Main() {
-        Node node = new Node();
-        node.Increment();
-        node.Increment();
-        return;
-    }
+void Main() {
+    Node node = new Node();
+    node.Increment();
+    node.Increment();
+    return;
 }

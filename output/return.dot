@@ -3,9 +3,9 @@ digraph CFG {
   node [shape=box, fontname="Courier"];
   edge [fontname="Courier"];
 
-  B0 [label="B0|call prologue\lr0 = param[0]\lr1 = const false\lbranch r1 ? B1 : B2\l"];
+  B0 [label="B0|call prologue\lbranch \"false\" ? B1 : B2\l"];
   B1 [label="B1|return\l"];
-  B2 [label="B2|r2 = const false\lbranch r2 ? B3 : B4\l"];
+  B2 [label="B2|branch \"false\" ? B3 : B4\l"];
   B3 [label="B3|return\l"];
   B4 [label="B4|return\l"];
   B0 -> B1 [label="true"];

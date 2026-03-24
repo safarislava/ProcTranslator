@@ -1,13 +1,13 @@
 use proc_translator::machine::control_unit::ControlUnit;
-use proc_translator::translator::asm_translator::{translate};
+use proc_translator::translator::asm_translator::translate;
 use proc_translator::translator::common::{ResBox, compile_to_hir, compile_to_lir, dump_to_file};
 
-fn main() {
-    let content = std::fs::read_to_string("examples/correct/calc.java").unwrap();
-    let (text_section, data_section) = compile_to_lir(&content).unwrap();
+fn main() -> ResBox<()> {
+    let content = std::fs::read_to_string("examples/correct/calc.java")?;
+    let (text_section, data_section) = compile_to_lir(&content)?;
     let program = translate(text_section, data_section);
     machine(24, &program);
-    println!("End of program");
+    Ok(())
 }
 
 fn machine(start: u64, program: &[u8]) {
@@ -24,6 +24,7 @@ fn machine(start: u64, program: &[u8]) {
 
 #[allow(dead_code)]
 fn create_cfg_schemes() {
+    create_cfg_scheme("calc").unwrap();
     create_cfg_scheme("return").unwrap();
     create_cfg_scheme("classes").unwrap();
     create_cfg_scheme("scopes").unwrap();

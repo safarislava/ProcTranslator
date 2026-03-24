@@ -25,7 +25,7 @@ pub enum AddressingModeSelector {
 }
 
 pub struct DataPath {
-    data_memory: Memory,
+    pub data_memory: Memory,
 
     alu: ALU,
     alu_output: i64,
@@ -36,10 +36,10 @@ pub struct DataPath {
     right_alu: i64,
 
     d_registers_mux: i64,
-    d_registers: Vec<i64>,
+    pub d_registers: Vec<i64>,
 
     a_registers_mux: i64,
-    a_registers: Vec<i64>,
+    pub a_registers: Vec<i64>,
 
     memory_output: i64,
     data_address: u64,

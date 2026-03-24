@@ -6,64 +6,47 @@ SyntaxTree {
     node: File,
     children: [
         SyntaxTree {
-            node: Class {
-                name: "App",
+            node: Function {
+                result_type: "int",
+                name: "f",
+                arguments: "int x",
             },
             children: [
                 SyntaxTree {
-                    node: Function {
-                        result_type: "int",
-                        name: "f",
-                        arguments: "int x",
+                    node: Line {
+                        value: "return x + 5",
                     },
-                    children: [
-                        SyntaxTree {
-                            node: Line {
-                                value: "return x + 5",
-                            },
-                            children: [],
-                        },
-                    ],
+                    children: [],
+                },
+            ],
+        },
+        SyntaxTree {
+            node: Function {
+                result_type: "void",
+                name: "Main",
+                arguments: "",
+            },
+            children: [
+                SyntaxTree {
+                    node: Line {
+                        value: "int x = 0",
+                    },
+                    children: [],
                 },
                 SyntaxTree {
-                    node: Function {
-                        result_type: "void",
-                        name: "Main",
-                        arguments: "",
+                    node: Line {
+                        value: "int b = 1",
+                    },
+                    children: [],
+                },
+                SyntaxTree {
+                    node: If {
+                        condition: "x > b",
                     },
                     children: [
                         SyntaxTree {
-                            node: Line {
-                                value: "int x = 0",
-                            },
-                            children: [],
-                        },
-                        SyntaxTree {
-                            node: Line {
-                                value: "int b = 1",
-                            },
-                            children: [],
-                        },
-                        SyntaxTree {
                             node: If {
-                                condition: "x > b",
-                            },
-                            children: [
-                                SyntaxTree {
-                                    node: If {
-                                        condition: "x + 1 > b",
-                                    },
-                                    children: [],
-                                },
-                                SyntaxTree {
-                                    node: Else,
-                                    children: [],
-                                },
-                            ],
-                        },
-                        SyntaxTree {
-                            node: ElseIf {
-                                condition: "x < b",
+                                condition: "x + 1 > b",
                             },
                             children: [],
                         },
@@ -71,53 +54,44 @@ SyntaxTree {
                             node: Else,
                             children: [],
                         },
+                    ],
+                },
+                SyntaxTree {
+                    node: ElseIf {
+                        condition: "x < b",
+                    },
+                    children: [],
+                },
+                SyntaxTree {
+                    node: Else,
+                    children: [],
+                },
+                SyntaxTree {
+                    node: While {
+                        condition: "true",
+                    },
+                    children: [
                         SyntaxTree {
-                            node: While {
-                                condition: "true",
+                            node: If {
+                                condition: "x == 9",
                             },
                             children: [
                                 SyntaxTree {
-                                    node: If {
-                                        condition: "x == 9",
-                                    },
-                                    children: [
-                                        SyntaxTree {
-                                            node: Line {
-                                                value: "x++",
-                                            },
-                                            children: [],
-                                        },
-                                    ],
-                                },
-                                SyntaxTree {
-                                    node: ElseIf {
-                                        condition: "x == 10",
-                                    },
-                                    children: [
-                                        SyntaxTree {
-                                            node: Line {
-                                                value: "break",
-                                            },
-                                            children: [],
-                                        },
-                                    ],
-                                },
-                                SyntaxTree {
                                     node: Line {
-                                        value: "x = this.f(x + 1)",
+                                        value: "x++",
                                     },
                                     children: [],
                                 },
                             ],
                         },
                         SyntaxTree {
-                            node: For {
-                                condition: "int i = 2; i < 10; i++",
+                            node: ElseIf {
+                                condition: "x == 10",
                             },
                             children: [
                                 SyntaxTree {
                                     node: Line {
-                                        value: "x += 2",
+                                        value: "break",
                                     },
                                     children: [],
                                 },
@@ -125,11 +99,30 @@ SyntaxTree {
                         },
                         SyntaxTree {
                             node: Line {
-                                value: "return",
+                                value: "x = f(x + 1)",
                             },
                             children: [],
                         },
                     ],
+                },
+                SyntaxTree {
+                    node: For {
+                        condition: "int i = 2; i < 10; i++",
+                    },
+                    children: [
+                        SyntaxTree {
+                            node: Line {
+                                value: "x += 2",
+                            },
+                            children: [],
+                        },
+                    ],
+                },
+                SyntaxTree {
+                    node: Line {
+                        value: "return",
+                    },
+                    children: [],
                 },
             ],
         },

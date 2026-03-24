@@ -1,0 +1,133 @@
+---
+source: tests/ir_tests.rs
+expression: "format!(\"{:#?}\", cfg)"
+---
+ControlFlowGraph {
+    register_counter: 5,
+    blocks: [
+        HirBlock {
+            id: 0,
+            instructions: [
+                CallPrologue,
+                StackAllocate {
+                    slot: StackSlot(
+                        0,
+                    ),
+                },
+                StackStore {
+                    slot: StackSlot(
+                        0,
+                    ),
+                    value: Constant(
+                        "1",
+                    ),
+                },
+                StackAllocate {
+                    slot: StackSlot(
+                        1,
+                    ),
+                },
+                StackStore {
+                    slot: StackSlot(
+                        1,
+                    ),
+                    value: Constant(
+                        "2",
+                    ),
+                },
+                StackAllocate {
+                    slot: StackSlot(
+                        2,
+                    ),
+                },
+                StackStore {
+                    slot: StackSlot(
+                        2,
+                    ),
+                    value: Constant(
+                        "3",
+                    ),
+                },
+                StackAllocate {
+                    slot: StackSlot(
+                        3,
+                    ),
+                },
+                StackLoad {
+                    destination: HirRegister(
+                        0,
+                    ),
+                    slot: StackSlot(
+                        0,
+                    ),
+                },
+                StackLoad {
+                    destination: HirRegister(
+                        1,
+                    ),
+                    slot: StackSlot(
+                        1,
+                    ),
+                },
+                BinaryOperator {
+                    destination: HirRegister(
+                        2,
+                    ),
+                    left: Value(
+                        HirRegister(
+                            0,
+                        ),
+                    ),
+                    operator: Add,
+                    right: Value(
+                        HirRegister(
+                            1,
+                        ),
+                    ),
+                },
+                StackLoad {
+                    destination: HirRegister(
+                        3,
+                    ),
+                    slot: StackSlot(
+                        2,
+                    ),
+                },
+                BinaryOperator {
+                    destination: HirRegister(
+                        4,
+                    ),
+                    left: Value(
+                        HirRegister(
+                            2,
+                        ),
+                    ),
+                    operator: Multiply,
+                    right: Value(
+                        HirRegister(
+                            3,
+                        ),
+                    ),
+                },
+                StackStore {
+                    slot: StackSlot(
+                        3,
+                    ),
+                    value: Value(
+                        HirRegister(
+                            4,
+                        ),
+                    ),
+                },
+            ],
+            terminator: Some(
+                Return(
+                    None,
+                ),
+            ),
+            predecessors: [],
+            successors: [],
+        },
+    ],
+    entry_block: 0,
+}

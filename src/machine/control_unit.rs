@@ -67,9 +67,20 @@ impl ControlUnit {
         let (operator, word_size) = self.instruction_parser.parse_operator(self.read_data);
         self.debug += 1;
         self.word_size = word_size;
+
+        print!(
+            "PC={} : {}.{} ",
+            self.pc,
+            operator,
+            match self.word_size {
+                WordSize::Byte => "b",
+                WordSize::Long => "w",
+            }
+        );
+
         match operator {
             Operator::Hlt => return true,
-            Operator::Mov => self.execute_standard_alu_instruction(AluOperator::Trl),
+            Operator::Mov => self.execute_standard_alu_instruction(AluOperator::Trr),
             Operator::Mova => {
                 self.latch_pc(PcSelector::NextWord);
                 let first = self.parse_register(1);
@@ -134,6 +145,18 @@ impl ControlUnit {
                 self.data_path.execute_alu(AluOperator::Sub);
             }
         }
+        println!();
+
+        for d_register in &self.data_path.d_registers {
+            print!("{}\t ", d_register);
+        }
+        println!();
+
+        for a_register in &self.data_path.a_registers {
+            print!("{}\t ", a_register);
+        }
+        println!();
+
         false
     }
 
@@ -181,8 +204,8 @@ impl ControlUnit {
         self.latch_pc(PcSelector::NextWord);
         let first = self.parse_data_readable(1);
         let second = self.parse_data_writable(2);
-        self.prepare_operand(Order::First, &first);
-        self.prepare_operand(Order::Second, &second);
+        self.prepare_operand(Order::Second, &first);
+        self.prepare_operand(Order::First, &second);
         self.data_path.execute_alu(operator);
         self.save_by_second_operand(second);
     }
@@ -208,6 +231,8 @@ impl ControlUnit {
                 self.latch_buffer_n_word(1);
                 self.extend_buffer();
 
+                print!("#{} ", self.buffer as i64);
+
                 self.data_path.control_unit_output = self.buffer as i64;
                 self.data_path
                     .update_alu_input_mux(AddressingModeSelector::ControlUnit);
@@ -217,6 +242,8 @@ impl ControlUnit {
                 }
             }
             Mode::DataRegister => {
+                print!("D{} ", operand.main_register);
+
                 self.data_path.read_data_register(operand.main_register);
                 self.data_path
                     .update_alu_input_mux(AddressingModeSelector::DataRegister);
@@ -226,6 +253,8 @@ impl ControlUnit {
                 }
             }
             Mode::AddressRegister => {
+                print!("A{} ", operand.main_register);
+
                 self.data_path.read_address_register(operand.main_register);
                 self.data_path
                     .update_alu_input_mux(AddressingModeSelector::AddressRegister);
@@ -235,6 +264,8 @@ impl ControlUnit {
                 }
             }
             Mode::Indirect => {
+                print!("(A{}) ", operand.main_register);
+
                 self.data_path.read_address_register(operand.main_register);
                 self.data_path
                     .update_alu_input_mux(AddressingModeSelector::AddressRegister);
@@ -254,6 +285,7 @@ impl ControlUnit {
                 }
             }
             Mode::IndirectPostIncrement => {
+                print!("(A{})+ ", operand.main_register);
                 match order {
                     Order::First => self.data_path.execute_alu(AluOperator::Trr),
                     Order::Second => self.data_path.execute_alu(AluOperator::Trl),
@@ -294,6 +326,8 @@ impl ControlUnit {
                 }
             }
             Mode::IndirectPreDecrement => {
+                print!("-(A{}) ", operand.main_register);
+
                 match order {
                     Order::First => self.data_path.execute_alu(AluOperator::Trr),
                     Order::Second => self.data_path.execute_alu(AluOperator::Trl),
@@ -334,6 +368,8 @@ impl ControlUnit {
                 }
             }
             Mode::IndirectOffset => {
+                print!("{}(A{}) ", operand.offset_register, operand.main_register);
+
                 match order {
                     Order::First => self.data_path.execute_alu(AluOperator::Trr),
                     Order::Second => self.data_path.execute_alu(AluOperator::Trl),
@@ -370,6 +406,9 @@ impl ControlUnit {
             }
             Mode::IndirectDirect => {
                 self.fill_buffer();
+
+                print!("(#{}) ", self.buffer);
+
                 self.data_path.control_unit_output = self.buffer as i64;
                 self.data_path
                     .update_alu_input_mux(AddressingModeSelector::ControlUnit);

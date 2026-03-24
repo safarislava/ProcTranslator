@@ -6,26 +6,92 @@ AbstractSyntaxTree {
     node: File,
     children: [
         AbstractSyntaxTree {
-            node: Class {
-                name: "App",
+            node: Callable {
+                result_type: Int,
+                name: "f",
+                arguments: [
+                    Variable {
+                        name: "x",
+                        typ: Int,
+                    },
+                ],
             },
             children: [
                 AbstractSyntaxTree {
-                    node: Callable {
-                        result_type: Int,
-                        name: "f",
-                        arguments: [
-                            Variable {
-                                name: "x",
+                    node: Return {
+                        value: Some(
+                            BinaryOperator {
                                 typ: Int,
+                                left: Variable {
+                                    typ: Int,
+                                    name: "x",
+                                },
+                                operator: Add,
+                                right: Literal {
+                                    typ: Int,
+                                    value: "5",
+                                },
                             },
-                        ],
+                        ),
+                    },
+                    children: [],
+                },
+            ],
+        },
+        AbstractSyntaxTree {
+            node: Callable {
+                result_type: Void,
+                name: "Main",
+                arguments: [],
+            },
+            children: [
+                AbstractSyntaxTree {
+                    node: Declaration {
+                        typ: Int,
+                        name: "x",
+                        expression: Some(
+                            Literal {
+                                typ: Int,
+                                value: "0",
+                            },
+                        ),
+                    },
+                    children: [],
+                },
+                AbstractSyntaxTree {
+                    node: Declaration {
+                        typ: Int,
+                        name: "b",
+                        expression: Some(
+                            Literal {
+                                typ: Int,
+                                value: "1",
+                            },
+                        ),
+                    },
+                    children: [],
+                },
+                AbstractSyntaxTree {
+                    node: If {
+                        condition: BinaryOperator {
+                            typ: Bool,
+                            left: Variable {
+                                typ: Int,
+                                name: "x",
+                            },
+                            operator: Greater,
+                            right: Variable {
+                                typ: Int,
+                                name: "b",
+                            },
+                        },
                     },
                     children: [
                         AbstractSyntaxTree {
-                            node: Return {
-                                value: Some(
-                                    BinaryOperator {
+                            node: If {
+                                condition: BinaryOperator {
+                                    typ: Bool,
+                                    left: BinaryOperator {
                                         typ: Int,
                                         left: Variable {
                                             typ: Int,
@@ -34,55 +100,8 @@ AbstractSyntaxTree {
                                         operator: Add,
                                         right: Literal {
                                             typ: Int,
-                                            value: "5",
+                                            value: "1",
                                         },
-                                    },
-                                ),
-                            },
-                            children: [],
-                        },
-                    ],
-                },
-                AbstractSyntaxTree {
-                    node: Callable {
-                        result_type: Void,
-                        name: "Main",
-                        arguments: [],
-                    },
-                    children: [
-                        AbstractSyntaxTree {
-                            node: Declaration {
-                                typ: Int,
-                                name: "x",
-                                expression: Some(
-                                    Literal {
-                                        typ: Int,
-                                        value: "0",
-                                    },
-                                ),
-                            },
-                            children: [],
-                        },
-                        AbstractSyntaxTree {
-                            node: Declaration {
-                                typ: Int,
-                                name: "b",
-                                expression: Some(
-                                    Literal {
-                                        typ: Int,
-                                        value: "1",
-                                    },
-                                ),
-                            },
-                            children: [],
-                        },
-                        AbstractSyntaxTree {
-                            node: If {
-                                condition: BinaryOperator {
-                                    typ: Bool,
-                                    left: Variable {
-                                        typ: Int,
-                                        name: "x",
                                     },
                                     operator: Greater,
                                     right: Variable {
@@ -93,22 +112,23 @@ AbstractSyntaxTree {
                             },
                             children: [
                                 AbstractSyntaxTree {
+                                    node: Else,
+                                    children: [],
+                                },
+                            ],
+                        },
+                        AbstractSyntaxTree {
+                            node: Else,
+                            children: [
+                                AbstractSyntaxTree {
                                     node: If {
                                         condition: BinaryOperator {
                                             typ: Bool,
-                                            left: BinaryOperator {
+                                            left: Variable {
                                                 typ: Int,
-                                                left: Variable {
-                                                    typ: Int,
-                                                    name: "x",
-                                                },
-                                                operator: Add,
-                                                right: Literal {
-                                                    typ: Int,
-                                                    value: "1",
-                                                },
+                                                name: "x",
                                             },
-                                            operator: Greater,
+                                            operator: Less,
                                             right: Variable {
                                                 typ: Int,
                                                 name: "b",
@@ -122,6 +142,47 @@ AbstractSyntaxTree {
                                         },
                                     ],
                                 },
+                            ],
+                        },
+                    ],
+                },
+                AbstractSyntaxTree {
+                    node: While {
+                        condition: Literal {
+                            typ: Bool,
+                            value: "true",
+                        },
+                    },
+                    children: [
+                        AbstractSyntaxTree {
+                            node: If {
+                                condition: BinaryOperator {
+                                    typ: Bool,
+                                    left: Variable {
+                                        typ: Int,
+                                        name: "x",
+                                    },
+                                    operator: Equal,
+                                    right: Literal {
+                                        typ: Int,
+                                        value: "9",
+                                    },
+                                },
+                            },
+                            children: [
+                                AbstractSyntaxTree {
+                                    node: Expression {
+                                        expression: Increment {
+                                            typ: Int,
+                                            expression: Variable {
+                                                typ: Int,
+                                                name: "x",
+                                            },
+                                            postfix: true,
+                                        },
+                                    },
+                                    children: [],
+                                },
                                 AbstractSyntaxTree {
                                     node: Else,
                                     children: [
@@ -133,16 +194,16 @@ AbstractSyntaxTree {
                                                         typ: Int,
                                                         name: "x",
                                                     },
-                                                    operator: Less,
-                                                    right: Variable {
+                                                    operator: Equal,
+                                                    right: Literal {
                                                         typ: Int,
-                                                        name: "b",
+                                                        value: "10",
                                                     },
                                                 },
                                             },
                                             children: [
                                                 AbstractSyntaxTree {
-                                                    node: Else,
+                                                    node: Break,
                                                     children: [],
                                                 },
                                             ],
@@ -152,178 +213,113 @@ AbstractSyntaxTree {
                             ],
                         },
                         AbstractSyntaxTree {
-                            node: While {
-                                condition: Literal {
-                                    typ: Bool,
-                                    value: "true",
-                                },
-                            },
-                            children: [
-                                AbstractSyntaxTree {
-                                    node: If {
-                                        condition: BinaryOperator {
-                                            typ: Bool,
-                                            left: Variable {
-                                                typ: Int,
-                                                name: "x",
-                                            },
-                                            operator: Equal,
-                                            right: Literal {
-                                                typ: Int,
-                                                value: "9",
-                                            },
-                                        },
-                                    },
-                                    children: [
-                                        AbstractSyntaxTree {
-                                            node: Expression {
-                                                expression: Increment {
-                                                    typ: Int,
-                                                    expression: Variable {
-                                                        typ: Int,
-                                                        name: "x",
-                                                    },
-                                                    postfix: true,
-                                                },
-                                            },
-                                            children: [],
-                                        },
-                                        AbstractSyntaxTree {
-                                            node: Else,
-                                            children: [
-                                                AbstractSyntaxTree {
-                                                    node: If {
-                                                        condition: BinaryOperator {
-                                                            typ: Bool,
-                                                            left: Variable {
-                                                                typ: Int,
-                                                                name: "x",
-                                                            },
-                                                            operator: Equal,
-                                                            right: Literal {
-                                                                typ: Int,
-                                                                value: "10",
-                                                            },
-                                                        },
-                                                    },
-                                                    children: [
-                                                        AbstractSyntaxTree {
-                                                            node: Break,
-                                                            children: [],
-                                                        },
-                                                    ],
-                                                },
-                                            ],
-                                        },
-                                    ],
-                                },
-                                AbstractSyntaxTree {
-                                    node: Expression {
-                                        expression: Assign {
-                                            typ: Int,
-                                            name: "x",
-                                            value: MethodCall {
-                                                typ: Int,
-                                                object: This {
-                                                    typ: Class(
-                                                        "App",
-                                                    ),
-                                                },
-                                                name: "f",
-                                                arguments: [
-                                                    BinaryOperator {
-                                                        typ: Int,
-                                                        left: Variable {
-                                                            typ: Int,
-                                                            name: "x",
-                                                        },
-                                                        operator: Add,
-                                                        right: Literal {
-                                                            typ: Int,
-                                                            value: "1",
-                                                        },
-                                                    },
-                                                ],
-                                            },
-                                        },
-                                    },
-                                    children: [],
-                                },
-                            ],
-                        },
-                        AbstractSyntaxTree {
-                            node: Scope,
-                            children: [
-                                AbstractSyntaxTree {
-                                    node: Declaration {
+                            node: Expression {
+                                expression: Assign {
+                                    typ: Int,
+                                    name: "x",
+                                    value: FunctionCall {
                                         typ: Int,
-                                        name: "i",
-                                        expression: Some(
-                                            Literal {
+                                        name: "f",
+                                        arguments: [
+                                            BinaryOperator {
                                                 typ: Int,
-                                                value: "2",
-                                            },
-                                        ),
-                                    },
-                                    children: [],
-                                },
-                                AbstractSyntaxTree {
-                                    node: While {
-                                        condition: BinaryOperator {
-                                            typ: Bool,
-                                            left: Variable {
-                                                typ: Int,
-                                                name: "i",
-                                            },
-                                            operator: Less,
-                                            right: Literal {
-                                                typ: Int,
-                                                value: "10",
-                                            },
-                                        },
-                                    },
-                                    children: [
-                                        AbstractSyntaxTree {
-                                            node: Expression {
-                                                expression: BinaryOperator {
+                                                left: Variable {
                                                     typ: Int,
-                                                    left: Variable {
-                                                        typ: Int,
-                                                        name: "x",
-                                                    },
-                                                    operator: AssignAdd,
-                                                    right: Literal {
-                                                        typ: Int,
-                                                        value: "2",
-                                                    },
+                                                    name: "x",
+                                                },
+                                                operator: Add,
+                                                right: Literal {
+                                                    typ: Int,
+                                                    value: "1",
                                                 },
                                             },
-                                            children: [],
-                                        },
-                                        AbstractSyntaxTree {
-                                            node: Expression {
-                                                expression: Increment {
-                                                    typ: Int,
-                                                    expression: Variable {
-                                                        typ: Int,
-                                                        name: "i",
-                                                    },
-                                                    postfix: true,
-                                                },
-                                            },
-                                            children: [],
-                                        },
-                                    ],
+                                        ],
+                                    },
                                 },
-                            ],
-                        },
-                        AbstractSyntaxTree {
-                            node: Return {
-                                value: None,
                             },
                             children: [],
                         },
                     ],
+                },
+                AbstractSyntaxTree {
+                    node: Scope,
+                    children: [
+                        AbstractSyntaxTree {
+                            node: Declaration {
+                                typ: Int,
+                                name: "i",
+                                expression: Some(
+                                    Literal {
+                                        typ: Int,
+                                        value: "2",
+                                    },
+                                ),
+                            },
+                            children: [],
+                        },
+                        AbstractSyntaxTree {
+                            node: While {
+                                condition: BinaryOperator {
+                                    typ: Bool,
+                                    left: Variable {
+                                        typ: Int,
+                                        name: "i",
+                                    },
+                                    operator: Less,
+                                    right: Literal {
+                                        typ: Int,
+                                        value: "10",
+                                    },
+                                },
+                            },
+                            children: [
+                                AbstractSyntaxTree {
+                                    node: Expression {
+                                        expression: BinaryOperator {
+                                            typ: Int,
+                                            left: Variable {
+                                                typ: Int,
+                                                name: "x",
+                                            },
+                                            operator: Add,
+                                            right: BinaryOperator {
+                                                typ: Int,
+                                                left: Variable {
+                                                    typ: Int,
+                                                    name: "x",
+                                                },
+                                                operator: Add,
+                                                right: Literal {
+                                                    typ: Int,
+                                                    value: "2",
+                                                },
+                                            },
+                                        },
+                                    },
+                                    children: [],
+                                },
+                                AbstractSyntaxTree {
+                                    node: Expression {
+                                        expression: Increment {
+                                            typ: Int,
+                                            expression: Variable {
+                                                typ: Int,
+                                                name: "i",
+                                            },
+                                            postfix: true,
+                                        },
+                                    },
+                                    children: [],
+                                },
+                            ],
+                        },
+                    ],
+                },
+                AbstractSyntaxTree {
+                    node: Return {
+                        value: None,
+                    },
+                    children: [],
                 },
             ],
         },

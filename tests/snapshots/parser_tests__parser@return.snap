@@ -6,53 +6,46 @@ SyntaxTree {
     node: File,
     children: [
         SyntaxTree {
-            node: Class {
-                name: "App",
+            node: Function {
+                result_type: "void",
+                name: "Main",
+                arguments: "",
             },
             children: [
                 SyntaxTree {
-                    node: Function {
-                        result_type: "void",
-                        name: "Main",
-                        arguments: "",
+                    node: If {
+                        condition: "false",
                     },
                     children: [
                         SyntaxTree {
-                            node: If {
-                                condition: "false",
+                            node: Line {
+                                value: "return",
                             },
-                            children: [
-                                SyntaxTree {
-                                    node: Line {
-                                        value: "return",
-                                    },
-                                    children: [],
-                                },
-                            ],
+                            children: [],
                         },
+                    ],
+                },
+                SyntaxTree {
+                    node: ElseIf {
+                        condition: "false",
+                    },
+                    children: [
                         SyntaxTree {
-                            node: ElseIf {
-                                condition: "false",
+                            node: Line {
+                                value: "return",
                             },
-                            children: [
-                                SyntaxTree {
-                                    node: Line {
-                                        value: "return",
-                                    },
-                                    children: [],
-                                },
-                            ],
+                            children: [],
                         },
+                    ],
+                },
+                SyntaxTree {
+                    node: Else,
+                    children: [
                         SyntaxTree {
-                            node: Else,
-                            children: [
-                                SyntaxTree {
-                                    node: Line {
-                                        value: "return",
-                                    },
-                                    children: [],
-                                },
-                            ],
+                            node: Line {
+                                value: "return",
+                            },
+                            children: [],
                         },
                     ],
                 },

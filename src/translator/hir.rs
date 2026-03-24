@@ -425,6 +425,7 @@ impl HirContext {
                 for child in ast.children {
                     self.generate_statement(child);
                 }
+                self.current_class = None;
             }
             AbstractSyntaxNode::Return { value } => {
                 let operand = value.map(|value| self.generate_expression(value));
@@ -462,11 +463,7 @@ impl HirContext {
 
     pub fn generate_expression(&mut self, expression: TypedExpression) -> HirOperand {
         match expression {
-            TypedExpression::Literal { value, .. } => {
-                let destination = self.new_register();
-                self.emit(HirInstruction::LoadConst { destination, value });
-                HirOperand::Value(destination)
-            }
+            TypedExpression::Literal { value, .. } => HirOperand::Constant(value),
             TypedExpression::Variable { name, .. } => {
                 let slot = self.resolve_variable_address(&name);
                 let destination = self.new_register();

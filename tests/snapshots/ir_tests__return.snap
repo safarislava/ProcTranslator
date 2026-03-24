@@ -3,31 +3,17 @@ source: tests/ir_tests.rs
 expression: "format!(\"{:#?}\", cfg)"
 ---
 ControlFlowGraph {
-    register_counter: 3,
+    register_counter: 0,
     blocks: [
         HirBlock {
             id: 0,
             instructions: [
                 CallPrologue,
-                LoadParameter {
-                    destination: HirRegister(
-                        0,
-                    ),
-                    index: 0,
-                },
-                LoadConst {
-                    destination: HirRegister(
-                        1,
-                    ),
-                    value: "false",
-                },
             ],
             terminator: Some(
                 Branch {
-                    condition: Value(
-                        HirRegister(
-                            1,
-                        ),
+                    condition: Constant(
+                        "false",
                     ),
                     true_block: 1,
                     false_block: 2,
@@ -54,20 +40,11 @@ ControlFlowGraph {
         },
         HirBlock {
             id: 2,
-            instructions: [
-                LoadConst {
-                    destination: HirRegister(
-                        2,
-                    ),
-                    value: "false",
-                },
-            ],
+            instructions: [],
             terminator: Some(
                 Branch {
-                    condition: Value(
-                        HirRegister(
-                            2,
-                        ),
+                    condition: Constant(
+                        "false",
                     ),
                     true_block: 3,
                     false_block: 4,

@@ -22,7 +22,7 @@ pub enum ExpressionBinaryOperator {
     Sub,
     Multiply,
     Divide,
-    Modulo,
+    Remainder,
 }
 
 #[derive(Debug, Clone)]
@@ -484,7 +484,7 @@ impl Parser {
             "-" => Ok(ExpressionBinaryOperator::Sub),
             "*" => Ok(ExpressionBinaryOperator::Multiply),
             "/" => Ok(ExpressionBinaryOperator::Divide),
-            "%" => Ok(ExpressionBinaryOperator::Modulo),
+            "%" => Ok(ExpressionBinaryOperator::Remainder),
             _ => Err("Unknown binary operator".into()),
         }
     }
@@ -506,7 +506,7 @@ impl Parser {
             ExpressionBinaryOperator::Add | ExpressionBinaryOperator::Sub => (11, 12),
             ExpressionBinaryOperator::Multiply
             | ExpressionBinaryOperator::Divide
-            | ExpressionBinaryOperator::Modulo => (13, 14),
+            | ExpressionBinaryOperator::Remainder => (13, 14),
         }
     }
 }

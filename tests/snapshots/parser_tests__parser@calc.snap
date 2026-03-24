@@ -1,0 +1,48 @@
+---
+source: tests/parser_tests.rs
+expression: "format!(\"{:#?}\", tree)"
+---
+SyntaxTree {
+    node: File,
+    children: [
+        SyntaxTree {
+            node: Function {
+                result_type: "void",
+                name: "Main",
+                arguments: "",
+            },
+            children: [
+                SyntaxTree {
+                    node: Line {
+                        value: "int a = 1",
+                    },
+                    children: [],
+                },
+                SyntaxTree {
+                    node: Line {
+                        value: "int b = 2",
+                    },
+                    children: [],
+                },
+                SyntaxTree {
+                    node: Line {
+                        value: "int c = 3",
+                    },
+                    children: [],
+                },
+                SyntaxTree {
+                    node: Line {
+                        value: "int d = (a + b) * c",
+                    },
+                    children: [],
+                },
+                SyntaxTree {
+                    node: Line {
+                        value: "return",
+                    },
+                    children: [],
+                },
+            ],
+        },
+    ],
+}

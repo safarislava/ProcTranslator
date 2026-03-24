@@ -34,42 +34,35 @@ SyntaxTree {
             ],
         },
         SyntaxTree {
-            node: Class {
-                name: "App",
+            node: Function {
+                result_type: "void",
+                name: "Main",
+                arguments: "",
             },
             children: [
                 SyntaxTree {
-                    node: Function {
-                        result_type: "void",
-                        name: "Main",
-                        arguments: "",
+                    node: Line {
+                        value: "Node node = new Node()",
                     },
-                    children: [
-                        SyntaxTree {
-                            node: Line {
-                                value: "Node node = new Node()",
-                            },
-                            children: [],
-                        },
-                        SyntaxTree {
-                            node: Line {
-                                value: "node.Increment()",
-                            },
-                            children: [],
-                        },
-                        SyntaxTree {
-                            node: Line {
-                                value: "node.Increment()",
-                            },
-                            children: [],
-                        },
-                        SyntaxTree {
-                            node: Line {
-                                value: "return",
-                            },
-                            children: [],
-                        },
-                    ],
+                    children: [],
+                },
+                SyntaxTree {
+                    node: Line {
+                        value: "node.Increment()",
+                    },
+                    children: [],
+                },
+                SyntaxTree {
+                    node: Line {
+                        value: "node.Increment()",
+                    },
+                    children: [],
+                },
+                SyntaxTree {
+                    node: Line {
+                        value: "return",
+                    },
+                    children: [],
                 },
             ],
         },

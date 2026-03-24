@@ -283,6 +283,11 @@ impl LirContext {
                 });
 
                 match operator {
+                    ExpressionBinaryOperator::Assign => out.push(LirInstruction::Mov {
+                        size: WordSize::Long,
+                        source: left_operand,
+                        destination,
+                    }),
                     ExpressionBinaryOperator::Add => out.push(LirInstruction::Add {
                         size: WordSize::Long,
                         source: left_operand,
@@ -303,7 +308,7 @@ impl LirContext {
                         source: left_operand,
                         destination,
                     }),
-                    ExpressionBinaryOperator::Modulo => out.push(LirInstruction::Rem {
+                    ExpressionBinaryOperator::Remainder => out.push(LirInstruction::Rem {
                         size: WordSize::Long,
                         source: left_operand,
                         destination,
@@ -895,16 +900,14 @@ impl LirContext {
             RegisterType::Address,
         );
 
-        if self.stack_size > 0 {
-            for block in &mut self.blocks {
-                for instruction in &mut block.instructions {
-                    if matches!(instruction, LirInstruction::AllocateStackFrame) {
-                        *instruction = LirInstruction::Sub {
-                            size: WordSize::Long,
-                            source: LirOperand::Direct(self.stack_size as u32),
-                            destination: self.stack_pointer.clone(),
-                        }; // todo
-                    }
+        for block in &mut self.blocks {
+            for instruction in &mut block.instructions {
+                if matches!(instruction, LirInstruction::AllocateStackFrame) {
+                    *instruction = LirInstruction::Sub {
+                        size: WordSize::Long,
+                        source: LirOperand::Direct(self.stack_size as u32),
+                        destination: self.stack_pointer.clone(),
+                    };
                 }
             }
         }

@@ -6,59 +6,52 @@ AbstractSyntaxTree {
     node: File,
     children: [
         AbstractSyntaxTree {
-            node: Class {
-                name: "App",
+            node: Callable {
+                result_type: Void,
+                name: "Main",
+                arguments: [],
             },
             children: [
                 AbstractSyntaxTree {
-                    node: Callable {
-                        result_type: Void,
-                        name: "Main",
-                        arguments: [],
+                    node: If {
+                        condition: Literal {
+                            typ: (),
+                            value: "false",
+                        },
                     },
                     children: [
                         AbstractSyntaxTree {
-                            node: If {
-                                condition: Literal {
-                                    typ: (),
-                                    value: "false",
-                                },
+                            node: Return {
+                                value: None,
                             },
-                            children: [
-                                AbstractSyntaxTree {
-                                    node: Return {
-                                        value: None,
-                                    },
-                                    children: [],
-                                },
-                            ],
+                            children: [],
                         },
+                    ],
+                },
+                AbstractSyntaxTree {
+                    node: ElseIf {
+                        condition: Literal {
+                            typ: (),
+                            value: "false",
+                        },
+                    },
+                    children: [
                         AbstractSyntaxTree {
-                            node: ElseIf {
-                                condition: Literal {
-                                    typ: (),
-                                    value: "false",
-                                },
+                            node: Return {
+                                value: None,
                             },
-                            children: [
-                                AbstractSyntaxTree {
-                                    node: Return {
-                                        value: None,
-                                    },
-                                    children: [],
-                                },
-                            ],
+                            children: [],
                         },
+                    ],
+                },
+                AbstractSyntaxTree {
+                    node: Else,
+                    children: [
                         AbstractSyntaxTree {
-                            node: Else,
-                            children: [
-                                AbstractSyntaxTree {
-                                    node: Return {
-                                        value: None,
-                                    },
-                                    children: [],
-                                },
-                            ],
+                            node: Return {
+                                value: None,
+                            },
+                            children: [],
                         },
                     ],
                 },

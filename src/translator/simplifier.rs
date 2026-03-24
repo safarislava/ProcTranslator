@@ -1,6 +1,7 @@
 use crate::translator::common::{AbstractSyntaxNode, RawAbstractSyntaxTree, RawExpression};
+use crate::translator::expression::{Expression, ExpressionBinaryOperator};
 
-pub fn simplify(ast: RawAbstractSyntaxTree) -> RawAbstractSyntaxTree {
+pub fn simplify_ast(ast: RawAbstractSyntaxTree) -> RawAbstractSyntaxTree {
     let RawAbstractSyntaxTree { node, children } = ast;
     let mut simplified_children = Vec::new();
     let mut iterator = children.into_iter().peekable();
@@ -9,7 +10,7 @@ pub fn simplify(ast: RawAbstractSyntaxTree) -> RawAbstractSyntaxTree {
         if let AbstractSyntaxNode::If { .. } = child.node {
             child = build_if_tree(child, &mut iterator);
         }
-        simplified_children.push(simplify(child));
+        simplified_children.push(simplify_ast(child));
     }
 
     match node {
@@ -22,13 +23,13 @@ pub fn simplify(ast: RawAbstractSyntaxTree) -> RawAbstractSyntaxTree {
 
             if let Some(init_box) = initializer {
                 let init_ast = RawAbstractSyntaxTree::new(*init_box);
-                scope_children.push(simplify(init_ast));
+                scope_children.push(simplify_ast(init_ast));
             }
 
             let mut while_body = simplified_children;
-            if let Some(inc) = increment {
+            if let Some(increment) = increment {
                 while_body.push(RawAbstractSyntaxTree::new(AbstractSyntaxNode::Expression {
-                    expression: inc,
+                    expression: increment,
                 }));
             }
 
@@ -76,4 +77,65 @@ fn build_if_tree(
     }
 
     current_node
+}
+
+fn simplify_expression(expression: RawExpression) -> RawExpression {
+    match expression.clone() {
+        RawExpression::BinaryOperator {
+            typ,
+            left,
+            operator,
+            right,
+        } => match operator {
+            ExpressionBinaryOperator::AssignAdd
+            | ExpressionBinaryOperator::AssignSub
+            | ExpressionBinaryOperator::AssignMul
+            | ExpressionBinaryOperator::AssignDiv => {
+                let operator = match operator {
+                    ExpressionBinaryOperator::AssignAdd => ExpressionBinaryOperator::Add,
+                    ExpressionBinaryOperator::AssignSub => ExpressionBinaryOperator::Sub,
+                    ExpressionBinaryOperator::AssignMul => ExpressionBinaryOperator::Add,
+                    ExpressionBinaryOperator::AssignDiv => ExpressionBinaryOperator::Sub,
+                    _ => unreachable!(),
+                };
+                RawExpression::BinaryOperator {
+                    typ,
+                    left: left.clone(),
+                    operator,
+                    right: Box::new(Expression::BinaryOperator {
+                        typ: (),
+                        left: Box::new(*left),
+                        operator: ExpressionBinaryOperator::Add,
+                        right,
+                    }),
+                }
+            }
+            _ => expression,
+        },
+        _ => expression,
+    }
+}
+
+fn simplify_expressions(ast: RawAbstractSyntaxTree) -> RawAbstractSyntaxTree {
+    let RawAbstractSyntaxTree { node, children } = ast;
+    let mut simplified_children = Vec::new();
+
+    for child in children {
+        simplified_children.push(simplify_expressions(child));
+    }
+
+    match node {
+        AbstractSyntaxNode::Expression { expression } => RawAbstractSyntaxTree::with_children(
+            AbstractSyntaxNode::Expression {
+                expression: simplify_expression(expression),
+            },
+            simplified_children,
+        ),
+        _ => RawAbstractSyntaxTree::with_children(node, simplified_children),
+    }
+}
+
+pub fn simplify(ast: RawAbstractSyntaxTree) -> RawAbstractSyntaxTree {
+    let ast = simplify_ast(ast);
+    simplify_expressions(ast)
 }

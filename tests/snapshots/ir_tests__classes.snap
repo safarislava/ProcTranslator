@@ -3,7 +3,7 @@ source: tests/ir_tests.rs
 expression: "format!(\"{:#?}\", cfg)"
 ---
 ControlFlowGraph {
-    register_counter: 11,
+    register_counter: 8,
     blocks: [
         HirBlock {
             id: 0,
@@ -11,28 +11,28 @@ ControlFlowGraph {
                 CallPrologue,
                 LoadParameter {
                     destination: HirRegister(
-                        1,
+                        0,
                     ),
                     index: 0,
                 },
                 GetField {
                     destination: HirRegister(
-                        2,
+                        1,
                     ),
                     object: Value(
                         HirRegister(
-                            1,
+                            0,
                         ),
                     ),
                     offset: 0,
                 },
                 BinaryOperator {
                     destination: HirRegister(
-                        3,
+                        2,
                     ),
                     left: Value(
                         HirRegister(
-                            2,
+                            1,
                         ),
                     ),
                     operator: Add,
@@ -43,13 +43,13 @@ ControlFlowGraph {
                 PutField {
                     object: Value(
                         HirRegister(
-                            1,
+                            0,
                         ),
                     ),
                     offset: 0,
                     value: Value(
                         HirRegister(
-                            3,
+                            2,
                         ),
                     ),
                 },
@@ -59,7 +59,7 @@ ControlFlowGraph {
                     Some(
                         Value(
                             HirRegister(
-                                2,
+                                1,
                             ),
                         ),
                     ),
@@ -72,12 +72,6 @@ ControlFlowGraph {
             id: 1,
             instructions: [
                 CallPrologue,
-                LoadParameter {
-                    destination: HirRegister(
-                        4,
-                    ),
-                    index: 0,
-                },
                 StackAllocate {
                     slot: StackSlot(
                         1,
@@ -85,27 +79,19 @@ ControlFlowGraph {
                 },
                 AllocateObject {
                     destination: HirRegister(
-                        5,
+                        3,
                     ),
                     class_name: "Node",
-                },
-                LoadConst {
-                    destination: HirRegister(
-                        6,
-                    ),
-                    value: "5",
                 },
                 PutField {
                     object: Value(
                         HirRegister(
-                            5,
+                            3,
                         ),
                     ),
                     offset: 0,
-                    value: Value(
-                        HirRegister(
-                            6,
-                        ),
+                    value: Constant(
+                        "5",
                     ),
                 },
                 StackStore {
@@ -114,13 +100,13 @@ ControlFlowGraph {
                     ),
                     value: Value(
                         HirRegister(
-                            5,
+                            3,
                         ),
                     ),
                 },
                 StackLoad {
                     destination: HirRegister(
-                        7,
+                        4,
                     ),
                     slot: StackSlot(
                         1,
@@ -128,20 +114,20 @@ ControlFlowGraph {
                 },
                 Call {
                     destination: HirRegister(
-                        8,
+                        5,
                     ),
                     block: 0,
                     arguments: [
                         Value(
                             HirRegister(
-                                7,
+                                4,
                             ),
                         ),
                     ],
                 },
                 StackLoad {
                     destination: HirRegister(
-                        9,
+                        6,
                     ),
                     slot: StackSlot(
                         1,
@@ -149,13 +135,13 @@ ControlFlowGraph {
                 },
                 Call {
                     destination: HirRegister(
-                        10,
+                        7,
                     ),
                     block: 0,
                     arguments: [
                         Value(
                             HirRegister(
-                                9,
+                                6,
                             ),
                         ),
                     ],

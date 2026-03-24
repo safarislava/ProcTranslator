@@ -1,0 +1,92 @@
+---
+source: tests/semantic_analysis_tests.rs
+expression: "format!(\"{:#?}\", tree)"
+---
+AbstractSyntaxTree {
+    node: File,
+    children: [
+        AbstractSyntaxTree {
+            node: Callable {
+                result_type: Void,
+                name: "Main",
+                arguments: [],
+            },
+            children: [
+                AbstractSyntaxTree {
+                    node: Declaration {
+                        typ: Int,
+                        name: "a",
+                        expression: Some(
+                            Literal {
+                                typ: Int,
+                                value: "1",
+                            },
+                        ),
+                    },
+                    children: [],
+                },
+                AbstractSyntaxTree {
+                    node: Declaration {
+                        typ: Int,
+                        name: "b",
+                        expression: Some(
+                            Literal {
+                                typ: Int,
+                                value: "2",
+                            },
+                        ),
+                    },
+                    children: [],
+                },
+                AbstractSyntaxTree {
+                    node: Declaration {
+                        typ: Int,
+                        name: "c",
+                        expression: Some(
+                            Literal {
+                                typ: Int,
+                                value: "3",
+                            },
+                        ),
+                    },
+                    children: [],
+                },
+                AbstractSyntaxTree {
+                    node: Declaration {
+                        typ: Int,
+                        name: "d",
+                        expression: Some(
+                            BinaryOperator {
+                                typ: Int,
+                                left: BinaryOperator {
+                                    typ: Int,
+                                    left: Variable {
+                                        typ: Int,
+                                        name: "a",
+                                    },
+                                    operator: Add,
+                                    right: Variable {
+                                        typ: Int,
+                                        name: "b",
+                                    },
+                                },
+                                operator: Multiply,
+                                right: Variable {
+                                    typ: Int,
+                                    name: "c",
+                                },
+                            },
+                        ),
+                    },
+                    children: [],
+                },
+                AbstractSyntaxTree {
+                    node: Return {
+                        value: None,
+                    },
+                    children: [],
+                },
+            ],
+        },
+    ],
+}
