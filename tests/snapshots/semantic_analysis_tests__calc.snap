@@ -7,7 +7,7 @@ AbstractSyntaxTree {
     children: [
         AbstractSyntaxTree {
             node: Callable {
-                result_type: Void,
+                result_type: Int,
                 name: "Main",
                 arguments: [],
             },
@@ -82,7 +82,12 @@ AbstractSyntaxTree {
                 },
                 AbstractSyntaxTree {
                     node: Return {
-                        value: None,
+                        value: Some(
+                            Variable {
+                                typ: Int,
+                                name: "d",
+                            },
+                        ),
                     },
                     children: [],
                 },

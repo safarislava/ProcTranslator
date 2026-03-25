@@ -41,7 +41,7 @@ pub struct DataPath {
     a_registers_mux: i64,
     pub a_registers: Vec<i64>,
 
-    memory_output: i64,
+    pub memory_output: i64,
     data_address: u64,
     read_data: i64,
     write_data: i64,

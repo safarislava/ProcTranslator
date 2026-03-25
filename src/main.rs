@@ -1,19 +1,22 @@
 use proc_translator::machine::control_unit::ControlUnit;
 use proc_translator::translator::asm_translator::translate;
-use proc_translator::translator::common::{ResBox, compile_to_hir, compile_to_lir, dump_to_file};
+use proc_translator::translator::common::{
+    ConstantAddress, ResBox, compile_to_hir, compile_to_lir, dump_to_file,
+};
+use std::collections::HashMap;
 
 fn main() -> ResBox<()> {
     let content = std::fs::read_to_string("examples/correct/calc.java")?;
     let (text_section, data_section) = compile_to_lir(&content)?;
-    let program = translate(text_section, data_section);
-    machine(24, &program);
+    let program = translate(text_section);
+    machine(&program, data_section);
     Ok(())
 }
 
-fn machine(start: u64, program: &[u8]) {
+fn machine(program: &[u8], data_section: HashMap<String, ConstantAddress>) {
     let mut control_unit = ControlUnit::default();
     control_unit.load_program(program);
-    control_unit.set_pc(start);
+    control_unit.load_constants(data_section);
     loop {
         let stop = control_unit.execute_instruction();
         if stop {

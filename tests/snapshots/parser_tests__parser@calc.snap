@@ -7,7 +7,7 @@ SyntaxTree {
     children: [
         SyntaxTree {
             node: Function {
-                result_type: "void",
+                result_type: "int",
                 name: "Main",
                 arguments: "",
             },
@@ -38,7 +38,7 @@ SyntaxTree {
                 },
                 SyntaxTree {
                     node: Line {
-                        value: "return",
+                        value: "return d",
                     },
                     children: [],
                 },

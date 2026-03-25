@@ -1,8 +1,6 @@
 use crate::isa::{Mode, Operator, WordSize};
 use crate::translator::hir::BlockId;
-use crate::translator::lir::{
-    Condition, ConstantAddress, LirBlock, LirInstruction, LirOperand, RegisterType,
-};
+use crate::translator::lir::{Condition, LirBlock, LirInstruction, LirOperand, RegisterType};
 use std::collections::HashMap;
 
 pub struct AsmTranslator {
@@ -27,19 +25,6 @@ impl AsmTranslator {
             data: Vec::new(),
             block_address: HashMap::new(),
             jumps: Vec::new(),
-        }
-    }
-
-    pub fn add_constants(&mut self, constants: HashMap<String, ConstantAddress>) {
-        for (name, address) in constants {
-            let address = address as usize;
-            let bytes = name.parse::<u64>().unwrap().to_be_bytes();
-
-            if address + bytes.len() > self.data.len() {
-                self.data.resize(address + bytes.len(), 0);
-            }
-
-            self.data[address..address + bytes.len()].copy_from_slice(bytes.as_slice());
         }
     }
 
@@ -304,9 +289,8 @@ impl AsmTranslator {
     }
 }
 
-pub fn translate(blocks: Vec<LirBlock>, constants: HashMap<String, ConstantAddress>) -> Vec<u8> {
+pub fn translate(blocks: Vec<LirBlock>) -> Vec<u8> {
     let mut translator = AsmTranslator::default();
-    translator.add_constants(constants);
     translator.add_blocks(blocks);
     translator.data
 }

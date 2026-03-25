@@ -1,6 +1,6 @@
 use crate::translator::expression::Expression;
 use crate::translator::hir::ControlFlowGraph;
-use crate::translator::lir::{ConstantAddress, LirBlock};
+use crate::translator::lir::LirBlock;
 use crate::translator::{analyzer, ast, hir, lir, parser, simplifier};
 use std::collections::HashMap;
 use std::error::Error;
@@ -9,6 +9,8 @@ use std::io::Write;
 use std::path::Path;
 
 pub type ResBox<T> = Result<T, Box<dyn Error>>;
+
+pub type ConstantAddress = u64;
 
 #[derive(Debug, Clone)]
 pub struct Variable {

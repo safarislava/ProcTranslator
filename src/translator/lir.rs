@@ -1,4 +1,5 @@
 use crate::isa::WordSize;
+use crate::translator::common::ConstantAddress;
 use crate::translator::expression::ExpressionBinaryOperator;
 use crate::translator::hir::{
     BlockId, ClassInfo, ControlFlowGraph, HirInstruction, HirOperand, HirRegister, HirTerminator,
@@ -6,8 +7,6 @@ use crate::translator::hir::{
 };
 use std::collections::HashMap;
 use std::vec;
-
-pub type ConstantAddress = u64;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RegisterType {
@@ -215,7 +214,7 @@ impl LirContext {
         } else {
             let address = self.constants_size;
             self.constants.insert(value, address);
-            self.constants_size += 8; // todo
+            self.constants_size += 8;
             address
         }
     }
@@ -381,15 +380,9 @@ impl LirContext {
             HirInstruction::CallPrologue => {
                 self.stack_size = 0;
 
-                let temp_register = self.next_virtual_register(RegisterType::Data);
-                out.push(LirInstruction::Mova {
-                    size: WordSize::Long,
-                    source: self.frame_pointer.clone(),
-                    destination: temp_register.clone(),
-                });
                 out.push(LirInstruction::Mov {
                     size: WordSize::Long,
-                    source: temp_register,
+                    source: self.frame_pointer.clone(),
                     destination: LirOperand::IndirectPreDecrement(Box::new(
                         self.stack_pointer.clone(),
                     )),

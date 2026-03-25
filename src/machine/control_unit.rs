@@ -4,6 +4,8 @@ use crate::machine::data_path::{AddressingModeSelector, DataPath};
 use crate::machine::instruction_parser::InstructionParser;
 use crate::machine::memory::Memory;
 use crate::machine::stack::Stack;
+use crate::translator::common::ConstantAddress;
+use std::collections::HashMap;
 
 pub enum Order {
     First,
@@ -264,8 +266,6 @@ impl ControlUnit {
                 }
             }
             Mode::Indirect => {
-                print!("(A{}) ", operand.main_register);
-
                 self.data_path.read_address_register(operand.main_register);
                 self.data_path
                     .update_alu_input_mux(AddressingModeSelector::AddressRegister);
@@ -277,6 +277,12 @@ impl ControlUnit {
                 self.data_path.latch_data_address();
                 self.data_path.read_data_memory();
                 self.data_path.latch_read_data();
+
+                print!(
+                    "(A{})={} ",
+                    operand.main_register, self.data_path.memory_output
+                );
+
                 self.data_path
                     .update_alu_input_mux(AddressingModeSelector::ReadData);
                 match order {
@@ -285,7 +291,6 @@ impl ControlUnit {
                 }
             }
             Mode::IndirectPostIncrement => {
-                print!("(A{})+ ", operand.main_register);
                 match order {
                     Order::First => self.data_path.execute_alu(AluOperator::Trr),
                     Order::Second => self.data_path.execute_alu(AluOperator::Trl),
@@ -297,9 +302,15 @@ impl ControlUnit {
                     .update_alu_input_mux(AddressingModeSelector::AddressRegister);
                 self.data_path.latch_left_alu();
                 self.data_path.execute_alu(AluOperator::Trl);
+
                 self.data_path.latch_data_address();
                 self.data_path.read_data_memory();
                 self.data_path.latch_read_data();
+
+                print!(
+                    "(A{})+={} ",
+                    operand.main_register, self.data_path.memory_output
+                );
 
                 self.data_path.control_unit_output = match self.word_size {
                     WordSize::Byte => 1,
@@ -326,8 +337,6 @@ impl ControlUnit {
                 }
             }
             Mode::IndirectPreDecrement => {
-                print!("-(A{}) ", operand.main_register);
-
                 match order {
                     Order::First => self.data_path.execute_alu(AluOperator::Trr),
                     Order::Second => self.data_path.execute_alu(AluOperator::Trl),
@@ -349,10 +358,15 @@ impl ControlUnit {
                 self.data_path.execute_alu(AluOperator::Sub);
                 self.data_path
                     .latch_address_register(operand.main_register, &self.word_size);
-                self.data_path.latch_data_address();
 
+                self.data_path.latch_data_address();
                 self.data_path.read_data_memory();
                 self.data_path.latch_read_data();
+
+                print!(
+                    "-(A{})={} ",
+                    operand.main_register, self.data_path.memory_output
+                );
 
                 self.data_path
                     .update_alu_input_mux(AddressingModeSelector::ReadData);
@@ -368,8 +382,6 @@ impl ControlUnit {
                 }
             }
             Mode::IndirectOffset => {
-                print!("{}(A{}) ", operand.offset_register, operand.main_register);
-
                 match order {
                     Order::First => self.data_path.execute_alu(AluOperator::Trr),
                     Order::Second => self.data_path.execute_alu(AluOperator::Trl),
@@ -391,6 +403,11 @@ impl ControlUnit {
                 self.data_path.read_data_memory();
                 self.data_path.latch_read_data();
 
+                print!(
+                    "(A{}+D{})={} ",
+                    operand.main_register, operand.offset_register, self.data_path.memory_output
+                );
+
                 self.data_path
                     .update_alu_input_mux(AddressingModeSelector::ReadData);
                 match order {
@@ -406,8 +423,6 @@ impl ControlUnit {
             }
             Mode::IndirectDirect => {
                 self.fill_buffer();
-
-                print!("(#{}) ", self.buffer);
 
                 self.data_path.control_unit_output = self.buffer as i64;
                 self.data_path
@@ -425,6 +440,8 @@ impl ControlUnit {
                 self.data_path.latch_data_address();
                 self.data_path.read_data_memory();
                 self.data_path.latch_read_data();
+
+                print!("(#{})={} ", self.buffer, self.data_path.memory_output);
 
                 self.data_path
                     .update_alu_input_mux(AddressingModeSelector::ReadData);
@@ -463,6 +480,13 @@ impl ControlUnit {
     pub fn load_program(&mut self, program: &[u8]) {
         for (i, word) in program.iter().enumerate() {
             self.program_memory.write_u8(i as u64, *word);
+        }
+    }
+
+    pub fn load_constants(&mut self, constants: HashMap<String, ConstantAddress>) {
+        for (name, address) in constants {
+            let value = name.parse::<u64>().unwrap();
+            self.data_path.data_memory.write_u64(address, value);
         }
     }
 }

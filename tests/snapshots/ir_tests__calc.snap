@@ -3,7 +3,7 @@ source: tests/ir_tests.rs
 expression: "format!(\"{:#?}\", cfg)"
 ---
 ControlFlowGraph {
-    register_counter: 5,
+    register_counter: 6,
     blocks: [
         HirBlock {
             id: 0,
@@ -119,10 +119,24 @@ ControlFlowGraph {
                         ),
                     ),
                 },
+                StackLoad {
+                    destination: HirRegister(
+                        5,
+                    ),
+                    slot: StackSlot(
+                        3,
+                    ),
+                },
             ],
             terminator: Some(
                 Return(
-                    None,
+                    Some(
+                        Value(
+                            HirRegister(
+                                5,
+                            ),
+                        ),
+                    ),
                 ),
             ),
             predecessors: [],
