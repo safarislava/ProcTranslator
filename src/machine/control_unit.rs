@@ -90,7 +90,7 @@ impl ControlUnit {
                 self.prepare_operand(Order::First, &first);
                 self.prepare_operand(Order::Second, &second);
                 self.data_path.execute_alu(AluOperator::Trl);
-                self.save_by_second_operand(second);
+                self.store_by_second_operand(second);
             }
             Operator::Add => self.execute_standard_alu_instruction(AluOperator::Add),
             Operator::Adc => self.execute_standard_alu_instruction(AluOperator::Adc),
@@ -106,15 +106,8 @@ impl ControlUnit {
             Operator::Lsr => self.execute_standard_alu_instruction(AluOperator::Lsr),
             Operator::Asl => self.execute_standard_alu_instruction(AluOperator::Asl),
             Operator::Asr => self.execute_standard_alu_instruction(AluOperator::Asr),
-            Operator::Jmp => {
-                self.latch_pc(PcSelector::NextByte);
-                self.execute_jump()
-            }
-            Operator::Call => {
-                self.latch_pc(PcSelector::NextByte);
-                self.stack.push(self.pc);
-                self.execute_jump();
-            }
+            Operator::Jmp => self.execute_jump(),
+            Operator::Call => self.execute_call(),
             Operator::Ret => self.latch_pc(PcSelector::SetByStack),
             Operator::Beq => self.execute_branch(self.data_path.transmit_nzcv().zero),
             Operator::Bne => self.execute_branch(!self.data_path.transmit_nzcv().zero),
@@ -209,18 +202,25 @@ impl ControlUnit {
         self.prepare_operand(Order::Second, &first);
         self.prepare_operand(Order::First, &second);
         self.data_path.execute_alu(operator);
-        self.save_by_second_operand(second);
+        self.store_by_second_operand(second);
     }
 
     pub fn execute_jump(&mut self) {
+        self.latch_pc(PcSelector::NextByte);
         self.fill_buffer();
         self.latch_pc(PcSelector::SetByBuffer);
     }
 
+    pub fn execute_call(&mut self) {
+        self.stack.push(self.pc + 1 + 8);
+        self.execute_jump();
+    }
+
     pub fn execute_branch(&mut self, condition: bool) {
         self.latch_pc(PcSelector::NextByte);
+        self.fill_buffer();
         if condition {
-            self.execute_jump();
+            self.latch_pc(PcSelector::SetByBuffer);
         }
     }
 
@@ -453,7 +453,7 @@ impl ControlUnit {
         }
     }
 
-    pub fn save_by_second_operand(&mut self, operand: Operand) {
+    pub fn store_by_second_operand(&mut self, operand: Operand) {
         match operand.mode {
             Mode::DataRegister => {
                 self.data_path
@@ -470,6 +470,10 @@ impl ControlUnit {
             | Mode::IndirectDirect => {
                 self.data_path.latch_write_data();
                 self.data_path.write_data_memory(&self.word_size);
+                print!(
+                    "\nStore: address = {}, value = {}",
+                    self.data_path.data_address, self.data_path.write_data
+                )
             }
             _ => unreachable!(),
         }

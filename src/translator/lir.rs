@@ -126,6 +126,8 @@ pub enum LirInstruction {
     },
     Ret,
 
+    Halt,
+
     AllocateStackFrame,
 }
 
@@ -222,6 +224,7 @@ impl LirContext {
     fn lower_operand(&mut self, operand: HirOperand) -> LirOperand {
         match operand {
             HirOperand::Value(register) => self.get_virtual_data_register(register),
+            HirOperand::Link(register) => self.get_virtual_address_register(register),
             HirOperand::Constant(value_str) => {
                 let normalized_value = match value_str.as_str() {
                     "true" => "1".to_string(),
@@ -499,7 +502,7 @@ impl LirContext {
                 let object_address_register = self.next_virtual_register(RegisterType::Address);
                 let offset_register = self.next_virtual_register(RegisterType::Data);
 
-                out.push(LirInstruction::Mova {
+                out.push(LirInstruction::Mov {
                     size: WordSize::Long,
                     source: object,
                     destination: object_address_register.clone(),
@@ -612,6 +615,7 @@ impl LirContext {
             LirInstruction::Call {
                 label: main_block_id,
             },
+            LirInstruction::Halt,
         ];
 
         let entry_block = LirBlock {

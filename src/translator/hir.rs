@@ -15,6 +15,7 @@ pub struct StackSlot(pub u64);
 #[derive(Debug, Clone)]
 pub enum HirOperand {
     Value(HirRegister),
+    Link(HirRegister),
     Constant(String),
     Void,
 }
@@ -87,8 +88,6 @@ pub struct HirBlock {
     pub id: BlockId,
     pub instructions: Vec<HirInstruction>,
     pub terminator: Option<HirTerminator>,
-    pub predecessors: Vec<BlockId>,
-    pub successors: Vec<BlockId>,
 }
 
 impl HirBlock {
@@ -97,12 +96,11 @@ impl HirBlock {
             id,
             instructions: Vec::new(),
             terminator: None,
-            predecessors: Vec::new(),
-            successors: Vec::new(),
         }
     }
 }
 
+#[derive(Debug)]
 pub struct ClassInfo {
     pub fields: HashMap<String, (Option<TypedExpression>, usize)>,
     pub methods: HashMap<String, BlockId>,
@@ -197,30 +195,9 @@ impl HirContext {
             if self.blocks[source_block].terminator.is_some() {
                 return;
             }
-
-            match &term {
-                HirTerminator::Jump(target) => {
-                    self.link_blocks(source_block, *target);
-                }
-                HirTerminator::Branch {
-                    true_block,
-                    false_block,
-                    ..
-                } => {
-                    self.link_blocks(source_block, *true_block);
-                    self.link_blocks(source_block, *false_block);
-                }
-                HirTerminator::Return(_) => {}
-            }
-
             self.blocks[source_block].terminator = Some(term);
             self.current_block = None;
         }
-    }
-
-    fn link_blocks(&mut self, from: BlockId, to: BlockId) {
-        self.blocks[from].successors.push(to);
-        self.blocks[to].predecessors.push(from);
     }
 
     fn enter_scope(&mut self) {
@@ -602,7 +579,7 @@ impl HirContext {
                     destination,
                     class_name: class_name.clone(),
                 });
-                let object = HirOperand::Value(destination);
+                let object = HirOperand::Link(destination);
 
                 let class_info = &self.classes[&class_name];
                 let mut fields: Vec<_> = class_info
@@ -610,7 +587,6 @@ impl HirContext {
                     .values()
                     .filter_map(|(expr, off)| expr.as_ref().map(|e| (e.clone(), *off)))
                     .collect();
-
                 fields.sort_by_key(|(_, off)| *off);
 
                 for (expression, offset) in fields {

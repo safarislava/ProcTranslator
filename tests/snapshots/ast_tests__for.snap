@@ -1,0 +1,101 @@
+---
+source: tests/ast_tests.rs
+expression: "format!(\"{:#?}\", tree)"
+---
+AbstractSyntaxTree {
+    node: File,
+    children: [
+        AbstractSyntaxTree {
+            node: Callable {
+                result_type: Int,
+                name: "Main",
+                arguments: [],
+            },
+            children: [
+                AbstractSyntaxTree {
+                    node: Declaration {
+                        typ: Int,
+                        name: "x",
+                        expression: Some(
+                            Literal {
+                                typ: (),
+                                value: "0",
+                            },
+                        ),
+                    },
+                    children: [],
+                },
+                AbstractSyntaxTree {
+                    node: For {
+                        initializer: Some(
+                            Declaration {
+                                typ: Int,
+                                name: "i",
+                                expression: Some(
+                                    Literal {
+                                        typ: (),
+                                        value: "0",
+                                    },
+                                ),
+                            },
+                        ),
+                        condition: Some(
+                            BinaryOperator {
+                                typ: (),
+                                left: Variable {
+                                    typ: (),
+                                    name: "i",
+                                },
+                                operator: Less,
+                                right: Literal {
+                                    typ: (),
+                                    value: "10",
+                                },
+                            },
+                        ),
+                        increment: Some(
+                            Increment {
+                                typ: (),
+                                expression: Variable {
+                                    typ: (),
+                                    name: "i",
+                                },
+                                postfix: true,
+                            },
+                        ),
+                    },
+                    children: [
+                        AbstractSyntaxTree {
+                            node: Expression {
+                                expression: BinaryOperator {
+                                    typ: (),
+                                    left: Variable {
+                                        typ: (),
+                                        name: "x",
+                                    },
+                                    operator: AssignAdd,
+                                    right: Literal {
+                                        typ: (),
+                                        value: "2",
+                                    },
+                                },
+                            },
+                            children: [],
+                        },
+                    ],
+                },
+                AbstractSyntaxTree {
+                    node: Return {
+                        value: Some(
+                            Variable {
+                                typ: (),
+                                name: "x",
+                            },
+                        ),
+                    },
+                    children: [],
+                },
+            ],
+        },
+    ],
+}

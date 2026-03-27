@@ -4,7 +4,7 @@ pub mod ast;
 pub mod common;
 pub mod expression;
 pub mod hir;
-mod lir;
+pub mod lir;
 pub mod parser;
 pub mod printers;
 pub mod simplifier;

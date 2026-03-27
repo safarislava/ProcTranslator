@@ -22,7 +22,7 @@ fn test_hir_snapshots() {
 
             assert!(result.is_ok(), "File {:?} should compile", path);
 
-            let cfg = result.unwrap();
+            let (cfg, _) = result.unwrap();
             let snapshot_name = path.file_stem().unwrap().to_str().unwrap().to_string();
             assert_snapshot!(snapshot_name, format!("{:#?}", cfg));
         });

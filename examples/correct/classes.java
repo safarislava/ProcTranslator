@@ -2,7 +2,8 @@ class Node {
     int counter = 5;
 
     int Increment() {
-        return this.counter++;
+        this.counter = this.counter + 2;
+        return this.counter;
     }
 }
 

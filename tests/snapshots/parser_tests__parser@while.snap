@@ -22,7 +22,7 @@ SyntaxTree {
         },
         SyntaxTree {
             node: Function {
-                result_type: "void",
+                result_type: "int",
                 name: "Main",
                 arguments: "",
             },
@@ -31,39 +31,6 @@ SyntaxTree {
                     node: Line {
                         value: "int x = 0",
                     },
-                    children: [],
-                },
-                SyntaxTree {
-                    node: Line {
-                        value: "int b = 1",
-                    },
-                    children: [],
-                },
-                SyntaxTree {
-                    node: If {
-                        condition: "x > b",
-                    },
-                    children: [
-                        SyntaxTree {
-                            node: If {
-                                condition: "x + 1 > b",
-                            },
-                            children: [],
-                        },
-                        SyntaxTree {
-                            node: Else,
-                            children: [],
-                        },
-                    ],
-                },
-                SyntaxTree {
-                    node: ElseIf {
-                        condition: "x < b",
-                    },
-                    children: [],
-                },
-                SyntaxTree {
-                    node: Else,
                     children: [],
                 },
                 SyntaxTree {
@@ -99,20 +66,7 @@ SyntaxTree {
                         },
                         SyntaxTree {
                             node: Line {
-                                value: "x = f(x + 1)",
-                            },
-                            children: [],
-                        },
-                    ],
-                },
-                SyntaxTree {
-                    node: For {
-                        condition: "int i = 2; i < 10; i++",
-                    },
-                    children: [
-                        SyntaxTree {
-                            node: Line {
-                                value: "x += 2",
+                                value: "x = f(x)",
                             },
                             children: [],
                         },
@@ -120,7 +74,7 @@ SyntaxTree {
                 },
                 SyntaxTree {
                     node: Line {
-                        value: "return",
+                        value: "return x",
                     },
                     children: [],
                 },

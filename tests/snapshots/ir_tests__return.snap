@@ -19,11 +19,6 @@ ControlFlowGraph {
                     false_block: 2,
                 },
             ),
-            predecessors: [],
-            successors: [
-                1,
-                2,
-            ],
         },
         HirBlock {
             id: 1,
@@ -33,10 +28,6 @@ ControlFlowGraph {
                     None,
                 ),
             ),
-            predecessors: [
-                0,
-            ],
-            successors: [],
         },
         HirBlock {
             id: 2,
@@ -50,13 +41,6 @@ ControlFlowGraph {
                     false_block: 4,
                 },
             ),
-            predecessors: [
-                0,
-            ],
-            successors: [
-                3,
-                4,
-            ],
         },
         HirBlock {
             id: 3,
@@ -66,10 +50,6 @@ ControlFlowGraph {
                     None,
                 ),
             ),
-            predecessors: [
-                2,
-            ],
-            successors: [],
         },
         HirBlock {
             id: 4,
@@ -79,10 +59,6 @@ ControlFlowGraph {
                     None,
                 ),
             ),
-            predecessors: [
-                2,
-            ],
-            successors: [],
         },
     ],
     entry_block: 0,

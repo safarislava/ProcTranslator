@@ -145,16 +145,9 @@ impl AsmTranslator {
                 } => {
                     let condition = self.condition_to_operator(condition);
 
-                    self.translate_standard_instruction(
-                        Operator::Mov,
-                        WordSize::Long,
-                        &LirOperand::Direct(1),
-                        &destination,
-                    );
-
                     let branch_opcode = self.operators[&condition];
                     self.data.push(branch_opcode << 1);
-                    let false_address = self.data.len();
+                    let true_address = self.data.len();
                     self.data.extend(vec![0; 8]);
 
                     self.translate_standard_instruction(
@@ -164,9 +157,29 @@ impl AsmTranslator {
                         &destination,
                     );
 
+                    let operator_code = self.operators[&Operator::Jmp];
+                    self.data.push(operator_code << 1);
+                    let jump_address = self.data.len();
+                    self.data.extend(vec![0; 8]);
+
                     let current_address = self.data.len() as u64;
-                    self.data[false_address..false_address + 8]
+                    self.data[true_address..true_address + 8]
                         .copy_from_slice(&current_address.to_be_bytes());
+
+                    self.translate_standard_instruction(
+                        Operator::Mov,
+                        WordSize::Long,
+                        &LirOperand::Direct(1),
+                        &destination,
+                    );
+
+                    let current_address = self.data.len() as u64;
+                    self.data[jump_address..jump_address + 8]
+                        .copy_from_slice(&current_address.to_be_bytes());
+                }
+                LirInstruction::Halt => {
+                    let operator_code = self.operators[&Operator::Hlt];
+                    self.data.push(operator_code << 1);
                 }
                 LirInstruction::AllocateStackFrame => {
                     panic!("AllocateStackFrame should be lowered");

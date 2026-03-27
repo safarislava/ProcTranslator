@@ -42,9 +42,9 @@ pub struct DataPath {
     pub a_registers: Vec<i64>,
 
     pub memory_output: i64,
-    data_address: u64,
+    pub data_address: u64,
     read_data: i64,
-    write_data: i64,
+    pub write_data: i64,
 
     pub control_unit_output: i64,
 }

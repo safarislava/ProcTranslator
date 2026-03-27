@@ -113,8 +113,6 @@ Operator code:
 - PC <- label
 
 0x41 - CALL label
-- A7 <- A7 - 8
-- (A7) <- PC
 - PC <- label
 
 0x42 - RET 

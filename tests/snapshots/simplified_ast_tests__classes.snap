@@ -31,18 +31,41 @@ AbstractSyntaxTree {
                     },
                     children: [
                         AbstractSyntaxTree {
-                            node: Return {
-                                value: Some(
-                                    Increment {
+                            node: Expression {
+                                expression: AssignField {
+                                    typ: (),
+                                    object: This {
                                         typ: (),
-                                        expression: Field {
+                                    },
+                                    name: "counter",
+                                    value: BinaryOperator {
+                                        typ: (),
+                                        left: Field {
                                             typ: (),
                                             object: This {
                                                 typ: (),
                                             },
                                             name: "counter",
                                         },
-                                        postfix: true,
+                                        operator: Add,
+                                        right: Literal {
+                                            typ: (),
+                                            value: "2",
+                                        },
+                                    },
+                                },
+                            },
+                            children: [],
+                        },
+                        AbstractSyntaxTree {
+                            node: Return {
+                                value: Some(
+                                    Field {
+                                        typ: (),
+                                        object: This {
+                                            typ: (),
+                                        },
+                                        name: "counter",
                                     },
                                 ),
                             },

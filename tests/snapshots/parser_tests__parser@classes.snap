@@ -25,7 +25,13 @@ SyntaxTree {
                     children: [
                         SyntaxTree {
                             node: Line {
-                                value: "return this.counter++",
+                                value: "this.counter = this.counter + 2",
+                            },
+                            children: [],
+                        },
+                        SyntaxTree {
+                            node: Line {
+                                value: "return this.counter",
                             },
                             children: [],
                         },

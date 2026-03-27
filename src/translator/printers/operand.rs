@@ -4,7 +4,8 @@ use std::fmt;
 impl fmt::Display for HirOperand {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            HirOperand::Value(reg) => write!(f, "{}", reg),
+            HirOperand::Value(register) => write!(f, "{}", register),
+            HirOperand::Link(register) => write!(f, "L{}", register),
             HirOperand::Constant(val) => write!(f, "\"{}\"", val),
             HirOperand::Void => write!(f, "void"),
         }

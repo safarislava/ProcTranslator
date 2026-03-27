@@ -1,7 +1,6 @@
 use crate::translator::expression::Expression;
-use crate::translator::hir::ControlFlowGraph;
-use crate::translator::lir::LirBlock;
-use crate::translator::{analyzer, ast, hir, lir, parser, simplifier};
+use crate::translator::hir::{ClassInfo, ControlFlowGraph};
+use crate::translator::{analyzer, ast, hir, parser, simplifier};
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
@@ -98,23 +97,13 @@ impl<E> AbstractSyntaxTree<E> {
 pub type TypedExpression = Expression<Type>;
 pub type TypedAbstractSyntaxTree = AbstractSyntaxTree<TypedExpression>;
 
-pub fn compile_to_hir(content: &str) -> ResBox<ControlFlowGraph> {
-    let syntax_tree = parser::parse_syntax_tree(content)?;
-    let ast = ast::build_ast(syntax_tree)?;
-    let simple_ast = simplifier::simplify(ast);
-    let typed_ast = analyzer::semantic_analyze(simple_ast)?;
-    let (control_flow_graph, _) = hir::compile_hir(typed_ast);
-    Ok(control_flow_graph)
-}
-
-pub fn compile_to_lir(content: &str) -> ResBox<(Vec<LirBlock>, HashMap<String, ConstantAddress>)> {
+pub fn compile_to_hir(content: &str) -> ResBox<(ControlFlowGraph, HashMap<String, ClassInfo>)> {
     let syntax_tree = parser::parse_syntax_tree(content)?;
     let ast = ast::build_ast(syntax_tree)?;
     let simple_ast = simplifier::simplify(ast);
     let typed_ast = analyzer::semantic_analyze(simple_ast)?;
     let (control_flow_graph, classes) = hir::compile_hir(typed_ast);
-    let (text_section, data_section) = lir::compile_lir(control_flow_graph, classes);
-    Ok((text_section, data_section))
+    Ok((control_flow_graph, classes))
 }
 
 pub fn dump_to_file(path: impl AsRef<Path>, value: String) -> std::io::Result<()> {

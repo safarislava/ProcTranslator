@@ -98,14 +98,19 @@ fn simplify_expression(expression: RawExpression) -> RawExpression {
                     ExpressionBinaryOperator::AssignDiv => ExpressionBinaryOperator::Sub,
                     _ => unreachable!(),
                 };
-                RawExpression::BinaryOperator {
+
+                let name = match *left {
+                    Expression::Variable { typ: _, name } => name,
+                    _ => unreachable!(),
+                };
+
+                RawExpression::Assign {
                     typ,
-                    left: left.clone(),
-                    operator,
-                    right: Box::new(Expression::BinaryOperator {
+                    name: name.clone(),
+                    value: Box::new(Expression::BinaryOperator {
                         typ: (),
-                        left: Box::new(*left),
-                        operator: ExpressionBinaryOperator::Add,
+                        left: Box::new(Expression::Variable { typ: (), name }),
+                        operator,
                         right,
                     }),
                 }

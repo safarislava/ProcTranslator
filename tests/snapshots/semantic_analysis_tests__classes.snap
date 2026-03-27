@@ -31,11 +31,18 @@ AbstractSyntaxTree {
                     },
                     children: [
                         AbstractSyntaxTree {
-                            node: Return {
-                                value: Some(
-                                    Increment {
+                            node: Expression {
+                                expression: AssignField {
+                                    typ: Int,
+                                    object: This {
+                                        typ: Class(
+                                            "Node",
+                                        ),
+                                    },
+                                    name: "counter",
+                                    value: BinaryOperator {
                                         typ: Int,
-                                        expression: Field {
+                                        left: Field {
                                             typ: Int,
                                             object: This {
                                                 typ: Class(
@@ -44,7 +51,27 @@ AbstractSyntaxTree {
                                             },
                                             name: "counter",
                                         },
-                                        postfix: true,
+                                        operator: Add,
+                                        right: Literal {
+                                            typ: Int,
+                                            value: "2",
+                                        },
+                                    },
+                                },
+                            },
+                            children: [],
+                        },
+                        AbstractSyntaxTree {
+                            node: Return {
+                                value: Some(
+                                    Field {
+                                        typ: Int,
+                                        object: This {
+                                            typ: Class(
+                                                "Node",
+                                            ),
+                                        },
+                                        name: "counter",
                                     },
                                 ),
                             },
