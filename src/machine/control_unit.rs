@@ -271,7 +271,6 @@ impl ControlUnit {
                 self.execution_state = ExecutionState::Execute(2);
             }
             2 => {
-                let second = self.current_operands[1].clone();
                 self.data_path.execute_alu(AluOperator::Sub);
                 self.execution_state = ExecutionState::Done;
             }

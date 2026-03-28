@@ -435,7 +435,8 @@ impl LirContext {
                     destination: self.get_virtual_data_register(destination),
                 });
             }
-            HirInstruction::GetField { // todo
+            HirInstruction::GetField {
+                // todo
                 destination,
                 object,
                 offset,
@@ -458,7 +459,8 @@ impl LirContext {
                     destination: self.get_virtual_data_register(destination),
                 });
             }
-            HirInstruction::PutField { // todo
+            HirInstruction::PutField {
+                // todo
                 object,
                 offset,
                 value,
