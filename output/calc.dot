@@ -3,6 +3,6 @@ digraph CFG {
   node [shape=box, fontname="Courier"];
   edge [fontname="Courier"];
 
-  B0 [label="B0|call prologue\lalloc s0\ls0 = \"1\"\lalloc s1\ls1 = \"2\"\lalloc s2\ls2 = \"3\"\lalloc s3\lr0 = load s0\lr1 = load s1\lr2 = r0 Add r1\lr3 = load s2\lr4 = r2 Multiply r3\ls3 = r4\lr5 = load s3\lreturn r5\l"];
+  B0 [label="B0|call prologue\lalloc s0\ls0 = \"1\"\lalloc s1\ls1 = \"2\"\lalloc s2\ls2 = \"3\"\lalloc s3\lr0 = load s0\lr1 = load s1\lr2 = r0 Sub r1\lr3 = load s2\lr4 = r2 Multiply r3\ls3 = r4\lr5 = load s3\lreturn r5\l"];
   B0 [style=filled, fillcolor=lightgreen];
 }

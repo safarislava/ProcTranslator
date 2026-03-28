@@ -1,11 +1,11 @@
-void Main() {
+int Main() {
     if (false) {
-        return;
+        return 1;
     }
-    else if (false) {
-        return;
+    else if (true) {
+        return 2;
     }
     else {
-        return;
+        return 3;
     }
 }

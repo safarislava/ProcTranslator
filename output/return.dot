@@ -4,10 +4,10 @@ digraph CFG {
   edge [fontname="Courier"];
 
   B0 [label="B0|call prologue\lbranch \"false\" ? B1 : B2\l"];
-  B1 [label="B1|return\l"];
-  B2 [label="B2|branch \"false\" ? B3 : B4\l"];
-  B3 [label="B3|return\l"];
-  B4 [label="B4|return\l"];
+  B1 [label="B1|return \"1\"\l"];
+  B2 [label="B2|branch \"true\" ? B3 : B4\l"];
+  B3 [label="B3|return \"2\"\l"];
+  B4 [label="B4|return \"3\"\l"];
   B0 -> B1 [label="true"];
   B0 -> B2 [label="false"];
   B2 -> B3 [label="true"];

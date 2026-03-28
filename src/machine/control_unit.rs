@@ -119,8 +119,8 @@ impl ControlUnit {
                 self.execution_state = ExecutionState::Stop;
                 info!("Result : {}", self.data_path.data_registers[0]);
             }
-            Operator::Mov => self.execute_standard_alu(step, AluOperator::Trl),
-            Operator::Mova => self.execute_standard_alu(step, AluOperator::Trl), // todo
+            Operator::Mov => self.execute_standard_alu(step, AluOperator::Trr),
+            Operator::Mova => self.execute_standard_alu(step, AluOperator::Trr), // todo
             Operator::Add => self.execute_standard_alu(step, AluOperator::Add),
             Operator::Adc => self.execute_standard_alu(step, AluOperator::Adc),
             Operator::Sub => self.execute_standard_alu(step, AluOperator::Sub),
@@ -193,12 +193,12 @@ impl ControlUnit {
                 let second = self.parse_data_writable(2);
                 self.current_operands = vec![first.clone(), second];
                 self.latch_pc(PcSelector::NextWord);
-                self.prepare_operand(Order::First, &first);
+                self.prepare_operand(Order::Second, &first);
                 self.execution_state = ExecutionState::Execute(1);
             }
             1 => {
                 let second = self.current_operands[1].clone();
-                self.prepare_operand(Order::Second, &second);
+                self.prepare_operand(Order::First, &second);
                 self.execution_state = ExecutionState::Execute(2);
             }
             2 => {
@@ -271,6 +271,7 @@ impl ControlUnit {
                 self.execution_state = ExecutionState::Execute(2);
             }
             2 => {
+                let second = self.current_operands[1].clone();
                 self.data_path.execute_alu(AluOperator::Sub);
                 self.execution_state = ExecutionState::Done;
             }

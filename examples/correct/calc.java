@@ -3,7 +3,7 @@ int Main() {
     int b = 2;
     int c = 3;
 
-    int d = (a + b) * c;
+    int d = (a - b) * c;
 
     return d;
 }
