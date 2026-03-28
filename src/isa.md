@@ -20,7 +20,7 @@ Operand Description
 -
 - [7:5] - mode
 - [4:2] - main register 
-- [1:0] - offset register, support D4 - D7
+- [1:0] - offset, support 32bit constant (00), D5 (01), D6 (10),  D7 (11)
 
 Mode:
 -
@@ -30,7 +30,7 @@ Mode:
 - 0x3 - (A*) - indirect
 - 0x4 - (A*)+ - indirect, post-increment
 - 0x5 - -(A*) - indirect, pre-decrement
-- 0x6 - (A*:D*) - indirect, with offset
+- 0x6 - (A*:O) - indirect, with offset
 - 0x7 - (#*) - indirect, direct (next 2 words)
 
 Operator code:

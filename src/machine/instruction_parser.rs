@@ -72,11 +72,11 @@ impl InstructionParser {
     pub fn parse_operand(&self, word: u8) -> Operand {
         let mode_code = (word >> 5) & 0x7;
         let main_register = (word >> 2) & 0x7;
-        let offset_register = (word & 0x3) + 4;
+        let offset = word & 0x3;
         Operand {
             mode: self.modes[&mode_code].clone(),
             main_register,
-            offset_register,
+            offset,
         }
     }
 }

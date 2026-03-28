@@ -220,17 +220,25 @@ impl AsmTranslator {
             }
             LirOperand::IndirectOffset {
                 base,
-                offset_register,
+                offset: offset_register,
             } => {
-                if let LirOperand::Register(base, RegisterType::Address) = **base
-                    && let LirOperand::Register(offset, RegisterType::Data) = **offset_register
-                {
-                    let mode_code = self.modes[&Mode::IndirectOffset];
-                    assert!((4..=7).contains(&offset), "Offset register must be D4-D7");
-                    let offset_normalized = offset - 4;
-                    ((mode_code << 5) | (base << 2) | offset_normalized, vec![])
+                if let LirOperand::Register(base, RegisterType::Address) = **base {
+                    if let LirOperand::Register(offset, RegisterType::Data) = **offset_register {
+                        let mode_code = self.modes[&Mode::IndirectOffset];
+                        assert!((5..=7).contains(&offset), "Offset register must be D5-D7");
+                        let offset_normalized = offset - 4;
+                        ((mode_code << 5) | (base << 2) | offset_normalized, vec![])
+                    } else if let LirOperand::Direct(offset) = **offset_register {
+                        let mode_code = self.modes[&Mode::IndirectOffset];
+                        (
+                            (mode_code << 5) | (base << 2),
+                            offset.to_be_bytes().to_vec(),
+                        )
+                    } else {
+                        panic!("Wrong offset register");
+                    }
                 } else {
-                    panic!("Base must be an Address register");
+                    panic!("Wrong base register");
                 }
             }
             LirOperand::IndirectDirect(address) => {

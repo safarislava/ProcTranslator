@@ -8,7 +8,7 @@ pub enum WordSize {
 pub struct Operand {
     pub mode: Mode,
     pub main_register: u8,
-    pub offset_register: u8,
+    pub offset: u8,
 }
 
 #[derive(Clone, Eq, Hash, PartialEq)]
