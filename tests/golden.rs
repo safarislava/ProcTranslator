@@ -86,8 +86,7 @@ fn run_test(name: &str) -> TestOutput {
 
     let (guard, log_buffer) = setup_test_logger();
 
-    let (control_flow_graph, classes) = compile_to_hir(&content)
-        .expect("HIR compilation failed");
+    let (control_flow_graph, classes) = compile_to_hir(&content).expect("HIR compilation failed");
 
     let (text_section, data_section) = compile_lir(control_flow_graph, classes);
     let program = translate(text_section);
@@ -112,10 +111,7 @@ fn run_test(name: &str) -> TestOutput {
     }
 }
 
-fn run_machine_with_capture(
-    program: &[u8],
-    data_section: HashMap<String, ConstantAddress>,
-) {
+fn run_machine_with_capture(program: &[u8], data_section: HashMap<String, ConstantAddress>) {
     let mut control_unit = ControlUnit::default();
     control_unit.load_program(program);
     control_unit.load_constants(data_section);
@@ -142,10 +138,12 @@ fn format_yaml_with_literal_blocks(yaml: &str) -> String {
             while i < lines.len() {
                 let list_line = lines[i];
 
-                if list_line.trim_start().starts_with("- ") || list_line.trim_start().starts_with("-'") {
+                if list_line.trim_start().starts_with("- ")
+                    || list_line.trim_start().starts_with("-'")
+                {
                     let trimmed = list_line.trim_start();
                     let content = if trimmed.starts_with("- '") && trimmed.ends_with('\'') {
-                        &trimmed[3..trimmed.len()-1]
+                        &trimmed[3..trimmed.len() - 1]
                     } else if trimmed.starts_with("- ") {
                         &trimmed[2..]
                     } else {
@@ -173,8 +171,7 @@ macro_rules! assert_golden_yaml {
         use insta::assert_snapshot;
         use serde_yaml;
 
-        let yaml = serde_yaml::to_string($output)
-            .expect("Failed to serialize TestOutput to YAML");
+        let yaml = serde_yaml::to_string($output).expect("Failed to serialize TestOutput to YAML");
 
         let formatted = $crate::format_yaml_with_literal_blocks(&yaml);
 
@@ -191,8 +188,7 @@ macro_rules! assert_golden_yaml {
 pub fn export_test_output(output: &TestOutput, path: &str) -> std::io::Result<()> {
     use serde_yaml;
 
-    let yaml = serde_yaml::to_string(output)
-        .map_err(std::io::Error::other)?;
+    let yaml = serde_yaml::to_string(output).map_err(std::io::Error::other)?;
 
     let formatted = format_yaml_with_literal_blocks(&yaml);
     fs::write(path, formatted)?;
@@ -221,4 +217,10 @@ fn test_return() {
 fn test_while() {
     let output = run_test("while");
     assert_golden_yaml!(&output, "while");
+}
+
+#[test]
+fn test_for() {
+    let output = run_test("for");
+    assert_golden_yaml!(&output, "for");
 }

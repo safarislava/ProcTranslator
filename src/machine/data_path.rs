@@ -71,7 +71,7 @@ pub struct DataPath {
 
     pub memory_output: i64,
     pub data_address: u64,
-    read_data: i64,
+    pub read_data: i64,
     pub write_data: i64,
 
     pub control_unit_output: i64,

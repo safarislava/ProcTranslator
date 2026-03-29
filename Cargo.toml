@@ -10,7 +10,7 @@ tracing-appender = "0.2"
 regex = "1.10.6"
 chrono = "0.4.44"
 serde = { version = "1.0.228", features = ["derive"] }
-serde_yaml = "0.9.34+deprecated"
+serde_yaml = "0.9.33"
 
 [dev-dependencies]
 insta = { version = "1.46.3", features = ["yaml"] }
