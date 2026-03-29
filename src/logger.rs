@@ -1,5 +1,4 @@
 use std::fs;
-use tracing_appender::non_blocking;
 use tracing_appender::rolling::{RollingFileAppender, Rotation};
 use tracing_subscriber::{EnvFilter, filter::LevelFilter, fmt, prelude::*};
 
@@ -10,13 +9,6 @@ pub fn setup_logger() {
     let file_name = format!("app_{}.log", timestamp);
 
     let file_appender = RollingFileAppender::new(Rotation::NEVER, "./logs", file_name);
-
-    let (non_blocking_file, _guard) = non_blocking(file_appender);
-    std::mem::forget(_guard);
-
-    let file_filter = EnvFilter::builder()
-        .with_default_directive(LevelFilter::DEBUG.into())
-        .parse_lossy("");
 
     let console_filter = EnvFilter::builder()
         .with_default_directive(LevelFilter::INFO.into())
@@ -36,8 +28,7 @@ pub fn setup_logger() {
                 .with_ansi(false)
                 .with_target(false)
                 .without_time()
-                .with_writer(non_blocking_file)
-                .with_filter(file_filter),
+                .with_writer(file_appender),
         )
         .init();
 }

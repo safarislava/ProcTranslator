@@ -1,0 +1,65 @@
+---
+source: tests/golden.rs
+expression: formatted
+---
+in_source: |
+  int Main() {
+      if (false) {
+          return 1;
+      }
+      else if (true) {
+          return 2;
+      }
+      else {
+          return 3;
+      }
+  }
+out_log: |
+   INFO PC=0 : MOV.w
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 99999]
+   INFO PC=12 : MOV.w
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 0, 99999]
+   INFO PC=24 : CALL.b
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 0, 99999]
+   INFO PC=34 : MOV.w
+  DEBUG Store: address = 99991, value = 0
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 0, 99991]
+   INFO PC=38 : MOVA.w
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99991]
+   INFO PC=42 : SUB.w
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99991]
+   INFO PC=54 : CMP.w
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99991]
+   INFO PC=74 : BEQ.b
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99991]
+   INFO PC=113 : CMP.w
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99991]
+   INFO PC=133 : BEQ.b
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99991]
+   INFO PC=142 : JMP.b
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99991]
+   INFO PC=151 : MOV.w
+  DEBUG [2, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99991]
+   INFO PC=163 : MOVA.w
+  DEBUG [2, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99991]
+   INFO PC=167 : MOVA.w
+  DEBUG [2, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 0, 99999]
+   INFO PC=171 : RET.b
+  DEBUG [2, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 0, 99999]
+   INFO PC=33 : HLT.b
+   INFO Result : 2

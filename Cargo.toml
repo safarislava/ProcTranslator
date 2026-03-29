@@ -9,7 +9,8 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"]
 tracing-appender = "0.2"
 regex = "1.10.6"
 chrono = "0.4.44"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_yaml = "0.9.34+deprecated"
 
 [dev-dependencies]
-insta = "1.46.3"
-glob = "0.3.3"
+insta = { version = "1.46.3", features = ["yaml"] }

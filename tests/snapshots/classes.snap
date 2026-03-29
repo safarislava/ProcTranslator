@@ -1,0 +1,179 @@
+---
+source: tests/golden.rs
+expression: formatted
+---
+in_source: |
+  class Node {
+      int counter = 5;
+
+      int Increment() {
+          this.counter = this.counter + 2;
+          return this.counter;
+      }
+  }
+
+  void Main() {
+      Node node = new Node();
+      node.Increment();
+      node.Increment();
+      return;
+  }
+out_log: |
+   INFO PC=0 : MOV.w
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 99999]
+   INFO PC=12 : MOV.w
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 0, 99999]
+   INFO PC=24 : CALL.b
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 0, 99999]
+   INFO PC=131 : MOV.w
+  DEBUG Store: address = 99991, value = 0
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 0, 99991]
+   INFO PC=135 : MOVA.w
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99991]
+   INFO PC=139 : SUB.w
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+   INFO PC=151 : MOVA.w
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40000, 99991, 99983]
+   INFO PC=155 : ADD.w
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99991, 99983]
+   INFO PC=167 : MOV.w
+  DEBUG Store: address = 40000, value = 5
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99991, 99983]
+   INFO PC=187 : MOV.w
+  DEBUG Store: address = 99983, value = 40000
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99991, 99983]
+   INFO PC=199 : MOV.w
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99991, 99983]
+   INFO PC=211 : MOV.w
+  DEBUG Store: address = 99975, value = 40000
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99991, 99975]
+   INFO PC=215 : CALL.b
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99991, 99975]
+   INFO PC=34 : MOV.w
+  DEBUG Store: address = 99967, value = 99991
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99991, 99967]
+   INFO PC=38 : MOVA.w
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99967, 99967]
+   INFO PC=42 : SUB.w
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99967, 99959]
+   INFO PC=54 : MOV.w
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99967, 99959]
+   INFO PC=66 : MOV.w
+  DEBUG [0, 5, 0, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99967, 99959]
+   INFO PC=78 : MOV.w
+  DEBUG [0, 5, 5, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99967, 99959]
+   INFO PC=82 : ADD.w
+  DEBUG [0, 5, 7, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99967, 99959]
+   INFO PC=94 : MOV.w
+  DEBUG Store: address = 40000, value = 7
+  DEBUG [0, 5, 7, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99967, 99959]
+   INFO PC=106 : MOV.w
+  DEBUG [0, 7, 7, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99967, 99959]
+   INFO PC=118 : MOV.w
+  DEBUG [7, 7, 7, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99967, 99959]
+   INFO PC=122 : MOVA.w
+  DEBUG [7, 7, 7, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99967, 99967]
+   INFO PC=126 : MOVA.w
+  DEBUG [7, 7, 7, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99991, 99975]
+   INFO PC=130 : RET.b
+  DEBUG [7, 7, 7, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99991, 99975]
+   INFO PC=224 : ADD.w
+  DEBUG [7, 7, 7, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99991, 99983]
+   INFO PC=236 : MOV.w
+  DEBUG [7, 7, 7, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99991, 99983]
+   INFO PC=240 : MOV.w
+  DEBUG [7, 7, 7, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99991, 99983]
+   INFO PC=252 : MOV.w
+  DEBUG Store: address = 99975, value = 40000
+  DEBUG [7, 7, 7, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99991, 99975]
+   INFO PC=256 : CALL.b
+  DEBUG [7, 7, 7, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99991, 99975]
+   INFO PC=34 : MOV.w
+  DEBUG Store: address = 99967, value = 99991
+  DEBUG [7, 7, 7, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99991, 99967]
+   INFO PC=38 : MOVA.w
+  DEBUG [7, 7, 7, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99967, 99967]
+   INFO PC=42 : SUB.w
+  DEBUG [7, 7, 7, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99967, 99959]
+   INFO PC=54 : MOV.w
+  DEBUG [7, 7, 7, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99967, 99959]
+   INFO PC=66 : MOV.w
+  DEBUG [7, 7, 7, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99967, 99959]
+   INFO PC=78 : MOV.w
+  DEBUG [7, 7, 7, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99967, 99959]
+   INFO PC=82 : ADD.w
+  DEBUG [7, 7, 9, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99967, 99959]
+   INFO PC=94 : MOV.w
+  DEBUG Store: address = 40000, value = 9
+  DEBUG [7, 7, 9, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99967, 99959]
+   INFO PC=106 : MOV.w
+  DEBUG [7, 9, 9, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99967, 99959]
+   INFO PC=118 : MOV.w
+  DEBUG [9, 9, 9, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99967, 99959]
+   INFO PC=122 : MOVA.w
+  DEBUG [9, 9, 9, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99967, 99967]
+   INFO PC=126 : MOVA.w
+  DEBUG [9, 9, 9, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99991, 99975]
+   INFO PC=130 : RET.b
+  DEBUG [9, 9, 9, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99991, 99975]
+   INFO PC=265 : ADD.w
+  DEBUG [9, 9, 9, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99991, 99983]
+   INFO PC=277 : MOV.w
+  DEBUG [9, 9, 9, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99991, 99983]
+   INFO PC=281 : MOVA.w
+  DEBUG [9, 9, 9, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 99991, 99991]
+   INFO PC=285 : MOVA.w
+  DEBUG [9, 9, 9, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 0, 99999]
+   INFO PC=289 : RET.b
+  DEBUG [9, 9, 9, 0, 0, 0, 0, 0]
+  DEBUG [40000, 0, 0, 0, 0, 40008, 0, 99999]
+   INFO PC=33 : HLT.b
+   INFO Result : 9

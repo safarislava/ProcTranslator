@@ -1,0 +1,88 @@
+---
+source: tests/golden.rs
+expression: formatted
+---
+in_source: |
+  int Main() {
+      int a = 1;
+      int b = 2;
+      int c = 3;
+
+      int d = (a - b) * c;
+
+      return d;
+  }
+out_log: |
+   INFO PC=0 : MOV.w
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 99999]
+   INFO PC=12 : MOV.w
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 0, 99999]
+   INFO PC=24 : CALL.b
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 0, 99999]
+   INFO PC=34 : MOV.w
+  DEBUG Store: address = 99991, value = 0
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 0, 99991]
+   INFO PC=38 : MOVA.w
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99991]
+   INFO PC=42 : SUB.w
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99959]
+   INFO PC=54 : MOV.w
+  DEBUG Store: address = 99983, value = 1
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99959]
+   INFO PC=74 : MOV.w
+  DEBUG Store: address = 99975, value = 2
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99959]
+   INFO PC=94 : MOV.w
+  DEBUG Store: address = 99967, value = 3
+  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99959]
+   INFO PC=114 : MOV.w
+  DEBUG [0, 1, 0, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99959]
+   INFO PC=126 : MOV.w
+  DEBUG [0, 1, 2, 0, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99959]
+   INFO PC=138 : MOV.w
+  DEBUG [0, 1, 2, 1, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99959]
+   INFO PC=142 : SUB.w
+  DEBUG [0, 1, 2, -1, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99959]
+   INFO PC=146 : MOV.w
+  DEBUG [0, 3, 2, -1, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99959]
+   INFO PC=158 : MOV.w
+  DEBUG [0, 3, -1, -1, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99959]
+   INFO PC=162 : MUL.w
+  DEBUG [0, 3, -3, -1, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99959]
+   INFO PC=166 : MOV.w
+  DEBUG Store: address = 99959, value = -3
+  DEBUG [0, 3, -3, -1, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99959]
+   INFO PC=178 : MOV.w
+  DEBUG [0, -3, -3, -1, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99959]
+   INFO PC=190 : MOV.w
+  DEBUG [-3, -3, -3, -1, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99959]
+   INFO PC=194 : MOVA.w
+  DEBUG [-3, -3, -3, -1, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99991]
+   INFO PC=198 : MOVA.w
+  DEBUG [-3, -3, -3, -1, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 0, 99999]
+   INFO PC=202 : RET.b
+  DEBUG [-3, -3, -3, -1, 0, 0, 0, 0]
+  DEBUG [0, 0, 0, 0, 0, 40000, 0, 99999]
+   INFO PC=33 : HLT.b
+   INFO Result : -3
