@@ -1,5 +1,6 @@
 ---
 source: tests/ast_tests.rs
+assertion_line: 29
 expression: "format!(\"{:#?}\", tree)"
 ---
 AbstractSyntaxTree {
@@ -7,7 +8,7 @@ AbstractSyntaxTree {
     children: [
         AbstractSyntaxTree {
             node: Callable {
-                result_type: Void,
+                result_type: Int,
                 name: "Main",
                 arguments: [],
             },
@@ -22,7 +23,12 @@ AbstractSyntaxTree {
                     children: [
                         AbstractSyntaxTree {
                             node: Return {
-                                value: None,
+                                value: Some(
+                                    Literal {
+                                        typ: (),
+                                        value: "1",
+                                    },
+                                ),
                             },
                             children: [],
                         },
@@ -32,13 +38,18 @@ AbstractSyntaxTree {
                     node: ElseIf {
                         condition: Literal {
                             typ: (),
-                            value: "false",
+                            value: "true",
                         },
                     },
                     children: [
                         AbstractSyntaxTree {
                             node: Return {
-                                value: None,
+                                value: Some(
+                                    Literal {
+                                        typ: (),
+                                        value: "2",
+                                    },
+                                ),
                             },
                             children: [],
                         },
@@ -49,7 +60,12 @@ AbstractSyntaxTree {
                     children: [
                         AbstractSyntaxTree {
                             node: Return {
-                                value: None,
+                                value: Some(
+                                    Literal {
+                                        typ: (),
+                                        value: "3",
+                                    },
+                                ),
                             },
                             children: [],
                         },

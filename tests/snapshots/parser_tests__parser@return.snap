@@ -1,5 +1,6 @@
 ---
 source: tests/parser_tests.rs
+assertion_line: 28
 expression: "format!(\"{:#?}\", tree)"
 ---
 SyntaxTree {
@@ -7,7 +8,7 @@ SyntaxTree {
     children: [
         SyntaxTree {
             node: Function {
-                result_type: "void",
+                result_type: "int",
                 name: "Main",
                 arguments: "",
             },
@@ -19,7 +20,7 @@ SyntaxTree {
                     children: [
                         SyntaxTree {
                             node: Line {
-                                value: "return",
+                                value: "return 1",
                             },
                             children: [],
                         },
@@ -27,12 +28,12 @@ SyntaxTree {
                 },
                 SyntaxTree {
                     node: ElseIf {
-                        condition: "false",
+                        condition: "true",
                     },
                     children: [
                         SyntaxTree {
                             node: Line {
-                                value: "return",
+                                value: "return 2",
                             },
                             children: [],
                         },
@@ -43,7 +44,7 @@ SyntaxTree {
                     children: [
                         SyntaxTree {
                             node: Line {
-                                value: "return",
+                                value: "return 3",
                             },
                             children: [],
                         },

@@ -9,7 +9,7 @@ use std::fs;
 fn main() -> ResBox<()> {
     setup_logger();
 
-    let name = "classes";
+    let name = "while";
     let content = fs::read_to_string(format!("examples/correct/{name}.java"))?;
 
     let (control_flow_graph, classes) = compile_to_hir(&content)?;

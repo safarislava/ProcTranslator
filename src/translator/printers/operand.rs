@@ -5,7 +5,7 @@ impl fmt::Display for HirOperand {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             HirOperand::Value(register) => write!(f, "{}", register),
-            HirOperand::Link(register) => write!(f, "L{}", register),
+            HirOperand::Link(register) => write!(f, "link {}", register),
             HirOperand::Constant(val) => write!(f, "\"{}\"", val),
             HirOperand::Void => write!(f, "void"),
         }

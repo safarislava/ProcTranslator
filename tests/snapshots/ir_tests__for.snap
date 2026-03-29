@@ -1,9 +1,9 @@
 ---
 source: tests/ir_tests.rs
+assertion_line: 27
 expression: "format!(\"{:#?}\", cfg)"
 ---
 ControlFlowGraph {
-    register_counter: 7,
     blocks: [
         HirBlock {
             id: 0,
@@ -46,16 +46,20 @@ ControlFlowGraph {
             id: 1,
             instructions: [
                 StackLoad {
-                    destination: HirRegister(
-                        0,
+                    destination: Value(
+                        HirRegister(
+                            0,
+                        ),
                     ),
                     slot: StackSlot(
                         1,
                     ),
                 },
                 BinaryOperator {
-                    destination: HirRegister(
-                        1,
+                    destination: Value(
+                        HirRegister(
+                            1,
+                        ),
                     ),
                     left: Value(
                         HirRegister(
@@ -84,16 +88,20 @@ ControlFlowGraph {
             id: 2,
             instructions: [
                 StackLoad {
-                    destination: HirRegister(
-                        2,
+                    destination: Value(
+                        HirRegister(
+                            2,
+                        ),
                     ),
                     slot: StackSlot(
                         0,
                     ),
                 },
                 BinaryOperator {
-                    destination: HirRegister(
-                        3,
+                    destination: Value(
+                        HirRegister(
+                            3,
+                        ),
                     ),
                     left: Value(
                         HirRegister(
@@ -116,16 +124,20 @@ ControlFlowGraph {
                     ),
                 },
                 StackLoad {
-                    destination: HirRegister(
-                        4,
+                    destination: Value(
+                        HirRegister(
+                            4,
+                        ),
                     ),
                     slot: StackSlot(
                         1,
                     ),
                 },
                 BinaryOperator {
-                    destination: HirRegister(
-                        5,
+                    destination: Value(
+                        HirRegister(
+                            5,
+                        ),
                     ),
                     left: Value(
                         HirRegister(
@@ -158,8 +170,10 @@ ControlFlowGraph {
             id: 3,
             instructions: [
                 StackLoad {
-                    destination: HirRegister(
-                        6,
+                    destination: Value(
+                        HirRegister(
+                            6,
+                        ),
                     ),
                     slot: StackSlot(
                         0,

@@ -3,7 +3,7 @@ digraph CFG {
   node [shape=box, fontname="Courier"];
   edge [fontname="Courier"];
 
-  B0 [label="B0|call prologue\lr0 = param[0]\lr1 = getfield r0[0]\lr2 = r1 Add \"2\"\lr0[0] = r2\lr3 = getfield r0[0]\lreturn r3\l"];
-  B1 [label="B1|call prologue\lalloc s1\lr4 = new Node\lLr4[0] = \"5\"\ls1 = Lr4\lr5 = load s1\lr6 = call B0(r5)\lr7 = load s1\lr8 = call B0(r7)\lreturn\l"];
+  B0 [label="B0|call prologue\llink r0 = param[0]\lr1 = getfield link r0[0]\lr2 = r1 Add \"2\"\llink r0[0] = r2\lr3 = getfield link r0[0]\lreturn r3\l"];
+  B1 [label="B1|call prologue\lalloc s1\llink r4 = new Node\llink r4[0] = \"5\"\ls1 = link r4\llink r5 = load s1\lr6 = call B0(link r5)\llink r7 = load s1\lr8 = call B0(link r7)\lreturn\l"];
   B1 [style=filled, fillcolor=lightgreen];
 }

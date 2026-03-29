@@ -1,5 +1,6 @@
 ---
 source: tests/parser_tests.rs
+assertion_line: 28
 expression: "format!(\"{:#?}\", tree)"
 ---
 SyntaxTree {
@@ -32,7 +33,7 @@ SyntaxTree {
                 },
                 SyntaxTree {
                     node: Line {
-                        value: "int d = (a + b) * c",
+                        value: "int d = (a - b) * c",
                     },
                     children: [],
                 },

@@ -3,7 +3,7 @@ digraph CFG {
   node [shape=box, fontname="Courier"];
   edge [fontname="Courier"];
 
-  B0 [label="B0|call prologue\lalloc s0\lr0 = param[0]\ls0 = r0\lr1 = load s0\lr2 = r1 Add \"5\"\lreturn r2\l"];
+  B0 [label="B0|call prologue\lalloc s0\llink r0 = param[0]\ls0 = r0\lr1 = load s0\lr2 = r1 Add \"5\"\lreturn r2\l"];
   B1 [label="B1|call prologue\lalloc s1\ls1 = \"0\"\ljump B2\l"];
   B2 [label="B2|branch \"true\" ? B3 : B4\l"];
   B3 [label="B3|r3 = load s1\lr4 = r3 Equal \"9\"\lbranch r4 ? B5 : B6\l"];

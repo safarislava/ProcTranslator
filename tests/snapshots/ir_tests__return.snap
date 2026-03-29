@@ -1,9 +1,9 @@
 ---
 source: tests/ir_tests.rs
+assertion_line: 27
 expression: "format!(\"{:#?}\", cfg)"
 ---
 ControlFlowGraph {
-    register_counter: 0,
     blocks: [
         HirBlock {
             id: 0,
@@ -25,7 +25,11 @@ ControlFlowGraph {
             instructions: [],
             terminator: Some(
                 Return(
-                    None,
+                    Some(
+                        Constant(
+                            "1",
+                        ),
+                    ),
                 ),
             ),
         },
@@ -35,7 +39,7 @@ ControlFlowGraph {
             terminator: Some(
                 Branch {
                     condition: Constant(
-                        "false",
+                        "true",
                     ),
                     true_block: 3,
                     false_block: 4,
@@ -47,7 +51,11 @@ ControlFlowGraph {
             instructions: [],
             terminator: Some(
                 Return(
-                    None,
+                    Some(
+                        Constant(
+                            "2",
+                        ),
+                    ),
                 ),
             ),
         },
@@ -56,7 +64,11 @@ ControlFlowGraph {
             instructions: [],
             terminator: Some(
                 Return(
-                    None,
+                    Some(
+                        Constant(
+                            "3",
+                        ),
+                    ),
                 ),
             ),
         },

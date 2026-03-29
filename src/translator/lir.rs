@@ -141,7 +141,6 @@ pub struct LirContext {
     classes_size: HashMap<String, u32>,
 
     pub blocks: Vec<LirBlock>,
-    virtual_register_counter: usize,
 
     stack_size: i64,
     stack_offsets: HashMap<StackSlot, i64>,
@@ -166,11 +165,10 @@ pub struct LirContext {
 }
 
 impl LirContext {
-    pub fn new(register_counter: u64) -> Self {
+    pub fn new() -> Self {
         Self {
             classes_size: HashMap::new(),
             blocks: vec![],
-            virtual_register_counter: register_counter as usize,
             stack_size: 0,
             stack_offsets: HashMap::new(),
             constants_size: 0,
@@ -194,10 +192,12 @@ impl LirContext {
         }
     }
 
-    fn next_virtual_register(&mut self, register_type: RegisterType) -> LirOperand {
-        let id = self.virtual_register_counter;
-        self.virtual_register_counter += 1;
-        LirOperand::VirtualRegister(id, register_type)
+    fn get_virtual_register(&mut self, operand: HirOperand) -> LirOperand {
+        match operand {
+            HirOperand::Value(register) => self.get_virtual_data_register(register),
+            HirOperand::Link(register) => self.get_virtual_address_register(register),
+            _ => panic!("Virtual register called for non-register"),
+        }
     }
 
     fn get_virtual_data_register(&self, register: HirRegister) -> LirOperand {
@@ -263,7 +263,7 @@ impl LirContext {
                 out.push(LirInstruction::Mov {
                     size: WordSize::Long,
                     source: LirOperand::IndirectDirect(address),
-                    destination: self.get_virtual_data_register(destination),
+                    destination: self.get_virtual_register(destination),
                 });
             }
             HirInstruction::BinaryOperator {
@@ -272,7 +272,7 @@ impl LirContext {
                 operator,
                 right,
             } => {
-                let destination = self.get_virtual_data_register(destination);
+                let destination = self.get_virtual_register(destination);
                 let left_operand = self.lower_operand(left);
                 let right_operand = self.lower_operand(right);
 
@@ -375,7 +375,7 @@ impl LirContext {
                 out.push(LirInstruction::Mov {
                     size: WordSize::Long,
                     source: self.return_registers.clone(),
-                    destination: self.get_virtual_data_register(destination),
+                    destination: self.get_virtual_register(destination),
                 });
             }
             HirInstruction::CallPrologue => {
@@ -405,7 +405,7 @@ impl LirContext {
                         base: Box::new(self.frame_pointer.clone()),
                         offset: Box::new(LirOperand::Direct(offset)),
                     },
-                    destination: self.get_virtual_data_register(destination),
+                    destination: self.get_virtual_register(destination),
                 });
             }
             HirInstruction::StackAllocate { slot } => {
@@ -432,35 +432,26 @@ impl LirContext {
                         base: Box::new(self.frame_pointer.clone()),
                         offset: Box::new(LirOperand::Direct(offset)),
                     },
-                    destination: self.get_virtual_data_register(destination),
+                    destination: self.get_virtual_register(destination),
                 });
             }
             HirInstruction::GetField {
-                // todo
                 destination,
                 object,
                 offset,
             } => {
                 let object = self.lower_operand(object);
                 let offset = offset as u64 * 8;
-                let object_address_register = self.next_virtual_register(RegisterType::Address);
-
-                out.push(LirInstruction::Mov {
-                    size: WordSize::Long,
-                    source: object,
-                    destination: object_address_register.clone(),
-                });
                 out.push(LirInstruction::Mov {
                     size: WordSize::Long,
                     source: LirOperand::IndirectOffset {
-                        base: Box::new(object_address_register),
+                        base: Box::new(object),
                         offset: Box::new(LirOperand::Direct(offset)),
                     },
-                    destination: self.get_virtual_data_register(destination),
+                    destination: self.get_virtual_register(destination),
                 });
             }
             HirInstruction::PutField {
-                // todo
                 object,
                 offset,
                 value,
@@ -468,18 +459,11 @@ impl LirContext {
                 let object = self.lower_operand(object);
                 let value = self.lower_operand(value);
                 let offset = offset as u64 * 8;
-                let object_address_register = self.next_virtual_register(RegisterType::Address);
-
-                out.push(LirInstruction::Mov {
-                    size: WordSize::Long,
-                    source: object,
-                    destination: object_address_register.clone(),
-                });
                 out.push(LirInstruction::Mov {
                     size: WordSize::Long,
                     source: value,
                     destination: LirOperand::IndirectOffset {
-                        base: Box::new(object_address_register),
+                        base: Box::new(object),
                         offset: Box::new(LirOperand::Direct(offset)),
                     },
                 });
@@ -491,7 +475,7 @@ impl LirContext {
                 out.push(LirInstruction::Mova {
                     size: WordSize::Long,
                     source: self.heap_pointer.clone(),
-                    destination: self.get_virtual_address_register(destination),
+                    destination: self.get_virtual_register(destination),
                 });
 
                 let size = *self.classes_size.get(&class_name).unwrap() as u64;
@@ -1124,11 +1108,17 @@ impl LirContext {
     }
 }
 
+impl Default for LirContext {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub fn compile_lir(
     control_flow_graph: ControlFlowGraph,
     classes: HashMap<String, ClassInfo>,
 ) -> (Vec<LirBlock>, HashMap<String, ConstantAddress>) {
-    let mut context = LirContext::new(control_flow_graph.register_counter);
+    let mut context = LirContext::default();
     context.calculate_classes_size(classes);
 
     let entry_point = control_flow_graph.entry_block;

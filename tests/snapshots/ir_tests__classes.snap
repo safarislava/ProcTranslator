@@ -1,25 +1,29 @@
 ---
 source: tests/ir_tests.rs
+assertion_line: 27
 expression: "format!(\"{:#?}\", cfg)"
 ---
 ControlFlowGraph {
-    register_counter: 9,
     blocks: [
         HirBlock {
             id: 0,
             instructions: [
                 CallPrologue,
                 LoadParameter {
-                    destination: HirRegister(
-                        0,
+                    destination: Link(
+                        HirRegister(
+                            0,
+                        ),
                     ),
                     index: 0,
                 },
                 GetField {
-                    destination: HirRegister(
-                        1,
+                    destination: Value(
+                        HirRegister(
+                            1,
+                        ),
                     ),
-                    object: Value(
+                    object: Link(
                         HirRegister(
                             0,
                         ),
@@ -27,8 +31,10 @@ ControlFlowGraph {
                     offset: 0,
                 },
                 BinaryOperator {
-                    destination: HirRegister(
-                        2,
+                    destination: Value(
+                        HirRegister(
+                            2,
+                        ),
                     ),
                     left: Value(
                         HirRegister(
@@ -41,7 +47,7 @@ ControlFlowGraph {
                     ),
                 },
                 PutField {
-                    object: Value(
+                    object: Link(
                         HirRegister(
                             0,
                         ),
@@ -54,10 +60,12 @@ ControlFlowGraph {
                     ),
                 },
                 GetField {
-                    destination: HirRegister(
-                        3,
+                    destination: Value(
+                        HirRegister(
+                            3,
+                        ),
                     ),
-                    object: Value(
+                    object: Link(
                         HirRegister(
                             0,
                         ),
@@ -87,8 +95,10 @@ ControlFlowGraph {
                     ),
                 },
                 AllocateObject {
-                    destination: HirRegister(
-                        4,
+                    destination: Link(
+                        HirRegister(
+                            4,
+                        ),
                     ),
                     class_name: "Node",
                 },
@@ -114,20 +124,24 @@ ControlFlowGraph {
                     ),
                 },
                 StackLoad {
-                    destination: HirRegister(
-                        5,
+                    destination: Link(
+                        HirRegister(
+                            5,
+                        ),
                     ),
                     slot: StackSlot(
                         1,
                     ),
                 },
                 Call {
-                    destination: HirRegister(
-                        6,
+                    destination: Value(
+                        HirRegister(
+                            6,
+                        ),
                     ),
                     block: 0,
                     arguments: [
-                        Value(
+                        Link(
                             HirRegister(
                                 5,
                             ),
@@ -135,20 +149,24 @@ ControlFlowGraph {
                     ],
                 },
                 StackLoad {
-                    destination: HirRegister(
-                        7,
+                    destination: Link(
+                        HirRegister(
+                            7,
+                        ),
                     ),
                     slot: StackSlot(
                         1,
                     ),
                 },
                 Call {
-                    destination: HirRegister(
-                        8,
+                    destination: Value(
+                        HirRegister(
+                            8,
+                        ),
                     ),
                     block: 0,
                     arguments: [
-                        Value(
+                        Link(
                             HirRegister(
                                 7,
                             ),

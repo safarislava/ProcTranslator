@@ -1,5 +1,6 @@
 ---
 source: tests/simplified_ast_tests.rs
+assertion_line: 29
 expression: "format!(\"{:#?}\", simple_ast)"
 ---
 AbstractSyntaxTree {
@@ -64,7 +65,7 @@ AbstractSyntaxTree {
                                         typ: (),
                                         name: "a",
                                     },
-                                    operator: Add,
+                                    operator: Sub,
                                     right: Variable {
                                         typ: (),
                                         name: "b",

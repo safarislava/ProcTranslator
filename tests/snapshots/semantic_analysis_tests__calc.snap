@@ -1,5 +1,6 @@
 ---
 source: tests/semantic_analysis_tests.rs
+assertion_line: 32
 expression: "format!(\"{:#?}\", tree)"
 ---
 AbstractSyntaxTree {
@@ -64,7 +65,7 @@ AbstractSyntaxTree {
                                         typ: Int,
                                         name: "a",
                                     },
-                                    operator: Add,
+                                    operator: Sub,
                                     right: Variable {
                                         typ: Int,
                                         name: "b",
