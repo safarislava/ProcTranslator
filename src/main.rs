@@ -9,7 +9,7 @@ use std::fs;
 fn main() -> ResBox<()> {
     setup_logger();
 
-    let name = "classes";
+    let name = "bool";
     let content = fs::read_to_string(format!("examples/correct/{name}.java"))?;
 
     let (control_flow_graph, classes) = compile_to_hir(&content)?;
@@ -42,7 +42,7 @@ fn create_cfg_schemes() {
 }
 
 fn create_cfg_scheme(name: &str) -> ResBox<()> {
-    let content = std::fs::read_to_string(format!("examples/correct/{name}.java"))?;
+    let content = fs::read_to_string(format!("examples/correct/{name}.java"))?;
     let (cfg, _) = compile_to_hir(&content)?;
     dump_to_file(format!("output/{name}.dot"), cfg.to_dot())?;
     Ok(())

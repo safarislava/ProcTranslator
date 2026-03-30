@@ -85,8 +85,8 @@ impl ControlUnit {
                 false
             }
             ExecutionState::Done => {
-                debug!("{:?}", self.data_path.data_registers);
-                debug!("{:?}", self.data_path.address_registers);
+                debug!("D {:?}", self.data_path.data_registers);
+                debug!("A {:?}", self.data_path.address_registers);
                 self.execution_state = ExecutionState::Fetch;
                 false
             }

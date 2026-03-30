@@ -29,20 +29,20 @@ out_log: |
   DEBUG #99999
    INFO TICK 2
   DEBUG A7
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 99999]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 0, 0, 99999]
    INFO TICK 3
   DEBUG PC=12 : MOV.w
    INFO TICK 4
   DEBUG #40000
    INFO TICK 5
   DEBUG A5
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 0, 99999]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 0, 99999]
    INFO TICK 6
   DEBUG PC=24 : CALL.b
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 0, 99999]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 0, 99999]
    INFO TICK 7
   DEBUG PC=119 : MOV.w
    INFO TICK 8
@@ -52,24 +52,24 @@ out_log: |
    INFO TICK 10
   DEBUG Value=0
   DEBUG Store (99991) = 0
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 0, 99991]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 0, 99991]
    INFO TICK 11
   DEBUG PC=123 : MOVA.w
    INFO TICK 12
   DEBUG A7
    INFO TICK 13
   DEBUG A6
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99991]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99991]
    INFO TICK 14
   DEBUG PC=127 : SUB.w
    INFO TICK 15
   DEBUG #8
    INFO TICK 16
   DEBUG A7
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 17
   DEBUG PC=139 : MOV.w
    INFO TICK 18
@@ -81,27 +81,27 @@ out_log: |
    INFO TICK 21
   DEBUG Value=0
   DEBUG Store (99983) = 0
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 22
   DEBUG PC=159 : JMP.b
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 23
   DEBUG PC=168 : CMP.w
   DEBUG (#16)
   DEBUG Value=1
   DEBUG #0
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 24
   DEBUG PC=188 : BEQ.b
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 25
   DEBUG PC=197 : JMP.b
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 26
   DEBUG PC=206 : MOV.w
    INFO TICK 27
@@ -110,49 +110,49 @@ out_log: |
   DEBUG Value=0
    INFO TICK 29
   DEBUG D1
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 30
   DEBUG PC=218 : MOV.w
    INFO TICK 31
   DEBUG D1
    INFO TICK 32
   DEBUG D2
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 33
   DEBUG PC=222 : CMP.w
   DEBUG D1
   DEBUG (#24)
   DEBUG Value=9
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 34
   DEBUG PC=234 : BEQ.b
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 35
   DEBUG PC=243 : MOV.w
    INFO TICK 36
   DEBUG #0
    INFO TICK 37
   DEBUG D2
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 38
   DEBUG PC=255 : JMP.b
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 39
   DEBUG PC=276 : CMP.w
   DEBUG D2
   DEBUG #0
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 40
   DEBUG PC=288 : BEQ.b
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 41
   DEBUG PC=380 : MOV.w
    INFO TICK 42
@@ -161,57 +161,57 @@ out_log: |
   DEBUG Value=0
    INFO TICK 44
   DEBUG D1
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 45
   DEBUG PC=392 : MOV.w
    INFO TICK 46
   DEBUG D1
    INFO TICK 47
   DEBUG D2
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 48
   DEBUG PC=396 : CMP.w
   DEBUG D1
   DEBUG (#32)
   DEBUG Value=10
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 49
   DEBUG PC=408 : BEQ.b
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 50
   DEBUG PC=417 : MOV.w
    INFO TICK 51
   DEBUG #0
    INFO TICK 52
   DEBUG D2
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 53
   DEBUG PC=429 : JMP.b
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 54
   DEBUG PC=450 : CMP.w
   DEBUG D2
   DEBUG #0
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 55
   DEBUG PC=462 : BEQ.b
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 56
   DEBUG PC=489 : JMP.b
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 57
   DEBUG PC=498 : JMP.b
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 58
   DEBUG PC=507 : MOV.w
    INFO TICK 59
@@ -220,8 +220,8 @@ out_log: |
   DEBUG Value=0
    INFO TICK 61
   DEBUG D1
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 62
   DEBUG PC=519 : MOV.w
    INFO TICK 63
@@ -231,12 +231,12 @@ out_log: |
    INFO TICK 65
   DEBUG Value=0
   DEBUG Store (99975) = 0
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99975]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99975]
    INFO TICK 66
   DEBUG PC=523 : CALL.b
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99975]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99975]
    INFO TICK 67
   DEBUG PC=34 : MOV.w
    INFO TICK 68
@@ -246,24 +246,24 @@ out_log: |
    INFO TICK 70
   DEBUG Value=0
   DEBUG Store (99967) = 99991
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99967]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99967]
    INFO TICK 71
   DEBUG PC=38 : MOVA.w
    INFO TICK 72
   DEBUG A7
    INFO TICK 73
   DEBUG A6
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99967, 99967]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99967, 99967]
    INFO TICK 74
   DEBUG PC=42 : SUB.w
    INFO TICK 75
   DEBUG #8
    INFO TICK 76
   DEBUG A7
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99967, 99959]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99967, 99959]
    INFO TICK 77
   DEBUG PC=54 : MOV.w
    INFO TICK 78
@@ -272,8 +272,8 @@ out_log: |
   DEBUG Value=0
    INFO TICK 80
   DEBUG A0
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99967, 99959]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99967, 99959]
    INFO TICK 81
   DEBUG PC=66 : MOV.w
    INFO TICK 82
@@ -283,8 +283,8 @@ out_log: |
    INFO TICK 84
   DEBUG Value=0
   DEBUG Store (99959) = 0
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99967, 99959]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99967, 99959]
    INFO TICK 85
   DEBUG PC=78 : MOV.w
    INFO TICK 86
@@ -293,16 +293,16 @@ out_log: |
   DEBUG Value=0
    INFO TICK 88
   DEBUG D1
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99967, 99959]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99967, 99959]
    INFO TICK 89
   DEBUG PC=90 : MOV.w
    INFO TICK 90
   DEBUG D1
    INFO TICK 91
   DEBUG D2
-  DEBUG [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99967, 99959]
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99967, 99959]
    INFO TICK 92
   DEBUG PC=94 : ADD.w
    INFO TICK 93
@@ -311,24 +311,24 @@ out_log: |
   DEBUG Value=5
    INFO TICK 95
   DEBUG D2
-  DEBUG [0, 0, 5, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99967, 99959]
+  DEBUG D [0, 0, 5, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99967, 99959]
    INFO TICK 96
   DEBUG PC=106 : MOV.w
    INFO TICK 97
   DEBUG D2
    INFO TICK 98
   DEBUG D0
-  DEBUG [5, 0, 5, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99967, 99959]
+  DEBUG D [5, 0, 5, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99967, 99959]
    INFO TICK 99
   DEBUG PC=110 : MOVA.w
    INFO TICK 100
   DEBUG A6
    INFO TICK 101
   DEBUG A7
-  DEBUG [5, 0, 5, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99967, 99967]
+  DEBUG D [5, 0, 5, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99967, 99967]
    INFO TICK 102
   DEBUG PC=114 : MOVA.w
    INFO TICK 103
@@ -337,28 +337,28 @@ out_log: |
   DEBUG Value=99991
    INFO TICK 105
   DEBUG A6
-  DEBUG [5, 0, 5, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99975]
+  DEBUG D [5, 0, 5, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99975]
    INFO TICK 106
   DEBUG PC=118 : RET.b
-  DEBUG [5, 0, 5, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99975]
+  DEBUG D [5, 0, 5, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99975]
    INFO TICK 107
   DEBUG PC=532 : ADD.w
    INFO TICK 108
   DEBUG #8
    INFO TICK 109
   DEBUG A7
-  DEBUG [5, 0, 5, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 0, 5, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 110
   DEBUG PC=544 : MOV.w
    INFO TICK 111
   DEBUG D0
    INFO TICK 112
   DEBUG D1
-  DEBUG [5, 5, 5, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 5, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 113
   DEBUG PC=548 : MOV.w
    INFO TICK 114
@@ -368,27 +368,27 @@ out_log: |
    INFO TICK 116
   DEBUG Value=0
   DEBUG Store (99983) = 5
-  DEBUG [5, 5, 5, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 5, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 117
   DEBUG PC=560 : JMP.b
-  DEBUG [5, 5, 5, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 5, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 118
   DEBUG PC=168 : CMP.w
   DEBUG (#16)
   DEBUG Value=1
   DEBUG #0
-  DEBUG [5, 5, 5, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 5, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 119
   DEBUG PC=188 : BEQ.b
-  DEBUG [5, 5, 5, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 5, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 120
   DEBUG PC=197 : JMP.b
-  DEBUG [5, 5, 5, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 5, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 121
   DEBUG PC=206 : MOV.w
    INFO TICK 122
@@ -397,49 +397,49 @@ out_log: |
   DEBUG Value=5
    INFO TICK 124
   DEBUG D1
-  DEBUG [5, 5, 5, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 5, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 125
   DEBUG PC=218 : MOV.w
    INFO TICK 126
   DEBUG D1
    INFO TICK 127
   DEBUG D2
-  DEBUG [5, 5, 5, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 5, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 128
   DEBUG PC=222 : CMP.w
   DEBUG D1
   DEBUG (#24)
   DEBUG Value=9
-  DEBUG [5, 5, 5, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 5, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 129
   DEBUG PC=234 : BEQ.b
-  DEBUG [5, 5, 5, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 5, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 130
   DEBUG PC=243 : MOV.w
    INFO TICK 131
   DEBUG #0
    INFO TICK 132
   DEBUG D2
-  DEBUG [5, 5, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 133
   DEBUG PC=255 : JMP.b
-  DEBUG [5, 5, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 134
   DEBUG PC=276 : CMP.w
   DEBUG D2
   DEBUG #0
-  DEBUG [5, 5, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 135
   DEBUG PC=288 : BEQ.b
-  DEBUG [5, 5, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 136
   DEBUG PC=380 : MOV.w
    INFO TICK 137
@@ -448,57 +448,57 @@ out_log: |
   DEBUG Value=5
    INFO TICK 139
   DEBUG D1
-  DEBUG [5, 5, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 140
   DEBUG PC=392 : MOV.w
    INFO TICK 141
   DEBUG D1
    INFO TICK 142
   DEBUG D2
-  DEBUG [5, 5, 5, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 5, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 143
   DEBUG PC=396 : CMP.w
   DEBUG D1
   DEBUG (#32)
   DEBUG Value=10
-  DEBUG [5, 5, 5, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 5, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 144
   DEBUG PC=408 : BEQ.b
-  DEBUG [5, 5, 5, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 5, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 145
   DEBUG PC=417 : MOV.w
    INFO TICK 146
   DEBUG #0
    INFO TICK 147
   DEBUG D2
-  DEBUG [5, 5, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 148
   DEBUG PC=429 : JMP.b
-  DEBUG [5, 5, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 149
   DEBUG PC=450 : CMP.w
   DEBUG D2
   DEBUG #0
-  DEBUG [5, 5, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 150
   DEBUG PC=462 : BEQ.b
-  DEBUG [5, 5, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 151
   DEBUG PC=489 : JMP.b
-  DEBUG [5, 5, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 152
   DEBUG PC=498 : JMP.b
-  DEBUG [5, 5, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 153
   DEBUG PC=507 : MOV.w
    INFO TICK 154
@@ -507,8 +507,8 @@ out_log: |
   DEBUG Value=5
    INFO TICK 156
   DEBUG D1
-  DEBUG [5, 5, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [5, 5, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 157
   DEBUG PC=519 : MOV.w
    INFO TICK 158
@@ -518,12 +518,12 @@ out_log: |
    INFO TICK 160
   DEBUG Value=0
   DEBUG Store (99975) = 5
-  DEBUG [5, 5, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99975]
+  DEBUG D [5, 5, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99975]
    INFO TICK 161
   DEBUG PC=523 : CALL.b
-  DEBUG [5, 5, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99975]
+  DEBUG D [5, 5, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99975]
    INFO TICK 162
   DEBUG PC=34 : MOV.w
    INFO TICK 163
@@ -533,24 +533,24 @@ out_log: |
    INFO TICK 165
   DEBUG Value=99991
   DEBUG Store (99967) = 99991
-  DEBUG [5, 5, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99991, 99967]
+  DEBUG D [5, 5, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99967]
    INFO TICK 166
   DEBUG PC=38 : MOVA.w
    INFO TICK 167
   DEBUG A7
    INFO TICK 168
   DEBUG A6
-  DEBUG [5, 5, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99967, 99967]
+  DEBUG D [5, 5, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99967, 99967]
    INFO TICK 169
   DEBUG PC=42 : SUB.w
    INFO TICK 170
   DEBUG #8
    INFO TICK 171
   DEBUG A7
-  DEBUG [5, 5, 0, 0, 0, 0, 0, 0]
-  DEBUG [0, 0, 0, 0, 0, 40000, 99967, 99959]
+  DEBUG D [5, 5, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99967, 99959]
    INFO TICK 172
   DEBUG PC=54 : MOV.w
    INFO TICK 173
@@ -559,8 +559,8 @@ out_log: |
   DEBUG Value=5
    INFO TICK 175
   DEBUG A0
-  DEBUG [5, 5, 0, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99967, 99959]
+  DEBUG D [5, 5, 0, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99967, 99959]
    INFO TICK 176
   DEBUG PC=66 : MOV.w
    INFO TICK 177
@@ -570,8 +570,8 @@ out_log: |
    INFO TICK 179
   DEBUG Value=0
   DEBUG Store (99959) = 5
-  DEBUG [5, 5, 0, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99967, 99959]
+  DEBUG D [5, 5, 0, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99967, 99959]
    INFO TICK 180
   DEBUG PC=78 : MOV.w
    INFO TICK 181
@@ -580,16 +580,16 @@ out_log: |
   DEBUG Value=5
    INFO TICK 183
   DEBUG D1
-  DEBUG [5, 5, 0, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99967, 99959]
+  DEBUG D [5, 5, 0, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99967, 99959]
    INFO TICK 184
   DEBUG PC=90 : MOV.w
    INFO TICK 185
   DEBUG D1
    INFO TICK 186
   DEBUG D2
-  DEBUG [5, 5, 5, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99967, 99959]
+  DEBUG D [5, 5, 5, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99967, 99959]
    INFO TICK 187
   DEBUG PC=94 : ADD.w
    INFO TICK 188
@@ -598,24 +598,24 @@ out_log: |
   DEBUG Value=5
    INFO TICK 190
   DEBUG D2
-  DEBUG [5, 5, 10, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99967, 99959]
+  DEBUG D [5, 5, 10, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99967, 99959]
    INFO TICK 191
   DEBUG PC=106 : MOV.w
    INFO TICK 192
   DEBUG D2
    INFO TICK 193
   DEBUG D0
-  DEBUG [10, 5, 10, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99967, 99959]
+  DEBUG D [10, 5, 10, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99967, 99959]
    INFO TICK 194
   DEBUG PC=110 : MOVA.w
    INFO TICK 195
   DEBUG A6
    INFO TICK 196
   DEBUG A7
-  DEBUG [10, 5, 10, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99967, 99967]
+  DEBUG D [10, 5, 10, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99967, 99967]
    INFO TICK 197
   DEBUG PC=114 : MOVA.w
    INFO TICK 198
@@ -624,28 +624,28 @@ out_log: |
   DEBUG Value=99991
    INFO TICK 200
   DEBUG A6
-  DEBUG [10, 5, 10, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99975]
+  DEBUG D [10, 5, 10, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99975]
    INFO TICK 201
   DEBUG PC=118 : RET.b
-  DEBUG [10, 5, 10, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99975]
+  DEBUG D [10, 5, 10, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99975]
    INFO TICK 202
   DEBUG PC=532 : ADD.w
    INFO TICK 203
   DEBUG #8
    INFO TICK 204
   DEBUG A7
-  DEBUG [10, 5, 10, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 5, 10, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 205
   DEBUG PC=544 : MOV.w
    INFO TICK 206
   DEBUG D0
    INFO TICK 207
   DEBUG D1
-  DEBUG [10, 10, 10, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 10, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 208
   DEBUG PC=548 : MOV.w
    INFO TICK 209
@@ -655,27 +655,27 @@ out_log: |
    INFO TICK 211
   DEBUG Value=5
   DEBUG Store (99983) = 10
-  DEBUG [10, 10, 10, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 10, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 212
   DEBUG PC=560 : JMP.b
-  DEBUG [10, 10, 10, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 10, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 213
   DEBUG PC=168 : CMP.w
   DEBUG (#16)
   DEBUG Value=1
   DEBUG #0
-  DEBUG [10, 10, 10, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 10, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 214
   DEBUG PC=188 : BEQ.b
-  DEBUG [10, 10, 10, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 10, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 215
   DEBUG PC=197 : JMP.b
-  DEBUG [10, 10, 10, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 10, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 216
   DEBUG PC=206 : MOV.w
    INFO TICK 217
@@ -684,49 +684,49 @@ out_log: |
   DEBUG Value=10
    INFO TICK 219
   DEBUG D1
-  DEBUG [10, 10, 10, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 10, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 220
   DEBUG PC=218 : MOV.w
    INFO TICK 221
   DEBUG D1
    INFO TICK 222
   DEBUG D2
-  DEBUG [10, 10, 10, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 10, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 223
   DEBUG PC=222 : CMP.w
   DEBUG D1
   DEBUG (#24)
   DEBUG Value=9
-  DEBUG [10, 10, 10, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 10, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 224
   DEBUG PC=234 : BEQ.b
-  DEBUG [10, 10, 10, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 10, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 225
   DEBUG PC=243 : MOV.w
    INFO TICK 226
   DEBUG #0
    INFO TICK 227
   DEBUG D2
-  DEBUG [10, 10, 0, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 0, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 228
   DEBUG PC=255 : JMP.b
-  DEBUG [10, 10, 0, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 0, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 229
   DEBUG PC=276 : CMP.w
   DEBUG D2
   DEBUG #0
-  DEBUG [10, 10, 0, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 0, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 230
   DEBUG PC=288 : BEQ.b
-  DEBUG [10, 10, 0, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 0, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 231
   DEBUG PC=380 : MOV.w
    INFO TICK 232
@@ -735,53 +735,53 @@ out_log: |
   DEBUG Value=10
    INFO TICK 234
   DEBUG D1
-  DEBUG [10, 10, 0, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 0, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 235
   DEBUG PC=392 : MOV.w
    INFO TICK 236
   DEBUG D1
    INFO TICK 237
   DEBUG D2
-  DEBUG [10, 10, 10, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 10, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 238
   DEBUG PC=396 : CMP.w
   DEBUG D1
   DEBUG (#32)
   DEBUG Value=10
-  DEBUG [10, 10, 10, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 10, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 239
   DEBUG PC=408 : BEQ.b
-  DEBUG [10, 10, 10, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 10, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 240
   DEBUG PC=438 : MOV.w
    INFO TICK 241
   DEBUG #1
    INFO TICK 242
   DEBUG D2
-  DEBUG [10, 10, 1, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 1, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 243
   DEBUG PC=450 : CMP.w
   DEBUG D2
   DEBUG #0
-  DEBUG [10, 10, 1, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 1, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 244
   DEBUG PC=462 : BEQ.b
-  DEBUG [10, 10, 1, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 1, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 245
   DEBUG PC=471 : JMP.b
-  DEBUG [10, 10, 1, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 1, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 246
   DEBUG PC=480 : JMP.b
-  DEBUG [10, 10, 1, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 1, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 247
   DEBUG PC=306 : MOV.w
    INFO TICK 248
@@ -790,24 +790,24 @@ out_log: |
   DEBUG Value=10
    INFO TICK 250
   DEBUG D1
-  DEBUG [10, 10, 1, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 1, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 251
   DEBUG PC=318 : MOV.w
    INFO TICK 252
   DEBUG D1
    INFO TICK 253
   DEBUG D0
-  DEBUG [10, 10, 1, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99983]
+  DEBUG D [10, 10, 1, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99983]
    INFO TICK 254
   DEBUG PC=322 : MOVA.w
    INFO TICK 255
   DEBUG A6
    INFO TICK 256
   DEBUG A7
-  DEBUG [10, 10, 1, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 99991, 99991]
+  DEBUG D [10, 10, 1, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 99991, 99991]
    INFO TICK 257
   DEBUG PC=326 : MOVA.w
    INFO TICK 258
@@ -816,12 +816,12 @@ out_log: |
   DEBUG Value=0
    INFO TICK 260
   DEBUG A6
-  DEBUG [10, 10, 1, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 0, 99999]
+  DEBUG D [10, 10, 1, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 0, 99999]
    INFO TICK 261
   DEBUG PC=330 : RET.b
-  DEBUG [10, 10, 1, 0, 0, 0, 0, 0]
-  DEBUG [5, 0, 0, 0, 0, 40000, 0, 99999]
+  DEBUG D [10, 10, 1, 0, 0, 0, 0, 0]
+  DEBUG A [5, 0, 0, 0, 0, 40000, 0, 99999]
    INFO TICK 262
   DEBUG PC=33 : HLT.b
    INFO Result : 10

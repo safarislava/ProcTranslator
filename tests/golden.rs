@@ -224,3 +224,9 @@ fn test_for() {
     let output = run_test("for");
     assert_golden_yaml!(&output, "for");
 }
+
+#[test]
+fn test_bool() {
+    let output = run_test("bool");
+    assert_golden_yaml!(&output, "bool");
+}
