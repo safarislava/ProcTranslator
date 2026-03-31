@@ -1,0 +1,8 @@
+digraph CFG {
+  rankdir=TB;
+  node [shape=box, fontname="Courier"];
+  edge [fontname="Courier"];
+
+  B0 [label="B0|0 = store global \"666\"\lcall prologue\l0 = store global \"999\"\lr0 = load global 0\lreturn r0\l"];
+  B0 [style=filled, fillcolor=lightgreen];
+}

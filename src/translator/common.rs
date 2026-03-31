@@ -1,7 +1,6 @@
 use crate::translator::expression::Expression;
-use crate::translator::hir::{ClassInfo, ControlFlowGraph};
+use crate::translator::hir::ControlFlowGraph;
 use crate::translator::{analyzer, ast, hir, parser, simplifier};
-use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::io::Write;
@@ -9,7 +8,7 @@ use std::path::Path;
 
 pub type ResBox<T> = Result<T, Box<dyn Error>>;
 
-pub type ConstantAddress = u64;
+pub type Address = u64;
 
 #[derive(Debug, Clone)]
 pub struct Variable {
@@ -97,13 +96,13 @@ impl<E> AbstractSyntaxTree<E> {
 pub type TypedExpression = Expression<Type>;
 pub type TypedAbstractSyntaxTree = AbstractSyntaxTree<TypedExpression>;
 
-pub fn compile_to_hir(content: &str) -> ResBox<(ControlFlowGraph, HashMap<String, ClassInfo>)> {
+pub fn compile_to_hir(content: &str) -> ResBox<ControlFlowGraph> {
     let syntax_tree = parser::parse_syntax_tree(content)?;
     let ast = ast::build_ast(syntax_tree)?;
     let simple_ast = simplifier::simplify(ast);
     let typed_ast = analyzer::semantic_analyze(simple_ast)?;
-    let (control_flow_graph, classes) = hir::compile_hir(typed_ast);
-    Ok((control_flow_graph, classes))
+    let control_flow_graph = hir::compile_hir(typed_ast);
+    Ok(control_flow_graph)
 }
 
 pub fn dump_to_file(path: impl AsRef<Path>, value: String) -> std::io::Result<()> {

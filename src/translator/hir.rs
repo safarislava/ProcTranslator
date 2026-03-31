@@ -5,6 +5,8 @@ use crate::translator::expression::ExpressionBinaryOperator;
 use std::collections::HashMap;
 use std::iter;
 
+pub type GlobalId = usize;
+
 pub type BlockId = usize;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct HirRegister(pub u64);
@@ -22,10 +24,6 @@ pub enum HirOperand {
 
 #[derive(Debug, Clone)]
 pub enum HirInstruction {
-    LoadConst {
-        destination: HirOperand,
-        value: String,
-    },
     BinaryOperator {
         destination: HirOperand,
         left: HirOperand,
@@ -44,24 +42,33 @@ pub enum HirInstruction {
         index: usize,
     },
 
-    StackAllocate {
-        slot: StackSlot,
+    LoadGlobal {
+        destination: HirOperand,
+        id: GlobalId,
     },
-    StackStore {
-        slot: StackSlot,
+    StoreGlobal {
+        id: GlobalId,
         value: HirOperand,
     },
-    StackLoad {
+
+    AllocateStack {
+        slot: StackSlot,
+    },
+    LoadStack {
         destination: HirOperand,
         slot: StackSlot,
     },
+    StoreStack {
+        slot: StackSlot,
+        value: HirOperand,
+    },
 
-    GetField {
+    LoadField {
         destination: HirOperand,
         object: HirOperand,
         offset: usize,
     },
-    PutField {
+    StoreField {
         object: HirOperand,
         offset: usize,
         value: HirOperand,
@@ -126,6 +133,7 @@ struct HirContext {
     current_block: Option<BlockId>,
     register_counter: u64,
     slot_counter: u64,
+    global_counter: usize,
     scopes: Vec<HashMap<String, StackSlot>>,
     loop_stack: Vec<(BlockId, BlockId)>,
     functions: HashMap<String, BlockId>,
@@ -133,6 +141,7 @@ struct HirContext {
     current_class: Option<String>,
     this_register: Option<HirOperand>,
     main_block: Option<BlockId>,
+    globals: HashMap<String, GlobalId>,
 }
 
 impl HirContext {
@@ -140,6 +149,7 @@ impl HirContext {
         HirContext {
             register_counter: 0,
             slot_counter: 0,
+            global_counter: 0,
             blocks: vec![],
             current_block: None,
             scopes: vec![HashMap::new()],
@@ -149,7 +159,14 @@ impl HirContext {
             current_class: None,
             this_register: None,
             main_block: None,
+            globals: HashMap::new(),
         }
+    }
+
+    fn new_global_id(&mut self) -> GlobalId {
+        let id = self.global_counter;
+        self.global_counter += 1;
+        id
     }
 
     fn new_register(&mut self) -> HirRegister {
@@ -210,7 +227,7 @@ impl HirContext {
 
     fn declare_variable(&mut self, name: String) -> StackSlot {
         let slot = self.new_slot();
-        self.emit(HirInstruction::StackAllocate { slot });
+        self.emit(HirInstruction::AllocateStack { slot });
 
         let current_scope = self.scopes.last_mut().expect("No scope active");
         current_scope.insert(name, slot);
@@ -223,7 +240,7 @@ impl HirContext {
                 return slot;
             }
         }
-        unreachable!()
+        panic!("Variable {} not found", name);
     }
 
     fn resolve_field_offset(&self, object_type: &Type, field_name: &str) -> usize {
@@ -343,15 +360,34 @@ impl HirContext {
             AbstractSyntaxNode::Declaration {
                 name, expression, ..
             } => {
-                let slot = self.declare_variable(name);
-                let value = if let Some(expression) = expression {
-                    self.generate_expression(expression)
-                } else {
-                    HirOperand::Void
-                };
+                if self.scopes.len() > 1 {
+                    let slot = self.declare_variable(name);
+                    let value = if let Some(expression) = expression {
+                        self.generate_expression(expression)
+                    } else {
+                        HirOperand::Void
+                    };
 
-                if !matches!(value, HirOperand::Void) {
-                    self.emit(HirInstruction::StackStore { slot, value });
+                    if !matches!(value, HirOperand::Void) {
+                        self.emit(HirInstruction::StoreStack { slot, value });
+                    }
+                } else {
+                    let global_id = self.new_global_id();
+                    self.globals.insert(name.clone(), global_id);
+
+                    self.set_current_block(self.main_block.unwrap());
+                    if let Some(expression) = expression {
+                        let value = self.generate_expression(expression);
+                        self.emit(HirInstruction::StoreGlobal {
+                            id: global_id,
+                            value,
+                        });
+                    } else {
+                        self.emit(HirInstruction::StoreGlobal {
+                            id: global_id,
+                            value: HirOperand::Constant("0".to_string()),
+                        });
+                    }
                 }
             }
             AbstractSyntaxNode::Callable {
@@ -388,7 +424,7 @@ impl HirContext {
                         destination,
                         index: i + parameter_offset,
                     });
-                    self.emit(HirInstruction::StackStore {
+                    self.emit(HirInstruction::StoreStack {
                         slot,
                         value: HirOperand::Value(register),
                     });
@@ -447,18 +483,29 @@ impl HirContext {
         match expression {
             TypedExpression::Literal { value, .. } => HirOperand::Constant(value),
             TypedExpression::Variable { name, .. } => {
-                let slot = self.resolve_variable_address(&name);
                 let destination = self.new_register();
                 let destination = match expression_type {
                     Type::Class(_) => HirOperand::Link(destination),
                     _ => HirOperand::Value(destination),
                 };
 
-                self.emit(HirInstruction::StackLoad {
-                    destination: destination.clone(),
-                    slot,
-                });
-                destination
+                let is_local = self.scopes.iter().any(|scope| scope.contains_key(&name));
+                if is_local {
+                    let slot = self.resolve_variable_address(&name);
+                    self.emit(HirInstruction::LoadStack {
+                        destination: destination.clone(),
+                        slot,
+                    });
+                    destination
+                } else if let Some(&id) = self.globals.get(&name) {
+                    self.emit(HirInstruction::LoadGlobal {
+                        destination: destination.clone(),
+                        id,
+                    });
+                    destination
+                } else {
+                    panic!("Variable {} not found", name);
+                }
             }
             TypedExpression::BinaryOperator {
                 left,
@@ -504,10 +551,17 @@ impl HirContext {
                 destination
             }
             TypedExpression::Assign { name, value, .. } => {
-                let slot = self.resolve_variable_address(&name);
                 let value = self.generate_expression(*value);
 
-                self.emit(HirInstruction::StackStore { slot, value });
+                let is_local = self.scopes.iter().any(|scope| scope.contains_key(&name));
+                if is_local {
+                    let slot = self.resolve_variable_address(&name);
+                    self.emit(HirInstruction::StoreStack { slot, value });
+                } else if let Some(&id) = self.globals.get(&name) {
+                    self.emit(HirInstruction::StoreGlobal { id, value });
+                } else {
+                    panic!("Variable {} not found", name);
+                }
                 HirOperand::Void
             }
             TypedExpression::Increment {
@@ -601,7 +655,7 @@ impl HirContext {
                 let object = self.generate_expression(*object);
                 let value = self.generate_expression(*value);
 
-                self.emit(HirInstruction::PutField {
+                self.emit(HirInstruction::StoreField {
                     object,
                     offset,
                     value,
@@ -626,7 +680,7 @@ impl HirContext {
 
                 for (expression, offset) in fields {
                     let value = self.generate_expression(expression);
-                    self.emit(HirInstruction::PutField {
+                    self.emit(HirInstruction::StoreField {
                         object: object.clone(),
                         offset,
                         value,
@@ -642,7 +696,7 @@ impl HirContext {
                     Type::Class(_) => HirOperand::Link(destination),
                     _ => HirOperand::Value(destination),
                 };
-                self.emit(HirInstruction::GetField {
+                self.emit(HirInstruction::LoadField {
                     destination: destination.clone(),
                     object,
                     offset,
@@ -666,7 +720,7 @@ impl HirContext {
             TypedExpression::Variable { name, .. } => {
                 let slot = self.resolve_variable_address(&name);
                 let old_value = HirOperand::Value(self.new_register());
-                self.emit(HirInstruction::StackLoad {
+                self.emit(HirInstruction::LoadStack {
                     destination: old_value.clone(),
                     slot,
                 });
@@ -679,7 +733,7 @@ impl HirContext {
                     operator,
                     right: one_const,
                 });
-                self.emit(HirInstruction::StackStore {
+                self.emit(HirInstruction::StoreStack {
                     slot,
                     value: new_value.clone(),
                 });
@@ -695,7 +749,7 @@ impl HirContext {
                 let offset = self.classes[&class_name].fields[&name].1;
 
                 let old_value = HirOperand::Value(self.new_register());
-                self.emit(HirInstruction::GetField {
+                self.emit(HirInstruction::LoadField {
                     destination: old_value.clone(),
                     object: object.clone(),
                     offset,
@@ -709,7 +763,7 @@ impl HirContext {
                     operator,
                     right: one_const,
                 });
-                self.emit(HirInstruction::PutField {
+                self.emit(HirInstruction::StoreField {
                     object,
                     offset,
                     value: new_value.clone(),
@@ -739,10 +793,6 @@ impl HirContext {
                         AbstractSyntaxNode::Callable { name, .. } => {
                             let block_id = self.create_block();
                             class_info.methods.insert(name.clone(), block_id);
-
-                            if name == "Main" {
-                                self.main_block = Some(block_id);
-                            }
                         }
                         AbstractSyntaxNode::Declaration {
                             name, expression, ..
@@ -773,9 +823,10 @@ impl HirContext {
 pub struct ControlFlowGraph {
     pub blocks: Vec<HirBlock>,
     pub entry_block: BlockId,
+    pub classes: HashMap<String, ClassInfo>,
 }
 
-pub fn compile_hir(ast: TypedAbstractSyntaxTree) -> (ControlFlowGraph, HashMap<String, ClassInfo>) {
+pub fn compile_hir(ast: TypedAbstractSyntaxTree) -> ControlFlowGraph {
     let mut context = HirContext::new();
     context.scan_signatures(&ast);
     let entry_block = context.main_block.unwrap();
@@ -783,11 +834,9 @@ pub fn compile_hir(ast: TypedAbstractSyntaxTree) -> (ControlFlowGraph, HashMap<S
     if !context.is_current_terminated() {
         context.emit_terminator(HirTerminator::Return(None));
     }
-    (
-        ControlFlowGraph {
-            blocks: context.blocks,
-            entry_block,
-        },
-        context.classes,
-    )
+    ControlFlowGraph {
+        blocks: context.blocks,
+        entry_block,
+        classes: context.classes,
+    }
 }

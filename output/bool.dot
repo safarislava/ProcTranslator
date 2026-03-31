@@ -1,0 +1,8 @@
+digraph CFG {
+  rankdir=TB;
+  node [shape=box, fontname="Courier"];
+  edge [fontname="Courier"];
+
+  B0 [label="B0|call prologue\lr0 = \"23\" Multiply \"44\"\lr1 = r0 Remainder \"2\"\lr2 = r1 Equal \"0\"\lreturn r2\l"];
+  B0 [style=filled, fillcolor=lightgreen];
+}

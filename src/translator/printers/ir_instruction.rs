@@ -4,9 +4,6 @@ use std::fmt;
 impl fmt::Display for HirInstruction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            HirInstruction::LoadConst { destination, value } => {
-                write!(f, "{} = const {}", destination, value)
-            }
             HirInstruction::BinaryOperator {
                 destination,
                 left,
@@ -33,23 +30,23 @@ impl fmt::Display for HirInstruction {
             HirInstruction::LoadParameter { destination, index } => {
                 write!(f, "{} = param[{}]", destination, index)
             }
-            HirInstruction::StackAllocate { slot } => {
+            HirInstruction::AllocateStack { slot } => {
                 write!(f, "alloc {}", slot)
             }
-            HirInstruction::StackStore { slot, value } => {
+            HirInstruction::StoreStack { slot, value } => {
                 write!(f, "{} = {}", slot, value)
             }
-            HirInstruction::StackLoad { destination, slot } => {
+            HirInstruction::LoadStack { destination, slot } => {
                 write!(f, "{} = load {}", destination, slot)
             }
-            HirInstruction::GetField {
+            HirInstruction::LoadField {
                 destination,
                 object,
                 offset,
             } => {
-                write!(f, "{} = getfield {}[{}]", destination, object, offset)
+                write!(f, "{} = load field {}[{}]", destination, object, offset)
             }
-            HirInstruction::PutField {
+            HirInstruction::StoreField {
                 object,
                 offset,
                 value,
@@ -61,6 +58,12 @@ impl fmt::Display for HirInstruction {
                 class_name,
             } => {
                 write!(f, "{} = new {}", destination, class_name)
+            }
+            HirInstruction::LoadGlobal { destination, id } => {
+                write!(f, "{} = load global {}", destination, id)
+            }
+            HirInstruction::StoreGlobal { id, value } => {
+                write!(f, "{} = store global {}", id, value)
             }
         }
     }

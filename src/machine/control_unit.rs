@@ -6,7 +6,7 @@ use crate::machine::data_path::{
 use crate::machine::instruction_parser::InstructionParser;
 use crate::machine::memory::Memory;
 use crate::machine::stack::Stack;
-use crate::translator::common::ConstantAddress;
+use crate::translator::common::Address;
 use std::collections::HashMap;
 use tracing::{debug, info};
 
@@ -588,9 +588,8 @@ impl ControlUnit {
         }
     }
 
-    pub fn load_constants(&mut self, constants: HashMap<String, ConstantAddress>) {
-        for (name, address) in constants {
-            let value = name.parse::<u64>().unwrap();
+    pub fn load_data_section(&mut self, data_section: HashMap<Address, u64>) {
+        for (address, value) in data_section {
             self.data_path.data_memory.write_u64(address, value);
         }
     }

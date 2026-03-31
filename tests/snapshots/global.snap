@@ -1,0 +1,129 @@
+---
+source: tests/golden.rs
+expression: formatted
+---
+in_source: |+
+  int a = 666;
+
+  int Main() {
+      a = 999;
+      return a;
+  }
+
+out_log: |
+   INFO TICK 0
+  DEBUG PC=0 : MOV.w
+   INFO TICK 1
+  DEBUG #99999
+   INFO TICK 2
+  DEBUG A7
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 0, 0, 99999]
+   INFO TICK 3
+  DEBUG PC=12 : MOV.w
+   INFO TICK 4
+  DEBUG #40000
+   INFO TICK 5
+  DEBUG A5
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 0, 99999]
+   INFO TICK 6
+  DEBUG PC=24 : CALL.b
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 0, 99999]
+   INFO TICK 7
+  DEBUG PC=34 : MOV.w
+   INFO TICK 8
+  DEBUG (#0)
+   INFO TICK 9
+  DEBUG Value=666
+   INFO TICK 10
+  DEBUG (#8)
+   INFO TICK 11
+  DEBUG Value=0
+  DEBUG Store (8) = 666
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 0, 99999]
+   INFO TICK 12
+  DEBUG PC=54 : MOV.w
+   INFO TICK 13
+  DEBUG A6
+   INFO TICK 14
+  DEBUG (A7)+
+   INFO TICK 15
+  DEBUG Value=0
+  DEBUG Store (99991) = 0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 0, 99991]
+   INFO TICK 16
+  DEBUG PC=58 : MOVA.w
+   INFO TICK 17
+  DEBUG A7
+   INFO TICK 18
+  DEBUG A6
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99991]
+   INFO TICK 19
+  DEBUG PC=62 : SUB.w
+   INFO TICK 20
+  DEBUG #0
+   INFO TICK 21
+  DEBUG A7
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99991]
+   INFO TICK 22
+  DEBUG PC=74 : MOV.w
+   INFO TICK 23
+  DEBUG (#16)
+   INFO TICK 24
+  DEBUG Value=999
+   INFO TICK 25
+  DEBUG (#8)
+   INFO TICK 26
+  DEBUG Value=666
+  DEBUG Store (8) = 999
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99991]
+   INFO TICK 27
+  DEBUG PC=94 : MOV.w
+   INFO TICK 28
+  DEBUG (#8)
+   INFO TICK 29
+  DEBUG Value=999
+   INFO TICK 30
+  DEBUG D1
+  DEBUG D [0, 999, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99991]
+   INFO TICK 31
+  DEBUG PC=106 : MOV.w
+   INFO TICK 32
+  DEBUG D1
+   INFO TICK 33
+  DEBUG D0
+  DEBUG D [999, 999, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99991]
+   INFO TICK 34
+  DEBUG PC=110 : MOVA.w
+   INFO TICK 35
+  DEBUG A6
+   INFO TICK 36
+  DEBUG A7
+  DEBUG D [999, 999, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99991]
+   INFO TICK 37
+  DEBUG PC=114 : MOVA.w
+   INFO TICK 38
+  DEBUG -(A7)
+   INFO TICK 39
+  DEBUG Value=0
+   INFO TICK 40
+  DEBUG A6
+  DEBUG D [999, 999, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 0, 99999]
+   INFO TICK 41
+  DEBUG PC=118 : RET.b
+  DEBUG D [999, 999, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 0, 99999]
+   INFO TICK 42
+  DEBUG PC=33 : HLT.b
+   INFO Result : 999

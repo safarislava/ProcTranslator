@@ -1,6 +1,6 @@
 use proc_translator::machine::control_unit::ControlUnit;
 use proc_translator::translator::asm_translator::translate;
-use proc_translator::translator::common::ConstantAddress;
+use proc_translator::translator::common::Address;
 use proc_translator::translator::common::compile_to_hir;
 use proc_translator::translator::lir::compile_lir;
 use serde::{Serialize, Serializer, ser::SerializeMap};
@@ -86,9 +86,9 @@ fn run_test(name: &str) -> TestOutput {
 
     let (guard, log_buffer) = setup_test_logger();
 
-    let (control_flow_graph, classes) = compile_to_hir(&content).expect("HIR compilation failed");
+    let control_flow_graph = compile_to_hir(&content).expect("HIR compilation failed");
 
-    let (text_section, data_section) = compile_lir(control_flow_graph, classes);
+    let (text_section, data_section) = compile_lir(control_flow_graph);
     let program = translate(text_section);
 
     run_machine_with_capture(&program, data_section);
@@ -111,10 +111,10 @@ fn run_test(name: &str) -> TestOutput {
     }
 }
 
-fn run_machine_with_capture(program: &[u8], data_section: HashMap<String, ConstantAddress>) {
+fn run_machine_with_capture(program: &[u8], data_section: HashMap<Address, u64>) {
     let mut control_unit = ControlUnit::default();
     control_unit.load_program(program);
-    control_unit.load_constants(data_section);
+    control_unit.load_data_section(data_section);
 
     loop {
         if control_unit.step() {
@@ -229,4 +229,10 @@ fn test_for() {
 fn test_bool() {
     let output = run_test("bool");
     assert_golden_yaml!(&output, "bool");
+}
+
+#[test]
+fn test_global() {
+    let output = run_test("global");
+    assert_golden_yaml!(&output, "global");
 }

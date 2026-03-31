@@ -1,9 +1,9 @@
 use crate::isa::WordSize;
-use crate::translator::common::ConstantAddress;
+use crate::translator::common::Address;
 use crate::translator::expression::ExpressionBinaryOperator;
 use crate::translator::hir::{
-    BlockId, ClassInfo, ControlFlowGraph, HirInstruction, HirOperand, HirRegister, HirTerminator,
-    StackSlot,
+    BlockId, ClassInfo, ControlFlowGraph, GlobalId, HirBlock, HirInstruction, HirOperand,
+    HirRegister, HirTerminator, StackSlot,
 };
 use std::collections::HashMap;
 use std::vec;
@@ -26,7 +26,7 @@ pub enum LirOperand {
         base: Box<LirOperand>,
         offset: Box<LirOperand>,
     },
-    IndirectDirect(u64),
+    IndirectDirect(Address),
 }
 
 #[derive(Debug, Clone)]
@@ -145,8 +145,10 @@ pub struct LirContext {
     stack_size: i64,
     stack_offsets: HashMap<StackSlot, i64>,
 
-    pub constants_size: u64,
-    pub constants: HashMap<String, ConstantAddress>,
+    pub data_size: u64,
+    pub constants: HashMap<String, Address>,
+
+    pub globals: HashMap<GlobalId, Address>,
 
     return_registers: LirOperand,
 
@@ -171,8 +173,9 @@ impl LirContext {
             blocks: vec![],
             stack_size: 0,
             stack_offsets: HashMap::new(),
-            constants_size: 0,
+            data_size: 0,
             constants: HashMap::new(),
+            globals: HashMap::new(),
             return_registers: LirOperand::Register(0, RegisterType::Data),
             restore_data_registers: vec![
                 LirOperand::Register(6, RegisterType::Data),
@@ -208,13 +211,24 @@ impl LirContext {
         LirOperand::VirtualRegister(register.0 as usize, RegisterType::Address)
     }
 
-    fn get_constant_address(&mut self, value: String) -> u64 {
-        if let Some(id) = self.constants.get(&value) {
-            *id
+    fn get_constant_address(&mut self, value: String) -> Address {
+        if let Some(address) = self.constants.get(&value) {
+            *address
         } else {
-            let address = self.constants_size;
+            let address = self.data_size;
             self.constants.insert(value, address);
-            self.constants_size += 8;
+            self.data_size += 8;
+            address
+        }
+    }
+
+    fn get_global_address(&mut self, id: GlobalId) -> Address {
+        if let Some(address) = self.globals.get(&id) {
+            *address
+        } else {
+            let address = self.data_size;
+            self.globals.insert(id, address);
+            self.data_size += 8;
             address
         }
     }
@@ -236,8 +250,8 @@ impl LirContext {
         }
     }
 
-    pub fn lower(&mut self, control_flow_graph: ControlFlowGraph) {
-        for hir_block in control_flow_graph.blocks {
+    pub fn lower(&mut self, hir_blocks: Vec<HirBlock>) {
+        for hir_block in hir_blocks {
             let mut lir_instructions = Vec::new();
 
             for instruction in hir_block.instructions {
@@ -257,13 +271,23 @@ impl LirContext {
 
     fn lower_instruction(&mut self, instruction: HirInstruction, out: &mut Vec<LirInstruction>) {
         match instruction {
-            HirInstruction::LoadConst { destination, value } => {
-                let address = self.get_constant_address(value);
-
+            HirInstruction::LoadGlobal { destination, id } => {
+                let address = self.get_global_address(id);
+                let destination = self.get_virtual_register(destination);
                 out.push(LirInstruction::Mov {
                     size: WordSize::Long,
                     source: LirOperand::IndirectDirect(address),
-                    destination: self.get_virtual_register(destination),
+                    destination,
+                });
+            }
+
+            HirInstruction::StoreGlobal { id, value } => {
+                let value_operand = self.lower_operand(value);
+                let address = self.get_global_address(id);
+                out.push(LirInstruction::Mov {
+                    size: WordSize::Long,
+                    source: value_operand,
+                    destination: LirOperand::IndirectDirect(address),
                 });
             }
             HirInstruction::BinaryOperator {
@@ -408,11 +432,11 @@ impl LirContext {
                     destination: self.get_virtual_register(destination),
                 });
             }
-            HirInstruction::StackAllocate { slot } => {
+            HirInstruction::AllocateStack { slot } => {
                 self.stack_size += 8;
                 self.stack_offsets.insert(slot, -self.stack_size);
             }
-            HirInstruction::StackStore { slot, value } => {
+            HirInstruction::StoreStack { slot, value } => {
                 let offset = *self.stack_offsets.get(&slot).unwrap() as u64;
                 let value_operand = self.lower_operand(value);
                 out.push(LirInstruction::Mov {
@@ -424,7 +448,7 @@ impl LirContext {
                     },
                 });
             }
-            HirInstruction::StackLoad { destination, slot } => {
+            HirInstruction::LoadStack { destination, slot } => {
                 let offset = *self.stack_offsets.get(&slot).unwrap() as u64;
                 out.push(LirInstruction::Mov {
                     size: WordSize::Long,
@@ -435,7 +459,7 @@ impl LirContext {
                     destination: self.get_virtual_register(destination),
                 });
             }
-            HirInstruction::GetField {
+            HirInstruction::LoadField {
                 destination,
                 object,
                 offset,
@@ -451,7 +475,7 @@ impl LirContext {
                     destination: self.get_virtual_register(destination),
                 });
             }
-            HirInstruction::PutField {
+            HirInstruction::StoreField {
                 object,
                 offset,
                 value,
@@ -1114,18 +1138,21 @@ impl Default for LirContext {
     }
 }
 
-pub fn compile_lir(
-    control_flow_graph: ControlFlowGraph,
-    classes: HashMap<String, ClassInfo>,
-) -> (Vec<LirBlock>, HashMap<String, ConstantAddress>) {
+pub fn compile_lir(control_flow_graph: ControlFlowGraph) -> (Vec<LirBlock>, HashMap<Address, u64>) {
     let mut context = LirContext::default();
-    context.calculate_classes_size(classes);
+    context.calculate_classes_size(control_flow_graph.classes);
 
     let entry_point = control_flow_graph.entry_block;
-    context.lower(control_flow_graph);
+    context.lower(control_flow_graph.blocks);
     context.create_entry_point(entry_point);
 
     context.compile_virtual_registers();
 
-    (context.blocks, context.constants)
+    let mut data_section = HashMap::new();
+    for (name, address) in context.constants {
+        let value = name.parse::<u64>().unwrap();
+        data_section.insert(address, value);
+    }
+
+    (context.blocks, data_section)
 }
