@@ -1,7 +1,7 @@
 use crate::translator::common::{AbstractSyntaxNode, RawAbstractSyntaxTree, RawExpression};
 use crate::translator::expression::{Expression, ExpressionBinaryOperator};
 
-pub fn simplify_ast(ast: RawAbstractSyntaxTree) -> RawAbstractSyntaxTree {
+fn simplify_ast(ast: RawAbstractSyntaxTree) -> RawAbstractSyntaxTree {
     let RawAbstractSyntaxTree { node, children } = ast;
     let mut simplified_children = Vec::new();
     let mut iterator = children.into_iter().peekable();

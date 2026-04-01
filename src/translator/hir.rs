@@ -141,11 +141,12 @@ struct HirContext {
     current_class: Option<String>,
     this_register: Option<HirOperand>,
     main_block: Option<BlockId>,
+    interrupt_block: [BlockId; 8],
     globals: HashMap<String, GlobalId>,
 }
 
 impl HirContext {
-    pub fn new() -> Self {
+    fn new() -> Self {
         HirContext {
             register_counter: 0,
             slot_counter: 0,
@@ -159,6 +160,7 @@ impl HirContext {
             current_class: None,
             this_register: None,
             main_block: None,
+            interrupt_block: [0; 8],
             globals: HashMap::new(),
         }
     }
@@ -257,7 +259,7 @@ impl HirContext {
 }
 
 impl HirContext {
-    pub fn generate_statement(&mut self, ast: TypedAbstractSyntaxTree) {
+    fn generate_statement(&mut self, ast: TypedAbstractSyntaxTree) {
         match ast.node {
             AbstractSyntaxNode::If { condition } => {
                 let condition = self.generate_expression(condition);
@@ -474,11 +476,13 @@ impl HirContext {
                     self.generate_statement(child);
                 }
             }
-            _ => unreachable!(),
+            AbstractSyntaxNode::ElseIf { .. }
+            | AbstractSyntaxNode::Else
+            | AbstractSyntaxNode::For { .. } => unreachable!(),
         }
     }
 
-    pub fn generate_expression(&mut self, expression: TypedExpression) -> HirOperand {
+    fn generate_expression(&mut self, expression: TypedExpression) -> HirOperand {
         let expression_type = expression.get_type();
         match expression {
             TypedExpression::Literal { value, .. } => HirOperand::Constant(value),
@@ -777,7 +781,7 @@ impl HirContext {
 }
 
 impl HirContext {
-    pub fn scan_signatures(&mut self, ast: &TypedAbstractSyntaxTree) {
+    fn scan_signatures(&mut self, ast: &TypedAbstractSyntaxTree) {
         match &ast.node {
             AbstractSyntaxNode::File => {
                 for child in &ast.children {
@@ -810,8 +814,16 @@ impl HirContext {
             AbstractSyntaxNode::Callable { name, .. } => {
                 let block_id = self.create_block();
                 self.functions.insert(name.clone(), block_id);
-                if name == "Main" {
-                    self.main_block = Some(block_id);
+                match name.as_str() {
+                    "Main" => self.main_block = Some(block_id),
+                    s if s.starts_with("interrupt") => {
+                        if let Ok(number) = s.replace("interrupt", "").parse::<u8>()
+                            && number <= 7
+                        {
+                            self.interrupt_block[number as usize] = block_id;
+                        }
+                    }
+                    _ => {}
                 }
             }
             _ => {}
@@ -823,20 +835,20 @@ impl HirContext {
 pub struct ControlFlowGraph {
     pub blocks: Vec<HirBlock>,
     pub entry_block: BlockId,
+    pub interrupt_blocks: [BlockId; 8],
     pub classes: HashMap<String, ClassInfo>,
 }
 
 pub fn compile_hir(ast: TypedAbstractSyntaxTree) -> ControlFlowGraph {
     let mut context = HirContext::new();
+
     context.scan_signatures(&ast);
-    let entry_block = context.main_block.unwrap();
     context.generate_statement(ast);
-    if !context.is_current_terminated() {
-        context.emit_terminator(HirTerminator::Return(None));
-    }
+
     ControlFlowGraph {
         blocks: context.blocks,
-        entry_block,
+        entry_block: context.main_block.unwrap(),
+        interrupt_blocks: context.interrupt_block,
         classes: context.classes,
     }
 }

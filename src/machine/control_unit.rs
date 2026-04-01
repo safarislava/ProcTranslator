@@ -20,17 +20,13 @@ pub enum PcSelector {
     NextByte,
     NextWord,
     NextTwoWords,
-    SetByDecoder,
-    SetByStack,
-}
-
-enum StackSelector {
-    Current,
-    Next,
+    ByDecoder,
+    ByStack,
+    ByInterrupt,
 }
 
 enum ExecutionState {
-    Fetch,
+    Start,
     Execute(u8),
     Done,
     Stop,
@@ -42,13 +38,16 @@ pub struct ControlUnit {
     program_memory: Memory,
     stack: Stack,
     decoder_output: u64,
-    pc: u64,
+    pc: Address,
     read_data: u64,
     ir: u32,
     word_size: WordSize,
     operator: Operator,
     operands: Vec<Operand>,
     execution_state: ExecutionState,
+    interrupt: bool,
+    interrupt_vector: u8,
+    vector_table: HashMap<u8, Address>,
     tick: u64,
 }
 
@@ -57,32 +56,34 @@ impl ControlUnit {
         info!("TICK {}", self.tick);
         self.tick += 1;
     }
-    pub fn set_pc(&mut self, pc: u64) {
-        self.pc = pc;
-    }
 
-    pub fn latch_pc(&mut self, signal: PcSelector) {
+    fn latch_pc(&mut self, signal: PcSelector) {
         self.pc = match signal {
             PcSelector::NextByte => self.pc + 1,
             PcSelector::NextWord => self.pc + 4,
             PcSelector::NextTwoWords => self.pc + 8,
-            PcSelector::SetByDecoder => self.decoder_output,
-            PcSelector::SetByStack => self.stack.pop(),
+            PcSelector::ByDecoder => self.decoder_output,
+            PcSelector::ByStack => self.stack.pop(),
+            PcSelector::ByInterrupt => self.vector_table[&self.interrupt_vector],
         };
     }
 
-    pub fn latch_read_data(&mut self) {
+    fn latch_read_data(&mut self) {
         self.read_data = self.program_memory.read_u64(self.pc);
     }
 
-    pub fn latch_ir(&mut self) {
+    fn latch_ir(&mut self) {
         self.ir = self.program_memory.read_u32(self.pc);
     }
 
     pub fn step(&mut self) -> bool {
         match self.execution_state {
-            ExecutionState::Fetch => {
-                self.fetch();
+            ExecutionState::Start => {
+                if self.interrupt {
+                    self.interrupt();
+                } else {
+                    self.fetch();
+                }
                 false
             }
             ExecutionState::Execute(step) => {
@@ -92,14 +93,20 @@ impl ControlUnit {
             ExecutionState::Done => {
                 debug!("D {:?}", self.data_path.data_registers);
                 debug!("A {:?}", self.data_path.address_registers);
-                self.execution_state = ExecutionState::Fetch;
+                self.execution_state = ExecutionState::Start;
                 false
             }
             ExecutionState::Stop => true,
         }
     }
 
-    fn fetch(&mut self) -> bool {
+    fn interrupt(&mut self) {
+        self.tick();
+        self.stack.push(self.pc);
+        self.latch_pc(PcSelector::ByInterrupt);
+    }
+
+    fn fetch(&mut self) {
         self.tick();
         self.latch_ir();
 
@@ -153,7 +160,6 @@ impl ControlUnit {
         }
 
         self.execution_state = ExecutionState::Execute(0);
-        false
     }
 
     fn execute_step(&mut self, step: u8) {
@@ -179,7 +185,7 @@ impl ControlUnit {
             Operator::Asl => self.execute_operator(step, AluOperator::Asl),
             Operator::Asr => self.execute_operator(step, AluOperator::Asr),
             Operator::Jmp => self.execute_jump(step),
-            Operator::Call => self.execute_call(step, StackSelector::Next),
+            Operator::Call => self.execute_call(step),
             Operator::Ret => self.execute_return(step),
             Operator::Beq => self.execute_branch(step, self.data_path.transmit_nzcv().zero),
             Operator::Bne => self.execute_branch(step, !self.data_path.transmit_nzcv().zero),
@@ -207,7 +213,8 @@ impl ControlUnit {
         }
     }
 
-    pub fn parse_register(&mut self, byte: u8) -> Operand {
+    #[allow(dead_code)]
+    fn parse_register(&mut self, byte: u8) -> Operand {
         let offset = (3 - byte) * 8;
         let operand = ((self.ir & (0xff << offset)) >> offset) as u8;
         let operand = self.instruction_parser.parse_operand(operand);
@@ -215,13 +222,13 @@ impl ControlUnit {
         operand
     }
 
-    pub fn parse_data_readable(&mut self, byte: u8) -> Operand {
+    fn parse_data_readable(&mut self, byte: u8) -> Operand {
         let offset = (3 - byte) * 8;
         let operand = ((self.ir & (0xff << offset)) >> offset) as u8;
         self.instruction_parser.parse_operand(operand)
     }
 
-    pub fn parse_data_writable(&mut self, byte: u8) -> Operand {
+    fn parse_data_writable(&mut self, byte: u8) -> Operand {
         let offset = (3 - byte) * 8;
         let operand = ((self.ir & (0xff << offset)) >> offset) as u8;
         let operand = self.instruction_parser.parse_operand(operand);
@@ -325,52 +332,48 @@ impl ControlUnit {
         }
     }
 
-    pub fn execute_jump(&mut self, step: u8) {
+    fn execute_jump(&mut self, step: u8) {
         match step {
             0 => {
                 self.latch_read_data();
                 self.decoder_output = self.read_data;
-                self.latch_pc(PcSelector::SetByDecoder);
+                self.latch_pc(PcSelector::ByDecoder);
                 self.execution_state = ExecutionState::Done;
             }
             _ => unreachable!(),
         }
     }
 
-    fn execute_call(&mut self, step: u8, selector: StackSelector) {
+    fn execute_call(&mut self, step: u8) {
         match step {
             0 => {
                 self.latch_read_data();
                 self.decoder_output = self.read_data;
-                let offset = match selector {
-                    StackSelector::Current => 0,
-                    StackSelector::Next => 8,
-                };
-                self.stack.push(self.pc + offset);
-                self.latch_pc(PcSelector::SetByDecoder);
+                self.stack.push(self.pc + 8);
+                self.latch_pc(PcSelector::ByDecoder);
                 self.execution_state = ExecutionState::Done;
             }
             _ => unreachable!(),
         }
     }
 
-    pub fn execute_return(&mut self, step: u8) {
+    fn execute_return(&mut self, step: u8) {
         match step {
             0 => {
-                self.latch_pc(PcSelector::SetByStack);
+                self.latch_pc(PcSelector::ByStack);
                 self.execution_state = ExecutionState::Done;
             }
             _ => unreachable!(),
         }
     }
 
-    pub fn execute_branch(&mut self, step: u8, condition: bool) {
+    fn execute_branch(&mut self, step: u8, condition: bool) {
         match step {
             0 => {
                 self.latch_read_data();
                 self.decoder_output = self.read_data;
                 if condition {
-                    self.latch_pc(PcSelector::SetByDecoder);
+                    self.latch_pc(PcSelector::ByDecoder);
                 } else {
                     self.latch_pc(PcSelector::NextTwoWords)
                 }
@@ -380,7 +383,7 @@ impl ControlUnit {
         }
     }
 
-    pub fn prepare_operand(&mut self, order: Order, operand: &Operand) {
+    fn prepare_operand(&mut self, order: Order, operand: &Operand) {
         match operand.mode {
             Mode::Direct => {
                 self.latch_read_data();
@@ -546,7 +549,7 @@ impl ControlUnit {
         self.data_path.post_mode_selector = PostModeSelector::None;
     }
 
-    pub fn prepare_operand_read_data(&mut self, order: Order) {
+    fn prepare_operand_read_data(&mut self, order: Order) {
         self.data_path.latch_read_data();
         match order {
             Order::Master => {
@@ -565,7 +568,7 @@ impl ControlUnit {
         self.data_path.post_mode_selector = PostModeSelector::None;
     }
 
-    pub fn store_by_second_operand(&mut self, operand: Operand) {
+    fn store_by_second_operand(&mut self, operand: Operand) {
         match operand.mode {
             Mode::DataRegister => {
                 self.data_path
@@ -594,15 +597,24 @@ impl ControlUnit {
 
 impl ControlUnit {
     pub fn load_program(&mut self, program: &[u8]) {
-        for (i, word) in program.iter().enumerate() {
-            self.program_memory.write_u8(i as u64, *word);
-        }
+        program.iter().enumerate().for_each(|(i, word)| {
+            self.program_memory.write_u8(i as Address, *word);
+        })
     }
 
     pub fn load_data_section(&mut self, data_section: HashMap<Address, u64>) {
-        for (address, value) in data_section {
-            self.data_path.data_memory.write_u64(address, value);
-        }
+        data_section.iter().for_each(|(address, value)| {
+            self.data_path.data_memory.write_u64(*address, *value);
+        })
+    }
+
+    pub fn load_interrupt_vectors(&mut self, interrupt_vectors: [Address; 8]) {
+        interrupt_vectors
+            .iter()
+            .enumerate()
+            .for_each(|(i, address)| {
+                self.vector_table.insert(i as u8, *address);
+            });
     }
 }
 
@@ -620,7 +632,10 @@ impl Default for ControlUnit {
             word_size: WordSize::Long,
             operator: Operator::Hlt,
             operands: vec![],
-            execution_state: ExecutionState::Fetch,
+            execution_state: ExecutionState::Start,
+            interrupt: false,
+            interrupt_vector: 0,
+            vector_table: HashMap::new(),
             tick: 0,
         }
     }

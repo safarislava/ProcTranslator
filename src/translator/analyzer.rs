@@ -30,7 +30,7 @@ struct SemanticTable {
 }
 
 impl SemanticTable {
-    pub fn new() -> Self {
+    fn new() -> Self {
         SemanticTable {
             scopes: vec![HashMap::new()],
             stacktrace: vec![],
@@ -78,10 +78,16 @@ impl SemanticTable {
                 let arg_types: Vec<Type> = arguments.iter().map(|v| v.typ.clone()).collect();
                 if let Some(class_name) = self.current_class_context() {
                     let class_info = self.classes.get_mut(&class_name).unwrap();
+                    if class_info.methods.contains_key(name) {
+                        return Err(format!("Function '{}' already exists", name).into());
+                    }
                     class_info
                         .methods
                         .insert(name.clone(), (result_type.clone(), arg_types));
                 } else {
+                    if self.functions.contains_key(name) {
+                        return Err(format!("Function '{}' already exists", name).into());
+                    }
                     self.functions
                         .insert(name.clone(), (result_type.clone(), arg_types));
                 }
@@ -109,7 +115,7 @@ impl SemanticTable {
         Ok(())
     }
 
-    pub fn analyze(&mut self, ast: &RawAbstractSyntaxTree) -> ResBox<TypedAbstractSyntaxTree> {
+    fn analyze(&mut self, ast: &RawAbstractSyntaxTree) -> ResBox<TypedAbstractSyntaxTree> {
         self.stacktrace.push(ast.node.clone());
 
         let (typed_node, typed_children) = match &ast.node {
@@ -664,7 +670,7 @@ impl SemanticTable {
     }
 }
 
-pub fn get_literal_type(value: &str) -> ResBox<Type> {
+fn get_literal_type(value: &str) -> ResBox<Type> {
     if value.parse::<bool>().is_ok() {
         Ok(Type::Bool)
     } else if value.parse::<i64>().is_ok() {

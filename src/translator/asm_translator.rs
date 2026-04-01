@@ -1,4 +1,5 @@
 use crate::isa::{Mode, Operator, WordSize};
+use crate::translator::common::Address;
 use crate::translator::hir::BlockId;
 use crate::translator::lir::{Condition, LirBlock, LirInstruction, LirOperand, RegisterType};
 use std::collections::HashMap;
@@ -8,12 +9,12 @@ pub struct AsmTranslator {
     modes: HashMap<Mode, u8>,
     word_sizes: HashMap<WordSize, u8>,
     pub data: Vec<u8>,
-    block_address: HashMap<BlockId, usize>,
+    block_address: HashMap<BlockId, Address>,
     jumps: Vec<(usize, BlockId)>,
 }
 
 impl AsmTranslator {
-    pub fn new(
+    fn new(
         operators: HashMap<Operator, u8>,
         modes: HashMap<Mode, u8>,
         word_sizes: HashMap<WordSize, u8>,
@@ -28,7 +29,7 @@ impl AsmTranslator {
         }
     }
 
-    pub fn add_blocks(&mut self, blocks: Vec<LirBlock>) {
+    fn add_blocks(&mut self, blocks: Vec<LirBlock>) {
         for block in blocks {
             self.add_block(block);
         }
@@ -36,7 +37,8 @@ impl AsmTranslator {
     }
 
     fn add_block(&mut self, block: LirBlock) {
-        self.block_address.insert(block.id, self.data.len());
+        self.block_address
+            .insert(block.id, self.data.len() as Address);
 
         for instruction in block.instructions {
             match instruction {
@@ -298,7 +300,7 @@ impl AsmTranslator {
     fn patch_jumps(&mut self) {
         for (offset, block_id) in &self.jumps {
             if let Some(&target_address) = self.block_address.get(block_id) {
-                let address_bytes = (target_address as u64).to_be_bytes();
+                let address_bytes = target_address.to_be_bytes();
                 self.data[*offset..*offset + 8].copy_from_slice(&address_bytes);
             } else {
                 panic!(
@@ -308,12 +310,20 @@ impl AsmTranslator {
             }
         }
     }
+
+    fn get_interrupt_vectors(&self, interrupt_blocks: [BlockId; 8]) -> [Address; 8] {
+        *interrupt_blocks
+            .map(|block_id| self.block_address[&block_id] as Address)
+            .as_array::<8>()
+            .expect("Interrupt vectors aren't valid")
+    }
 }
 
-pub fn translate(blocks: Vec<LirBlock>) -> Vec<u8> {
+pub fn translate(blocks: Vec<LirBlock>, interrupt_blocks: [BlockId; 8]) -> (Vec<u8>, [Address; 8]) {
     let mut translator = AsmTranslator::default();
     translator.add_blocks(blocks);
-    translator.data
+    let interrupt_vectors = translator.get_interrupt_vectors(interrupt_blocks);
+    (translator.data, interrupt_vectors)
 }
 
 impl Default for AsmTranslator {

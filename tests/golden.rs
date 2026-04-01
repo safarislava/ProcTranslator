@@ -88,10 +88,10 @@ fn run_test(name: &str) -> TestOutput {
 
     let control_flow_graph = compile_to_hir(&content).expect("HIR compilation failed");
 
-    let (text_section, data_section) = compile_lir(control_flow_graph);
-    let program = translate(text_section);
+    let (text_section, data_section, interrupt_blocks) = compile_lir(control_flow_graph);
+    let (program, interrupt_vectors) = translate(text_section, interrupt_blocks);
 
-    run_machine_with_capture(&program, data_section);
+    run_machine_with_capture(&program, data_section, interrupt_vectors);
 
     drop(guard);
 
@@ -111,11 +111,15 @@ fn run_test(name: &str) -> TestOutput {
     }
 }
 
-fn run_machine_with_capture(program: &[u8], data_section: HashMap<Address, u64>) {
+fn run_machine_with_capture(
+    program: &[u8],
+    data_section: HashMap<Address, u64>,
+    interrupt_vectors: [Address; 8],
+) {
     let mut control_unit = ControlUnit::default();
     control_unit.load_program(program);
     control_unit.load_data_section(data_section);
-
+    control_unit.load_interrupt_vectors(interrupt_vectors);
     loop {
         if control_unit.step() {
             break;

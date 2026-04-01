@@ -167,7 +167,7 @@ pub struct LirContext {
 }
 
 impl LirContext {
-    pub fn new() -> Self {
+    fn new() -> Self {
         Self {
             classes_size: HashMap::new(),
             blocks: vec![],
@@ -250,7 +250,7 @@ impl LirContext {
         }
     }
 
-    pub fn lower(&mut self, hir_blocks: Vec<HirBlock>) {
+    fn lower(&mut self, hir_blocks: Vec<HirBlock>) {
         for hir_block in hir_blocks {
             let mut lir_instructions = Vec::new();
 
@@ -611,7 +611,7 @@ struct RegisterBatch {
 }
 
 impl RegisterBatch {
-    pub fn new(max_count: usize, offset: usize) -> Self {
+    fn new(max_count: usize, offset: usize) -> Self {
         Self {
             registers: vec![None; max_count],
             active_count: 0,
@@ -620,7 +620,7 @@ impl RegisterBatch {
         }
     }
 
-    pub fn clear_old_registers(&mut self, instruction_counter: usize) {
+    fn clear_old_registers(&mut self, instruction_counter: usize) {
         for register in self.registers.iter_mut() {
             if let Some((_, register_interval)) = register
                 && register_interval.end < instruction_counter
@@ -1138,7 +1138,9 @@ impl Default for LirContext {
     }
 }
 
-pub fn compile_lir(control_flow_graph: ControlFlowGraph) -> (Vec<LirBlock>, HashMap<Address, u64>) {
+pub fn compile_lir(
+    control_flow_graph: ControlFlowGraph,
+) -> (Vec<LirBlock>, HashMap<Address, u64>, [BlockId; 8]) {
     let mut context = LirContext::default();
     context.calculate_classes_size(control_flow_graph.classes);
 
@@ -1154,5 +1156,9 @@ pub fn compile_lir(control_flow_graph: ControlFlowGraph) -> (Vec<LirBlock>, Hash
         data_section.insert(address, value);
     }
 
-    (context.blocks, data_section)
+    (
+        context.blocks,
+        data_section,
+        control_flow_graph.interrupt_blocks,
+    )
 }
