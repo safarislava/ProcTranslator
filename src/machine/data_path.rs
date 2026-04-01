@@ -20,13 +20,13 @@ pub enum DataSelector {
     DataRegister,
     AddressRegister,
     ReadData,
-    ControlUnit,
+    External,
 }
 
 pub enum BufferSelector {
     DataRegister,
     AddressRegister,
-    ControlUnit,
+    External,
 }
 
 pub enum AluInputSelector {
@@ -44,6 +44,11 @@ pub enum PostModeSelector {
     None,
     IncrementByte,
     IncrementWord,
+}
+
+pub enum ExternalSelector {
+    ControlUnit,
+    IO,
 }
 
 pub struct DataPath {
@@ -66,6 +71,8 @@ pub struct DataPath {
     right_data: i64,
     right_buffer: i64,
 
+    pub external_selector: ExternalSelector,
+
     pub pre_mode_selector: PreModeSelector,
     pub post_mode_selector: PostModeSelector,
 
@@ -73,6 +80,8 @@ pub struct DataPath {
     pub data_address: u64,
     pub read_data: i64,
     pub write_data: i64,
+
+    pub io_output: i64,
 
     pub control_unit_output: i64,
 }
@@ -139,21 +148,35 @@ impl DataPath {
         }
     }
 
-    pub fn update_left_data(&mut self, selector: DataSelector) {
-        self.left_data = match selector {
+    fn update_data(&mut self, selector: DataSelector) -> i64 {
+        match selector {
             DataSelector::DataRegister => self.data_registers_mux,
             DataSelector::AddressRegister => self.address_registers_mux,
             DataSelector::ReadData => self.read_data,
-            DataSelector::ControlUnit => self.control_unit_output,
-        };
+            DataSelector::External => match self.external_selector {
+                ExternalSelector::ControlUnit => self.control_unit_output,
+                ExternalSelector::IO => self.io_output,
+            },
+        }
+    }
+
+    fn update_buffer(&mut self, selector: BufferSelector) -> i64 {
+        match selector {
+            BufferSelector::DataRegister => self.data_registers_mux,
+            BufferSelector::AddressRegister => self.address_registers_mux,
+            BufferSelector::External => match self.external_selector {
+                ExternalSelector::ControlUnit => self.control_unit_output,
+                ExternalSelector::IO => self.io_output,
+            },
+        }
+    }
+
+    pub fn update_left_data(&mut self, selector: DataSelector) {
+        self.left_data = self.update_data(selector);
     }
 
     pub fn update_left_buffer(&mut self, selector: BufferSelector) {
-        self.left_buffer = match selector {
-            BufferSelector::DataRegister => self.data_registers_mux,
-            BufferSelector::AddressRegister => self.address_registers_mux,
-            BufferSelector::ControlUnit => self.control_unit_output,
-        };
+        self.left_buffer = self.update_buffer(selector);
     }
 
     pub fn update_left_alu_input(&mut self, selector: AluInputSelector) {
@@ -164,20 +187,11 @@ impl DataPath {
     }
 
     pub fn update_right_data(&mut self, selector: DataSelector) {
-        self.right_data = match selector {
-            DataSelector::DataRegister => self.data_registers_mux,
-            DataSelector::AddressRegister => self.address_registers_mux,
-            DataSelector::ReadData => self.read_data,
-            DataSelector::ControlUnit => self.control_unit_output,
-        };
+        self.right_data = self.update_data(selector);
     }
 
     pub fn update_right_buffer(&mut self, selector: BufferSelector) {
-        self.right_buffer = match selector {
-            BufferSelector::DataRegister => self.data_registers_mux,
-            BufferSelector::AddressRegister => self.address_registers_mux,
-            BufferSelector::ControlUnit => self.control_unit_output,
-        };
+        self.right_buffer = self.update_buffer(selector);
     }
 
     pub fn update_right_alu_input(&mut self, selector: AluInputSelector) {
@@ -232,12 +246,14 @@ impl Default for DataPath {
             left_buffer: 0,
             right_data: 0,
             right_buffer: 0,
+            external_selector: ExternalSelector::ControlUnit,
             pre_mode_selector: PreModeSelector::None,
             post_mode_selector: PostModeSelector::None,
             memory_output: 0,
             data_address: 0,
             read_data: 0,
             write_data: 0,
+            io_output: 0,
             control_unit_output: 0,
         }
     }

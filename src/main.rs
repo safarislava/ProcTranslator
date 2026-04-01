@@ -9,7 +9,7 @@ use std::fs;
 fn main() -> ResBox<()> {
     setup_logger();
 
-    let name = "global";
+    let name = "calc";
     let content = fs::read_to_string(format!("examples/correct/{name}.java"))?;
 
     let control_flow_graph = compile_to_hir(&content)?;

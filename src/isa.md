@@ -48,33 +48,33 @@ Operator code:
 ---
 0x10 - ADD.size from, to
 - from = {#* | D* | A* | MEMORY}
-- to = {D* | MEMORY}
+- to = {D* | A* | MEMORY}
 - Set NZCV flags
 
 0x11 - ADC.size from, to
-- from = {#* | D* | MEMORY}
-- to = {D* | MEMORY}
+- from = {#* | D* | A* | MEMORY}
+- to = {D* | A* | MEMORY}
 - supposed Carry flag
 
 0x12 - SUB.size from, to
-- from = {#* | D* | MEMORY}
-- to = {D* | MEMORY}
+- from = {#* | D* | A* | MEMORY}
+- to = {D* | A* | MEMORY}
 - Set NZCV flags
 
 0x13 - MUL.size from, to
-- from = {#* | D* | MEMORY}
-- to = {D* | MEMORY}
+- from = {#* | D* | A* | MEMORY}
+- to = {D* | A* | MEMORY}
 - Set NZCV flags
 
 0x14 - DIV.size from, to
-- from = {#* | D* | MEMORY}
-- to = {D* | MEMORY}
+- from = {#* | D* | A* | MEMORY}
+- to = {D* | A* | MEMORY}
 - Set NZCV flags
 - set C-flag if zero-dived
 
 0x15 - REM.size from, to 
-- from = {#* | D* | MEMORY}
-- to = {D* | MEMORY}
+- from = {#* | D* | A* | MEMORY}
+- to = {D* | A* | MEMORY}
 - Set NZCV flags
 - set C-flag if zero-dived
 ---
@@ -83,30 +83,34 @@ Operator code:
 - to = {D* | MEMORY}
 
 0x21 - OR.size from, to
-- from = {#* | D* | MEMORY}
-- to = {D* | MEMORY}
+- from = {#* | D* | A* | MEMORY}
+- to = {D* | A* | MEMORY}
 
 0x22 - XOR.size from, to
-- from = {#* | D* | MEMORY}
-- to = {D* | MEMORY}
+- from = {#* | D* | A* | MEMORY}
+- to = {D* | A* | MEMORY}
 
 0x23 - NOT.size from, to
-- from = {#* | D* | MEMORY}
-- to = {D* | MEMORY}
+- from = {#* | D* | A* | MEMORY}
+- to = {D* | A* | MEMORY}
 ---
 0x30 - LSL.size count, source
-- source = {#* | D* | MEMORY}
+- count = {#* | D* | A* | MEMORY}
+- source = {#* | D* | A* | MEMORY}
 - use C-flag
 
 0x31 - LSR.size count, source
-- source = {#* | D* | MEMORY}
+- count = {#* | D* | A* | MEMORY}
+- source = {#* | D* | A* | MEMORY}
 - use C-flag
 
 0x32 - ASL.size count, source
-- source = {#* | D* | MEMORY}
+- count = {#* | D* | A* | MEMORY}
+- source = {#* | D* | A* | MEMORY}
 
 0x33 - ASR.size count, source
-- source = {#* | D* | MEMORY}
+- count = {#* | D* | A* | MEMORY}
+- source = {#* | D* | A* | MEMORY}
 - sign saving
 ---
 0x40 - JMP label
@@ -142,6 +146,6 @@ Operator code:
 
 ---
 0x60 - CMP.size that, with
-- that, with = {#* | D* | MEMORY}
+- that, with = {#* | D* | A* | MEMORY}
 - set NZVC as for (that - with)
 

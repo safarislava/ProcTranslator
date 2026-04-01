@@ -1,7 +1,8 @@
 use crate::isa::{Mode, Operand, Operator, WordSize};
 use crate::machine::alu::AluOperator;
 use crate::machine::data_path::{
-    AluInputSelector, BufferSelector, DataPath, DataSelector, PostModeSelector, PreModeSelector,
+    AluInputSelector, BufferSelector, DataPath, DataSelector, ExternalSelector, PostModeSelector,
+    PreModeSelector,
 };
 use crate::machine::instruction_parser::InstructionParser;
 use crate::machine::memory::Memory;
@@ -11,17 +12,21 @@ use std::collections::HashMap;
 use tracing::{debug, info};
 
 pub enum Order {
-    First,
-    Second,
+    Master,
+    Slave,
 }
 
 pub enum PcSelector {
     NextByte,
     NextWord,
     NextTwoWords,
-    SetByDataPath,
     SetByDecoder,
     SetByStack,
+}
+
+enum StackSelector {
+    Current,
+    Next,
 }
 
 enum ExecutionState {
@@ -36,17 +41,14 @@ pub struct ControlUnit {
     data_path: DataPath,
     program_memory: Memory,
     stack: Stack,
-
+    decoder_output: u64,
     pc: u64,
     read_data: u64,
-    data_path_output: i64,
-    decoder_output: u64,
+    ir: u32,
     word_size: WordSize,
-
-    current_operator: Operator,
-    current_operands: Vec<Operand>,
+    operator: Operator,
+    operands: Vec<Operand>,
     execution_state: ExecutionState,
-
     tick: u64,
 }
 
@@ -64,7 +66,6 @@ impl ControlUnit {
             PcSelector::NextByte => self.pc + 1,
             PcSelector::NextWord => self.pc + 4,
             PcSelector::NextTwoWords => self.pc + 8,
-            PcSelector::SetByDataPath => self.data_path_output as u64,
             PcSelector::SetByDecoder => self.decoder_output,
             PcSelector::SetByStack => self.stack.pop(),
         };
@@ -72,6 +73,10 @@ impl ControlUnit {
 
     pub fn latch_read_data(&mut self) {
         self.read_data = self.program_memory.read_u64(self.pc);
+    }
+
+    pub fn latch_ir(&mut self) {
+        self.ir = self.program_memory.read_u32(self.pc);
     }
 
     pub fn step(&mut self) -> bool {
@@ -96,26 +101,24 @@ impl ControlUnit {
 
     fn fetch(&mut self) -> bool {
         self.tick();
-        self.latch_read_data();
+        self.latch_ir();
 
-        let (operator, word_size) = self
-            .instruction_parser
-            .parse_operator((self.read_data >> 32) as u32);
+        let (operator, word_size) = self.instruction_parser.parse_operator(self.ir);
 
         self.word_size = word_size;
-        self.current_operator = operator;
+        self.operator = operator;
 
         debug!(
             "PC={} : {}.{}",
             self.pc,
-            self.current_operator,
+            self.operator,
             match self.word_size {
                 WordSize::Byte => "b",
                 WordSize::Long => "w",
             }
         );
 
-        match self.current_operator {
+        match self.operator {
             Operator::Hlt => {}
             Operator::Mov
             | Operator::Mova
@@ -154,7 +157,7 @@ impl ControlUnit {
     }
 
     fn execute_step(&mut self, step: u8) {
-        match self.current_operator {
+        match self.operator {
             Operator::Hlt => {
                 self.execution_state = ExecutionState::Stop;
                 info!("Result : {}", self.data_path.data_registers[0]);
@@ -176,7 +179,7 @@ impl ControlUnit {
             Operator::Asl => self.execute_operator(step, AluOperator::Asl),
             Operator::Asr => self.execute_operator(step, AluOperator::Asr),
             Operator::Jmp => self.execute_jump(step),
-            Operator::Call => self.execute_call(step),
+            Operator::Call => self.execute_call(step, StackSelector::Next),
             Operator::Ret => self.execute_return(step),
             Operator::Beq => self.execute_branch(step, self.data_path.transmit_nzcv().zero),
             Operator::Bne => self.execute_branch(step, !self.data_path.transmit_nzcv().zero),
@@ -206,21 +209,21 @@ impl ControlUnit {
 
     pub fn parse_register(&mut self, byte: u8) -> Operand {
         let offset = (3 - byte) * 8;
-        let operand = ((self.read_data & (0xff << offset)) >> offset) as u8;
+        let operand = ((self.ir & (0xff << offset)) >> offset) as u8;
         let operand = self.instruction_parser.parse_operand(operand);
         assert!(operand.mode == Mode::AddressRegister || operand.mode == Mode::DataRegister);
         operand
     }
 
     pub fn parse_data_readable(&mut self, byte: u8) -> Operand {
-        let offset = (7 - byte) * 8;
-        let operand = ((self.read_data & (0xff << offset)) >> offset) as u8;
+        let offset = (3 - byte) * 8;
+        let operand = ((self.ir & (0xff << offset)) >> offset) as u8;
         self.instruction_parser.parse_operand(operand)
     }
 
     pub fn parse_data_writable(&mut self, byte: u8) -> Operand {
-        let offset = (7 - byte) * 8;
-        let operand = ((self.read_data & (0xff << offset)) >> offset) as u8;
+        let offset = (3 - byte) * 8;
+        let operand = ((self.ir & (0xff << offset)) >> offset) as u8;
         let operand = self.instruction_parser.parse_operand(operand);
         assert!(operand.mode != Mode::Direct);
         operand
@@ -243,9 +246,9 @@ impl ControlUnit {
             0 => {
                 let first = self.parse_data_readable(1);
                 let second = self.parse_data_writable(2);
-                self.current_operands = vec![first.clone(), second];
+                self.operands = vec![first.clone(), second];
 
-                self.prepare_operand(Order::Second, &first);
+                self.prepare_operand(Order::Slave, &first);
 
                 if Self::is_operand_needed_second_step(&first) {
                     self.execution_state = ExecutionState::Execute(1);
@@ -254,12 +257,12 @@ impl ControlUnit {
                 }
             }
             1 => {
-                self.prepare_operand_read_data(Order::Second);
+                self.prepare_operand_read_data(Order::Slave);
                 self.execution_state = ExecutionState::Execute(2);
             }
             2 => {
-                let second = self.current_operands[1].clone();
-                self.prepare_operand(Order::First, &second);
+                let second = self.operands[1].clone();
+                self.prepare_operand(Order::Master, &second);
 
                 if Self::is_operand_needed_second_step(&second) {
                     self.execution_state = ExecutionState::Execute(3);
@@ -271,8 +274,8 @@ impl ControlUnit {
                 }
             }
             3 => {
-                let second = self.current_operands[1].clone();
-                self.prepare_operand_read_data(Order::First);
+                let second = self.operands[1].clone();
+                self.prepare_operand_read_data(Order::Master);
 
                 self.data_path.execute_alu(alu_op);
                 self.store_by_second_operand(second);
@@ -288,9 +291,9 @@ impl ControlUnit {
             0 => {
                 let first = self.parse_data_readable(1);
                 let second = self.parse_data_readable(2);
-                self.current_operands = vec![first.clone(), second];
+                self.operands = vec![first.clone(), second];
 
-                self.prepare_operand(Order::Second, &first);
+                self.prepare_operand(Order::Slave, &first);
 
                 if Self::is_operand_needed_second_step(&first) {
                     self.execution_state = ExecutionState::Execute(1);
@@ -299,12 +302,12 @@ impl ControlUnit {
                 }
             }
             1 => {
-                self.prepare_operand_read_data(Order::Second);
+                self.prepare_operand_read_data(Order::Slave);
                 self.execution_state = ExecutionState::Execute(2);
             }
             2 => {
-                let second = self.current_operands[1].clone();
-                self.prepare_operand(Order::First, &second);
+                let second = self.operands[1].clone();
+                self.prepare_operand(Order::Master, &second);
 
                 if Self::is_operand_needed_second_step(&second) {
                     self.execution_state = ExecutionState::Execute(3);
@@ -314,7 +317,7 @@ impl ControlUnit {
                 }
             }
             3 => {
-                self.prepare_operand_read_data(Order::First);
+                self.prepare_operand_read_data(Order::Master);
                 self.data_path.execute_alu(AluOperator::Sub);
                 self.execution_state = ExecutionState::Done;
             }
@@ -334,12 +337,16 @@ impl ControlUnit {
         }
     }
 
-    pub fn execute_call(&mut self, step: u8) {
+    fn execute_call(&mut self, step: u8, selector: StackSelector) {
         match step {
             0 => {
                 self.latch_read_data();
                 self.decoder_output = self.read_data;
-                self.stack.push(self.pc + 8);
+                let offset = match selector {
+                    StackSelector::Current => 0,
+                    StackSelector::Next => 8,
+                };
+                self.stack.push(self.pc + offset);
                 self.latch_pc(PcSelector::SetByDecoder);
                 self.execution_state = ExecutionState::Done;
             }
@@ -380,27 +387,28 @@ impl ControlUnit {
                 self.latch_pc(PcSelector::NextTwoWords);
                 self.decoder_output = self.read_data;
                 self.data_path.control_unit_output = self.decoder_output as i64;
+                self.data_path.external_selector = ExternalSelector::ControlUnit;
                 match order {
-                    Order::First => self.data_path.update_left_data(DataSelector::ControlUnit),
-                    Order::Second => self.data_path.update_right_data(DataSelector::ControlUnit),
+                    Order::Master => self.data_path.update_left_data(DataSelector::External),
+                    Order::Slave => self.data_path.update_right_data(DataSelector::External),
                 }
                 debug!("#{}", self.decoder_output);
             }
             Mode::DataRegister => {
                 self.data_path.read_data_register(operand.main_register);
                 match order {
-                    Order::First => self.data_path.update_left_data(DataSelector::DataRegister),
-                    Order::Second => self.data_path.update_right_data(DataSelector::DataRegister),
+                    Order::Master => self.data_path.update_left_data(DataSelector::DataRegister),
+                    Order::Slave => self.data_path.update_right_data(DataSelector::DataRegister),
                 }
                 debug!("D{}", operand.main_register);
             }
             Mode::AddressRegister => {
                 self.data_path.read_address_register(operand.main_register);
                 match order {
-                    Order::First => self
+                    Order::Master => self
                         .data_path
                         .update_left_data(DataSelector::AddressRegister),
-                    Order::Second => self
+                    Order::Slave => self
                         .data_path
                         .update_right_data(DataSelector::AddressRegister),
                 }
@@ -409,13 +417,13 @@ impl ControlUnit {
             Mode::Indirect | Mode::IndirectPostIncrement | Mode::IndirectPreDecrement => {
                 self.data_path.read_address_register(operand.main_register);
                 match order {
-                    Order::First => {
+                    Order::Master => {
                         self.data_path
                             .update_left_data(DataSelector::AddressRegister);
                         self.data_path.update_left_alu_input(AluInputSelector::Data);
                         self.data_path.execute_alu(AluOperator::Trl);
                     }
-                    Order::Second => {
+                    Order::Slave => {
                         self.data_path
                             .update_right_data(DataSelector::AddressRegister);
                         self.data_path
@@ -454,11 +462,11 @@ impl ControlUnit {
             Mode::IndirectOffset => {
                 self.data_path.read_address_register(operand.main_register);
                 match order {
-                    Order::First => {
+                    Order::Master => {
                         self.data_path
                             .update_left_data(DataSelector::AddressRegister);
                     }
-                    Order::Second => {
+                    Order::Slave => {
                         self.data_path
                             .update_right_data(DataSelector::AddressRegister);
                     }
@@ -469,13 +477,14 @@ impl ControlUnit {
                     self.latch_pc(PcSelector::NextTwoWords);
                     self.decoder_output = self.read_data;
                     self.data_path.control_unit_output = self.decoder_output as i64;
+                    self.data_path.external_selector = ExternalSelector::ControlUnit;
                     match order {
-                        Order::First => self
-                            .data_path
-                            .update_right_buffer(BufferSelector::ControlUnit),
-                        Order::Second => self
-                            .data_path
-                            .update_left_buffer(BufferSelector::ControlUnit),
+                        Order::Master => {
+                            self.data_path.update_right_buffer(BufferSelector::External);
+                        }
+                        Order::Slave => {
+                            self.data_path.update_left_buffer(BufferSelector::External);
+                        }
                     }
                     debug!(
                         "(A{}:#{})",
@@ -488,12 +497,12 @@ impl ControlUnit {
                 }
 
                 match order {
-                    Order::First => {
+                    Order::Master => {
                         self.data_path.update_left_alu_input(AluInputSelector::Data);
                         self.data_path
                             .update_right_alu_input(AluInputSelector::Buffer);
                     }
-                    Order::Second => {
+                    Order::Slave => {
                         self.data_path
                             .update_left_alu_input(AluInputSelector::Buffer);
                         self.data_path
@@ -510,13 +519,15 @@ impl ControlUnit {
                 self.decoder_output = self.read_data;
                 self.data_path.control_unit_output = self.decoder_output as i64;
                 match order {
-                    Order::First => {
-                        self.data_path.update_left_data(DataSelector::ControlUnit);
+                    Order::Master => {
+                        self.data_path.external_selector = ExternalSelector::ControlUnit;
+                        self.data_path.update_left_data(DataSelector::External);
                         self.data_path.update_left_alu_input(AluInputSelector::Data);
                         self.data_path.execute_alu(AluOperator::Trl);
                     }
-                    Order::Second => {
-                        self.data_path.update_right_data(DataSelector::ControlUnit);
+                    Order::Slave => {
+                        self.data_path.external_selector = ExternalSelector::ControlUnit;
+                        self.data_path.update_right_data(DataSelector::External);
                         self.data_path
                             .update_right_alu_input(AluInputSelector::Data);
                         self.data_path.execute_alu(AluOperator::Trr);
@@ -538,10 +549,10 @@ impl ControlUnit {
     pub fn prepare_operand_read_data(&mut self, order: Order) {
         self.data_path.latch_read_data();
         match order {
-            Order::First => {
+            Order::Master => {
                 self.data_path.update_left_data(DataSelector::ReadData);
             }
-            Order::Second => {
+            Order::Slave => {
                 self.data_path.update_right_data(DataSelector::ReadData);
             }
         }
@@ -603,12 +614,12 @@ impl Default for ControlUnit {
             program_memory: Memory::new(100000),
             stack: Stack::new(),
             read_data: 0,
+            ir: 0,
             pc: 0,
-            data_path_output: 0,
             decoder_output: 0,
             word_size: WordSize::Long,
-            current_operator: Operator::Hlt,
-            current_operands: vec![],
+            operator: Operator::Hlt,
+            operands: vec![],
             execution_state: ExecutionState::Fetch,
             tick: 0,
         }
