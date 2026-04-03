@@ -1,4 +1,4 @@
-use crate::machine::nzcv::NZCV;
+use crate::machine::nzcv::Nzcv;
 
 pub enum AluOperator {
     Add,
@@ -19,12 +19,12 @@ pub enum AluOperator {
     Trr,
 }
 
-pub struct ALU {
-    pub nzcv: NZCV,
+pub struct Alu {
+    pub nzcv: Nzcv,
 }
 
-impl ALU {
-    pub fn new(nzcv: NZCV) -> Self {
+impl Alu {
+    pub fn new(nzcv: Nzcv) -> Self {
         Self { nzcv }
     }
 
@@ -133,8 +133,8 @@ impl ALU {
     }
 }
 
-impl Default for ALU {
+impl Default for Alu {
     fn default() -> Self {
-        Self::new(NZCV::default())
+        Self::new(Nzcv::default())
     }
 }

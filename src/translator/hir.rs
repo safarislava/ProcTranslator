@@ -420,7 +420,7 @@ impl HirContext {
                     let register = self.new_register();
                     let destination = match argument.typ {
                         Type::Class(_) => HirOperand::Link(register),
-                        _ => HirOperand::Link(register),
+                        _ => HirOperand::Value(register),
                     };
                     self.emit(HirInstruction::LoadParameter {
                         destination,

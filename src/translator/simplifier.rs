@@ -94,8 +94,8 @@ fn simplify_expression(expression: RawExpression) -> RawExpression {
                 let operator = match operator {
                     ExpressionBinaryOperator::AssignAdd => ExpressionBinaryOperator::Add,
                     ExpressionBinaryOperator::AssignSub => ExpressionBinaryOperator::Sub,
-                    ExpressionBinaryOperator::AssignMul => ExpressionBinaryOperator::Add,
-                    ExpressionBinaryOperator::AssignDiv => ExpressionBinaryOperator::Sub,
+                    ExpressionBinaryOperator::AssignMul => ExpressionBinaryOperator::Multiply,
+                    ExpressionBinaryOperator::AssignDiv => ExpressionBinaryOperator::Divide,
                     _ => unreachable!(),
                 };
 

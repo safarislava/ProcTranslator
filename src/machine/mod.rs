@@ -1,8 +1,9 @@
-pub mod alu;
+mod alu;
 pub mod control_unit;
-pub mod data_path;
+mod data_path;
 mod instruction_parser;
 mod memory;
-pub mod nzcv;
+mod nzcv;
 mod printers;
+pub mod simulation;
 mod stack;

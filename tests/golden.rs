@@ -1,10 +1,8 @@
-use proc_translator::machine::control_unit::ControlUnit;
+use proc_translator::machine::simulation::simulate_machine;
 use proc_translator::translator::asm_translator::translate;
-use proc_translator::translator::common::Address;
 use proc_translator::translator::common::compile_to_hir;
 use proc_translator::translator::lir::compile_lir;
 use serde::{Serialize, Serializer, ser::SerializeMap};
-use std::collections::HashMap;
 use std::fs;
 use std::io::Write;
 use std::sync::{Arc, Mutex};
@@ -91,7 +89,7 @@ fn run_test(name: &str) -> TestOutput {
     let (text_section, data_section, interrupt_blocks) = compile_lir(control_flow_graph);
     let (program, interrupt_vectors) = translate(text_section, interrupt_blocks);
 
-    run_machine_with_capture(&program, data_section, interrupt_vectors);
+    simulate_machine(&program, data_section, interrupt_vectors);
 
     drop(guard);
 
@@ -108,22 +106,6 @@ fn run_test(name: &str) -> TestOutput {
     TestOutput {
         in_source: content,
         out_log,
-    }
-}
-
-fn run_machine_with_capture(
-    program: &[u8],
-    data_section: HashMap<Address, u64>,
-    interrupt_vectors: [Address; 8],
-) {
-    let mut control_unit = ControlUnit::default();
-    control_unit.load_program(program);
-    control_unit.load_data_section(data_section);
-    control_unit.load_interrupt_vectors(interrupt_vectors);
-    loop {
-        if control_unit.step() {
-            break;
-        }
     }
 }
 
@@ -239,4 +221,10 @@ fn test_bool() {
 fn test_global() {
     let output = run_test("global");
     assert_golden_yaml!(&output, "global");
+}
+
+#[test]
+fn test_params() {
+    let output = run_test("params");
+    assert_golden_yaml!(&output, "params");
 }

@@ -53,7 +53,7 @@ pub struct ControlUnit {
 
 impl ControlUnit {
     fn tick(&mut self) {
-        info!("TICK {}", self.tick);
+        debug!("TICK {}", self.tick);
         self.tick += 1;
     }
 
@@ -115,7 +115,7 @@ impl ControlUnit {
         self.word_size = word_size;
         self.operator = operator;
 
-        debug!(
+        info!(
             "PC={} : {}.{}",
             self.pc,
             self.operator,
@@ -457,8 +457,8 @@ impl ControlUnit {
 
                 match operand.mode {
                     Mode::Indirect => debug!("(A{})", operand.main_register),
-                    Mode::IndirectPreDecrement => debug!("(A{})+", operand.main_register),
-                    Mode::IndirectPostIncrement => debug!("-(A{})", operand.main_register),
+                    Mode::IndirectPreDecrement => debug!("-(A{})", operand.main_register),
+                    Mode::IndirectPostIncrement => debug!("(A{})+", operand.main_register),
                     _ => unreachable!(),
                 }
             }
@@ -496,6 +496,16 @@ impl ControlUnit {
                 } else {
                     let offset_register = operand.offset + 4;
                     self.data_path.read_data_register(offset_register);
+                    match order {
+                        Order::Master => {
+                            self.data_path
+                                .update_right_buffer(BufferSelector::DataRegister);
+                        }
+                        Order::Slave => {
+                            self.data_path
+                                .update_left_buffer(BufferSelector::DataRegister);
+                        }
+                    }
                     debug!("(A{}:D{})", operand.main_register, offset_register);
                 }
 

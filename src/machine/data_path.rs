@@ -1,7 +1,7 @@
 use crate::isa::WordSize;
-use crate::machine::alu::{ALU, AluOperator};
+use crate::machine::alu::{Alu, AluOperator};
 use crate::machine::memory::Memory;
-use crate::machine::nzcv::NZCV;
+use crate::machine::nzcv::Nzcv;
 
 pub type DataRegisterReadSelector = u8;
 
@@ -10,11 +10,6 @@ pub type DataRegisterWriteSelector = u8;
 pub type AddressRegisterReadSelector = u8;
 
 pub type AddressRegisterWriteSelector = u8;
-
-pub enum WriteDataWordSizeSelector {
-    Byte,
-    Long,
-}
 
 pub enum DataSelector {
     DataRegister,
@@ -25,7 +20,6 @@ pub enum DataSelector {
 
 pub enum BufferSelector {
     DataRegister,
-    AddressRegister,
     External,
 }
 
@@ -46,6 +40,7 @@ pub enum PostModeSelector {
     IncrementWord,
 }
 
+#[allow(dead_code)]
 pub enum ExternalSelector {
     ControlUnit,
     IO,
@@ -56,7 +51,7 @@ pub struct DataPath {
 
     left_alu_input: i64,
     right_alu_input: i64,
-    alu: ALU,
+    alu: Alu,
     alu_output: i64,
 
     data_registers_mux: i64,
@@ -110,7 +105,7 @@ impl DataPath {
 
     pub fn latch_address_register(
         &mut self,
-        register_selector: DataRegisterWriteSelector,
+        register_selector: AddressRegisterWriteSelector,
         word_size_selector: &WordSize,
     ) {
         let decrement = match self.pre_mode_selector {
@@ -163,7 +158,6 @@ impl DataPath {
     fn update_buffer(&mut self, selector: BufferSelector) -> i64 {
         match selector {
             BufferSelector::DataRegister => self.data_registers_mux,
-            BufferSelector::AddressRegister => self.address_registers_mux,
             BufferSelector::External => match self.external_selector {
                 ExternalSelector::ControlUnit => self.control_unit_output,
                 ExternalSelector::IO => self.io_output,
@@ -225,7 +219,7 @@ impl DataPath {
         self.write_data = self.alu_output;
     }
 
-    pub fn transmit_nzcv(&self) -> &NZCV {
+    pub fn transmit_nzcv(&self) -> &Nzcv {
         &self.alu.nzcv
     }
 }
@@ -236,7 +230,7 @@ impl Default for DataPath {
             data_memory: Memory::new(100000),
             left_alu_input: 0,
             right_alu_input: 0,
-            alu: ALU::default(),
+            alu: Alu::default(),
             alu_output: 0,
             data_registers_mux: 0,
             data_registers: vec![0; 8],

@@ -5,7 +5,7 @@ use crate::translator::hir::{
     BlockId, ClassInfo, ControlFlowGraph, GlobalId, HirBlock, HirInstruction, HirOperand,
     HirRegister, HirTerminator, StackSlot,
 };
-use std::collections::HashMap;
+use std::collections::{HashMap, hash_map};
 use std::vec;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -139,11 +139,14 @@ pub struct LirBlock {
 
 pub struct LirContext {
     classes_size: HashMap<String, u32>,
+    block_to_function: HashMap<BlockId, BlockId>,
+    register_to_function: HashMap<usize, BlockId>,
 
     pub blocks: Vec<LirBlock>,
 
-    stack_size: i64,
     stack_offsets: HashMap<StackSlot, i64>,
+    frame_sizes: HashMap<BlockId, i64>,
+    current_function: Option<BlockId>,
 
     pub data_size: u64,
     pub constants: HashMap<String, Address>,
@@ -170,9 +173,12 @@ impl LirContext {
     fn new() -> Self {
         Self {
             classes_size: HashMap::new(),
+            block_to_function: HashMap::new(),
+            register_to_function: HashMap::new(),
             blocks: vec![],
-            stack_size: 0,
+            frame_sizes: HashMap::new(),
             stack_offsets: HashMap::new(),
+            current_function: None,
             data_size: 0,
             constants: HashMap::new(),
             globals: HashMap::new(),
@@ -203,11 +209,17 @@ impl LirContext {
         }
     }
 
-    fn get_virtual_data_register(&self, register: HirRegister) -> LirOperand {
+    fn get_virtual_data_register(&mut self, register: HirRegister) -> LirOperand {
+        if let Some(function) = self.current_function {
+            self.register_to_function.insert(register.0 as usize, function);
+        }
         LirOperand::VirtualRegister(register.0 as usize, RegisterType::Data)
     }
 
-    fn get_virtual_address_register(&self, register: HirRegister) -> LirOperand {
+    fn get_virtual_address_register(&mut self, register: HirRegister) -> LirOperand {
+        if let Some(function) = self.current_function {
+            self.register_to_function.insert(register.0 as usize, function);
+        }
         LirOperand::VirtualRegister(register.0 as usize, RegisterType::Address)
     }
 
@@ -251,9 +263,49 @@ impl LirContext {
     }
 
     fn lower(&mut self, hir_blocks: Vec<HirBlock>) {
-        for hir_block in hir_blocks {
-            let mut lir_instructions = Vec::new();
+        self.current_function = None;
 
+        for hir_block in &hir_blocks {
+            if hir_block
+                .instructions
+                .iter()
+                .any(|i| matches!(i, HirInstruction::CallPrologue))
+            {
+                self.frame_sizes.insert(hir_block.id, 0);
+                self.block_to_function.insert(hir_block.id, hir_block.id);
+            }
+        }
+
+        let mut changed = true;
+        while changed {
+            changed = false;
+            for hir_block in &hir_blocks {
+                if let Some(&function) = self.block_to_function.get(&hir_block.id)
+                    && let Some(terminator) = &hir_block.terminator
+                {
+                    let targets = match terminator {
+                        HirTerminator::Jump(id) => vec![*id],
+                        HirTerminator::Branch {
+                            true_block,
+                            false_block,
+                            ..
+                        } => vec![*true_block, *false_block],
+                        HirTerminator::Return(_) => vec![],
+                    };
+                    for target in targets {
+                        if let hash_map::Entry::Vacant(entry) = self.block_to_function.entry(target) {
+                            entry.insert(function);
+                            changed = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        for hir_block in hir_blocks {
+            self.current_function = self.block_to_function.get(&hir_block.id).copied();
+
+            let mut lir_instructions = Vec::new();
             for instruction in hir_block.instructions {
                 self.lower_instruction(instruction, &mut lir_instructions);
             }
@@ -267,6 +319,7 @@ impl LirContext {
                 instructions: lir_instructions,
             });
         }
+        self.current_function = None;
     }
 
     fn lower_instruction(&mut self, instruction: HirInstruction, out: &mut Vec<LirInstruction>) {
@@ -296,47 +349,76 @@ impl LirContext {
                 operator,
                 right,
             } => {
-                let destination = self.get_virtual_register(destination);
-                let left_operand = self.lower_operand(left);
-                let right_operand = self.lower_operand(right);
-
-                out.push(LirInstruction::Mov {
-                    size: WordSize::Long,
-                    source: left_operand.clone(),
-                    destination: destination.clone(),
-                });
+                let dest = self.get_virtual_register(destination);
+                let left_op = self.lower_operand(left);
+                let right_op = self.lower_operand(right);
 
                 match operator {
-                    ExpressionBinaryOperator::Assign => out.push(LirInstruction::Mov {
-                        size: WordSize::Long,
-                        source: right_operand,
-                        destination,
-                    }),
-                    ExpressionBinaryOperator::Add => out.push(LirInstruction::Add {
-                        size: WordSize::Long,
-                        source: right_operand,
-                        destination,
-                    }),
-                    ExpressionBinaryOperator::Sub => out.push(LirInstruction::Sub {
-                        size: WordSize::Long,
-                        source: right_operand,
-                        destination,
-                    }),
-                    ExpressionBinaryOperator::Multiply => out.push(LirInstruction::Mul {
-                        size: WordSize::Long,
-                        source: right_operand,
-                        destination,
-                    }),
-                    ExpressionBinaryOperator::Divide => out.push(LirInstruction::Div {
-                        size: WordSize::Long,
-                        source: right_operand,
-                        destination,
-                    }),
-                    ExpressionBinaryOperator::Remainder => out.push(LirInstruction::Rem {
-                        size: WordSize::Long,
-                        source: right_operand,
-                        destination,
-                    }),
+                    ExpressionBinaryOperator::Assign => {}
+                    ExpressionBinaryOperator::Add => {
+                        out.push(LirInstruction::Mov {
+                            size: WordSize::Long,
+                            source: left_op.clone(),
+                            destination: dest.clone(),
+                        });
+                        out.push(LirInstruction::Add {
+                            size: WordSize::Long,
+                            source: right_op,
+                            destination: dest.clone(),
+                        });
+                    }
+
+                    ExpressionBinaryOperator::Sub => {
+                        out.push(LirInstruction::Mov {
+                            size: WordSize::Long,
+                            source: left_op.clone(),
+                            destination: dest.clone(),
+                        });
+                        out.push(LirInstruction::Sub {
+                            size: WordSize::Long,
+                            source: right_op,
+                            destination: dest.clone(),
+                        });
+                    }
+
+                    ExpressionBinaryOperator::Multiply => {
+                        out.push(LirInstruction::Mov {
+                            size: WordSize::Long,
+                            source: left_op.clone(),
+                            destination: dest.clone(),
+                        });
+                        out.push(LirInstruction::Mul {
+                            size: WordSize::Long,
+                            source: right_op,
+                            destination: dest.clone(),
+                        });
+                    }
+
+                    ExpressionBinaryOperator::Divide => {
+                        out.push(LirInstruction::Mov {
+                            size: WordSize::Long,
+                            source: left_op.clone(),
+                            destination: dest.clone(),
+                        });
+                        out.push(LirInstruction::Div {
+                            size: WordSize::Long,
+                            source: right_op,
+                            destination: dest.clone(),
+                        });
+                    }
+
+                    ExpressionBinaryOperator::Remainder => {
+                        out.push(LirInstruction::Mov {
+                            size: WordSize::Long,
+                            source: left_op.clone(),
+                            destination: dest.clone(),
+                        });
+                        out.push(LirInstruction::Rem {
+                            size: WordSize::Long,
+                            source: right_op,
+                            destination: dest.clone(),
+                        });
+                    }
 
                     operator @ (ExpressionBinaryOperator::Equal
                     | ExpressionBinaryOperator::NotEqual
@@ -346,8 +428,8 @@ impl LirContext {
                     | ExpressionBinaryOperator::GreaterEqual) => {
                         out.push(LirInstruction::Cmp {
                             size: WordSize::Long,
-                            that: left_operand,
-                            with: right_operand,
+                            that: right_op,
+                            with: left_op,
                         });
 
                         let condition = match operator {
@@ -362,10 +444,11 @@ impl LirContext {
 
                         out.push(LirInstruction::SetBool {
                             condition,
-                            destination,
+                            destination: dest.clone(),
                         });
                     }
-                    _ => unreachable!(),
+
+                    _ => unreachable!("Unsupported binary operator: {:?}", operator),
                 }
             }
             HirInstruction::Call {
@@ -373,8 +456,28 @@ impl LirContext {
                 block,
                 arguments,
             } => {
-                let arguments_count = arguments.len();
+                let registers_to_save = vec![
+                    LirOperand::Register(1, RegisterType::Data),
+                    LirOperand::Register(2, RegisterType::Data),
+                    LirOperand::Register(3, RegisterType::Data),
+                    LirOperand::Register(4, RegisterType::Data),
+                    LirOperand::Register(5, RegisterType::Data),
+                    LirOperand::Register(0, RegisterType::Address),
+                    LirOperand::Register(1, RegisterType::Address),
+                    LirOperand::Register(2, RegisterType::Address),
+                ];
 
+                for register in &registers_to_save {
+                    out.push(LirInstruction::Mov {
+                        size: WordSize::Long,
+                        source: register.clone(),
+                        destination: LirOperand::IndirectPreDecrement(Box::new(
+                            self.stack_pointer.clone(),
+                        )),
+                    });
+                }
+
+                let arguments_count = arguments.len();
                 for argument in arguments.into_iter().rev() {
                     let operand = self.lower_operand(argument);
                     out.push(LirInstruction::Mov {
@@ -396,6 +499,16 @@ impl LirContext {
                     });
                 }
 
+                for register in registers_to_save.iter().rev() {
+                    out.push(LirInstruction::Mov {
+                        size: WordSize::Long,
+                        source: LirOperand::IndirectPostIncrement(Box::new(
+                            self.stack_pointer.clone(),
+                        )),
+                        destination: register.clone(),
+                    });
+                }
+
                 out.push(LirInstruction::Mov {
                     size: WordSize::Long,
                     source: self.return_registers.clone(),
@@ -403,7 +516,9 @@ impl LirContext {
                 });
             }
             HirInstruction::CallPrologue => {
-                self.stack_size = 0;
+                if let Some(entry) = self.current_function {
+                    self.frame_sizes.entry(entry).or_insert(0);
+                }
 
                 out.push(LirInstruction::Mov {
                     size: WordSize::Long,
@@ -433,8 +548,12 @@ impl LirContext {
                 });
             }
             HirInstruction::AllocateStack { slot } => {
-                self.stack_size += 8;
-                self.stack_offsets.insert(slot, -self.stack_size);
+                let entry = self
+                    .current_function
+                    .expect("Stack allocation outside of function context");
+                let size = self.frame_sizes.get_mut(&entry).unwrap();
+                *size += 8;
+                self.stack_offsets.insert(slot, -*size);
             }
             HirInstruction::StoreStack { slot, value } => {
                 let offset = *self.stack_offsets.get(&slot).unwrap() as u64;
@@ -527,15 +646,15 @@ impl LirContext {
                 out.push(LirInstruction::Cmp {
                     size: WordSize::Long,
                     that: condition,
-                    with: LirOperand::Direct(0),
+                    with: LirOperand::Direct(1),
                 });
 
                 out.push(LirInstruction::Branch {
                     condition: Condition::Equal,
-                    label: false_block,
+                    label: true_block,
                 });
 
-                out.push(LirInstruction::Jmp { label: true_block });
+                out.push(LirInstruction::Jmp { label: false_block });
             }
             HirTerminator::Return(operand) => {
                 if let Some(operand) = operand {
@@ -621,12 +740,12 @@ impl RegisterBatch {
     }
 
     fn clear_old_registers(&mut self, instruction_counter: usize) {
-        for register in self.registers.iter_mut() {
-            if let Some((_, register_interval)) = register
+        for slot in self.registers.iter_mut() {
+            if let Some((_, register_interval)) = slot
                 && register_interval.end < instruction_counter
             {
-                *register = None;
-                self.active_count -= 1;
+                *slot = None;
+                self.active_count = self.active_count.saturating_sub(1);
             }
         }
     }
@@ -765,17 +884,6 @@ impl LirContext {
         register_batch: &mut RegisterBatch,
         register_type: RegisterType,
     ) {
-        let (allocated_registers, spilled_registers) = match register_type {
-            RegisterType::Data => (
-                &mut self.allocated_data_registers,
-                &mut self.spilled_data_registers,
-            ),
-            RegisterType::Address => (
-                &mut self.allocated_address_registers,
-                &mut self.spilled_address_registers,
-            ),
-        };
-
         for (virtual_register, interval) in intervals {
             register_batch.clear_old_registers(interval.start);
 
@@ -784,8 +892,17 @@ impl LirContext {
                     if slot.is_none() {
                         *slot = Some((*virtual_register, interval.clone()));
                         register_batch.active_count += 1;
-                        allocated_registers
-                            .insert(*virtual_register, (i + register_batch.offset) as u8);
+
+                        let register = (i + register_batch.offset) as u8;
+
+                        match register_type {
+                            RegisterType::Data => self
+                                .allocated_data_registers
+                                .insert(*virtual_register, register),
+                            RegisterType::Address => self
+                                .allocated_address_registers
+                                .insert(*virtual_register, register),
+                        };
                         break;
                     }
                 }
@@ -807,18 +924,53 @@ impl LirContext {
                     let (spilled_virtual_register, _) = register_batch.registers[i].take().unwrap();
 
                     register_batch.registers[i] = Some((*virtual_register, interval.clone()));
-                    allocated_registers
-                        .insert(*virtual_register, (i + register_batch.offset) as u8);
-                    allocated_registers.remove(&spilled_virtual_register);
 
-                    self.stack_size += 8;
-                    spilled_registers.insert(spilled_virtual_register, -self.stack_size);
+                    let phys_reg = (i + register_batch.offset) as u8;
+
+                    match register_type {
+                        RegisterType::Data => {
+                            self.allocated_data_registers
+                                .remove(&spilled_virtual_register);
+                            self.allocated_data_registers
+                                .insert(*virtual_register, phys_reg);
+                            self.allocate_spill_register(
+                                spilled_virtual_register,
+                                RegisterType::Data,
+                            );
+                        }
+                        RegisterType::Address => {
+                            self.allocated_address_registers
+                                .remove(&spilled_virtual_register);
+                            self.allocated_address_registers
+                                .insert(*virtual_register, phys_reg);
+                            self.allocate_spill_register(
+                                spilled_virtual_register,
+                                RegisterType::Address,
+                            );
+                        }
+                    }
                 } else {
-                    self.stack_size += 8;
-                    spilled_registers.insert(*virtual_register, -self.stack_size);
+                    self.allocate_spill_register(*virtual_register, register_type);
                 }
             }
         }
+    }
+
+    fn allocate_spill_register(&mut self, virtual_register: usize, register_type: RegisterType) {
+        let entry_id = *self
+            .register_to_function
+            .get(&virtual_register)
+            .expect("Unknown register function origin");
+        let frame_size = self.frame_sizes.get_mut(&entry_id).unwrap();
+        *frame_size += 8;
+        let offset = -(*frame_size);
+
+        match register_type {
+            RegisterType::Data => self.spilled_data_registers.insert(virtual_register, offset),
+            RegisterType::Address => self
+                .spilled_address_registers
+                .insert(virtual_register, offset),
+        };
     }
 
     fn compile_virtual_registers(&mut self) {
@@ -846,7 +998,7 @@ impl LirContext {
             address_register_life_interval.into_iter().collect();
         address_intervals.sort_by_key(|(_, event)| event.start);
 
-        let mut data_register_batch = RegisterBatch::new(4, 1);
+        let mut data_register_batch = RegisterBatch::new(5, 1);
         let mut address_register_batch = RegisterBatch::new(3, 0);
 
         self.process_intervals(
@@ -862,11 +1014,14 @@ impl LirContext {
         );
 
         for block in &mut self.blocks {
+            let entry_id = *self.block_to_function.get(&block.id).unwrap_or(&block.id);
+            let frame_size = *self.frame_sizes.get(&entry_id).unwrap_or(&0);
+
             for instruction in &mut block.instructions {
                 if matches!(instruction, LirInstruction::AllocateStackFrame) {
                     *instruction = LirInstruction::Sub {
                         size: WordSize::Long,
-                        source: LirOperand::Direct(self.stack_size as u64),
+                        source: LirOperand::Direct(frame_size as u64),
                         destination: self.stack_pointer.clone(),
                     };
                 }
