@@ -65,6 +65,12 @@ impl fmt::Display for HirInstruction {
             HirInstruction::StoreGlobal { id, value } => {
                 write!(f, "{} = store global {}", id, value)
             }
+            HirInstruction::Input { destination, port } => {
+                write!(f, "{} = input {}", destination, port)
+            }
+            HirInstruction::Output { port, value } => {
+                write!(f, "output {} = {}", port, value)
+            }
         }
     }
 }

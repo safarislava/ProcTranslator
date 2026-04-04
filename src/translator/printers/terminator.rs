@@ -20,6 +20,9 @@ impl fmt::Display for HirTerminator {
                 Some(v) => write!(f, "return {}", v),
                 None => write!(f, "return"),
             },
+            HirTerminator::IntReturn => {
+                write!(f, "int_return")
+            }
         }
     }
 }

@@ -1,0 +1,18 @@
+digraph CFG {
+  rankdir=TB;
+  node [shape=box, fontname="Courier"];
+  edge [fontname="Courier"];
+
+  B0 [label="B0|call prologue\lr0 = input \"0\"\l0 = store global r0\lint_return\l"];
+  B1 [label="B1|0 = store global \"0\"\lcall prologue\ljump B4\l"];
+  B2 [label="B2|"];
+  B3 [label="B3|"];
+  B4 [label="B4|r1 = load global 0\lr2 = r1 Equal \"0\"\lbranch r2 ? B5 : B6\l"];
+  B5 [label="B5|jump B4\l"];
+  B6 [label="B6|r3 = load global 0\lreturn r3\l"];
+  B1 -> B4;
+  B4 -> B5 [label="true"];
+  B4 -> B6 [label="false"];
+  B5 -> B4;
+  B1 [style=filled, fillcolor=lightgreen];
+}

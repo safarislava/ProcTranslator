@@ -1,4 +1,4 @@
-use proc_translator::machine::simulation::simulate_machine;
+use proc_translator::machine::simulation::{InterruptRequest, simulate_machine};
 use proc_translator::translator::asm_translator::translate;
 use proc_translator::translator::common::compile_to_hir;
 use proc_translator::translator::lir::compile_lir;
@@ -78,7 +78,7 @@ fn setup_test_logger() -> (DefaultGuard, Arc<Mutex<Vec<u8>>>) {
     (guard, buffer)
 }
 
-fn run_test(name: &str) -> TestOutput {
+fn run_test(name: &str, interrupts: Vec<InterruptRequest>) -> TestOutput {
     let content = fs::read_to_string(format!("examples/correct/{name}.java"))
         .unwrap_or_else(|e| panic!("Failed to read examples/correct/{name}.java: {e}"));
 
@@ -87,9 +87,8 @@ fn run_test(name: &str) -> TestOutput {
     let control_flow_graph = compile_to_hir(&content).expect("HIR compilation failed");
 
     let (text_section, data_section, interrupt_blocks) = compile_lir(control_flow_graph);
-    let (program, interrupt_vectors) = translate(text_section, interrupt_blocks);
-
-    simulate_machine(&program, data_section, interrupt_vectors);
+    let package = translate(text_section, data_section, interrupt_blocks);
+    simulate_machine(package, interrupts);
 
     drop(guard);
 
@@ -183,48 +182,62 @@ pub fn export_test_output(output: &TestOutput, path: &str) -> std::io::Result<()
 
 #[test]
 fn test_classes() {
-    let output = run_test("classes");
+    let output = run_test("classes", vec![]);
     assert_golden_yaml!(&output, "classes");
 }
 
 #[test]
 fn test_calc() {
-    let output = run_test("calc");
+    let output = run_test("calc", vec![]);
     assert_golden_yaml!(&output, "calc");
 }
 
 #[test]
 fn test_return() {
-    let output = run_test("return");
+    let output = run_test("return", vec![]);
     assert_golden_yaml!(&output, "return");
 }
 
 #[test]
 fn test_while() {
-    let output = run_test("while");
+    let output = run_test("while", vec![]);
     assert_golden_yaml!(&output, "while");
 }
 
 #[test]
 fn test_for() {
-    let output = run_test("for");
+    let output = run_test("for", vec![]);
     assert_golden_yaml!(&output, "for");
 }
 
 #[test]
 fn test_bool() {
-    let output = run_test("bool");
+    let output = run_test("bool", vec![]);
     assert_golden_yaml!(&output, "bool");
 }
 
 #[test]
 fn test_global() {
-    let output = run_test("global");
+    let output = run_test("global", vec![]);
     assert_golden_yaml!(&output, "global");
 }
 
 #[test]
 fn test_params() {
-    let output = run_test("params");
+    let output = run_test("params", vec![]);
     assert_golden_yaml!(&output, "params");
+}
+
+#[test]
+fn test_interrupt() {
+    let output = run_test(
+        "interrupt",
+        vec![InterruptRequest {
+            tick: 63,
+            value: 1,
+            port: 0,
+            vector_port: 1,
+        }],
+    );
+    assert_golden_yaml!(&output, "interrupt");
 }

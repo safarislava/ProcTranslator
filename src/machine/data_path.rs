@@ -1,5 +1,6 @@
 use crate::isa::WordSize;
 use crate::machine::alu::{Alu, AluOperator};
+use crate::machine::io::IO;
 use crate::machine::memory::Memory;
 use crate::machine::nzcv::Nzcv;
 
@@ -62,7 +63,6 @@ pub struct DataPath {
 
     left_data: i64,
     left_buffer: i64,
-
     right_data: i64,
     right_buffer: i64,
 
@@ -76,8 +76,7 @@ pub struct DataPath {
     pub read_data: i64,
     pub write_data: i64,
 
-    pub io_output: i64,
-
+    pub io: IO,
     pub control_unit_output: i64,
 }
 
@@ -150,7 +149,7 @@ impl DataPath {
             DataSelector::ReadData => self.read_data,
             DataSelector::External => match self.external_selector {
                 ExternalSelector::ControlUnit => self.control_unit_output,
-                ExternalSelector::IO => self.io_output,
+                ExternalSelector::IO => self.io.output,
             },
         }
     }
@@ -160,7 +159,7 @@ impl DataPath {
             BufferSelector::DataRegister => self.data_registers_mux,
             BufferSelector::External => match self.external_selector {
                 ExternalSelector::ControlUnit => self.control_unit_output,
-                ExternalSelector::IO => self.io_output,
+                ExternalSelector::IO => self.io.output,
             },
         }
     }
@@ -222,6 +221,19 @@ impl DataPath {
     pub fn transmit_nzcv(&self) -> &Nzcv {
         &self.alu.nzcv
     }
+
+    pub fn restore_nzcv(&mut self) {
+        self.alu.nzcv.restore((self.alu_output & 0xff) as u8);
+    }
+
+    pub fn read_io(&mut self, port: u8) {
+        self.io.read(port);
+    }
+
+    pub fn write_io(&mut self, port: u8) {
+        self.io.input = self.alu_output;
+        self.io.write(port);
+    }
 }
 
 impl Default for DataPath {
@@ -247,7 +259,7 @@ impl Default for DataPath {
             data_address: 0,
             read_data: 0,
             write_data: 0,
-            io_output: 0,
+            io: IO::new(),
             control_unit_output: 0,
         }
     }

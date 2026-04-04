@@ -122,6 +122,10 @@ Operator code:
 0x42 - RET 
 - PC <- (A7)
 - A7 <- A7 + 8
+
+0x43 - RET
+- PC <- (A7)
+- NZCV <- (A7)+
 ---
 
 0x50 - BEQ label 
@@ -149,3 +153,15 @@ Operator code:
 - that, with = {#* | D* | A* | MEMORY}
 - set NZVC as for (that - with)
 
+---
+0x70 - IN port, to
+- to = {D* | A* | MEMORY}
+
+0x71 - OUT port, from
+- from = {#* | D* | A* | MEMORY}
+
+0x72 - EI 
+- Enable interrupts
+
+0x73 - DI
+- Disable interrupts

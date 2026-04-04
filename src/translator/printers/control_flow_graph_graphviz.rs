@@ -45,6 +45,7 @@ impl ControlFlowGraph {
                         ));
                     }
                     HirTerminator::Return(_) => {}
+                    HirTerminator::IntReturn => {}
                 }
             }
         }

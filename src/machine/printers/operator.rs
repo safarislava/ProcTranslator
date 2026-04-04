@@ -24,6 +24,7 @@ impl Display for Operator {
             Operator::Jmp => "JMP",
             Operator::Call => "CALL",
             Operator::Ret => "RET",
+            Operator::IntRet => "INTRET",
             Operator::Beq => "BEQ",
             Operator::Bne => "BNE",
             Operator::Bgt => "BGT",
@@ -35,6 +36,10 @@ impl Display for Operator {
             Operator::Bvs => "BVS",
             Operator::Bvc => "BVC",
             Operator::Cmp => "CMP",
+            Operator::In => "IN",
+            Operator::Out => "OUT",
+            Operator::EI => "EI",
+            Operator::DI => "DI",
         };
         f.write_str(code)
     }

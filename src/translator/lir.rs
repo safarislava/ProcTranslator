@@ -125,6 +125,16 @@ pub enum LirInstruction {
         label: BlockId,
     },
     Ret,
+    IntRet,
+
+    In {
+        port: LirOperand,
+        destination: LirOperand,
+    },
+    Out {
+        port: LirOperand,
+        value: LirOperand,
+    },
 
     Halt,
 
@@ -211,14 +221,16 @@ impl LirContext {
 
     fn get_virtual_data_register(&mut self, register: HirRegister) -> LirOperand {
         if let Some(function) = self.current_function {
-            self.register_to_function.insert(register.0 as usize, function);
+            self.register_to_function
+                .insert(register.0 as usize, function);
         }
         LirOperand::VirtualRegister(register.0 as usize, RegisterType::Data)
     }
 
     fn get_virtual_address_register(&mut self, register: HirRegister) -> LirOperand {
         if let Some(function) = self.current_function {
-            self.register_to_function.insert(register.0 as usize, function);
+            self.register_to_function
+                .insert(register.0 as usize, function);
         }
         LirOperand::VirtualRegister(register.0 as usize, RegisterType::Address)
     }
@@ -291,9 +303,11 @@ impl LirContext {
                             ..
                         } => vec![*true_block, *false_block],
                         HirTerminator::Return(_) => vec![],
+                        HirTerminator::IntReturn => vec![],
                     };
                     for target in targets {
-                        if let hash_map::Entry::Vacant(entry) = self.block_to_function.entry(target) {
+                        if let hash_map::Entry::Vacant(entry) = self.block_to_function.entry(target)
+                        {
                             entry.insert(function);
                             changed = true;
                         }
@@ -628,6 +642,24 @@ impl LirContext {
                     destination: self.heap_pointer.clone(),
                 });
             }
+            HirInstruction::Input { destination, port } => {
+                let port = Self::lower_constant_to_direct(port);
+                let destination = self.lower_operand(destination);
+                out.push(LirInstruction::In { port, destination })
+            }
+            HirInstruction::Output { port, value } => {
+                let port = Self::lower_constant_to_direct(port);
+                let value = self.lower_operand(value);
+                out.push(LirInstruction::Out { port, value })
+            }
+        }
+    }
+
+    fn lower_constant_to_direct(constant: HirOperand) -> LirOperand {
+        if let HirOperand::Constant(constant) = constant {
+            LirOperand::Direct(constant.parse::<u64>().unwrap())
+        } else {
+            panic!("Operand is not a constant");
         }
     }
 
@@ -679,6 +711,21 @@ impl LirContext {
                 });
 
                 out.push(LirInstruction::Ret);
+            }
+            HirTerminator::IntReturn => {
+                out.push(LirInstruction::Mova {
+                    size: WordSize::Long,
+                    source: self.frame_pointer.clone(),
+                    destination: self.stack_pointer.clone(),
+                });
+
+                out.push(LirInstruction::Mova {
+                    size: WordSize::Long,
+                    source: LirOperand::IndirectPostIncrement(Box::new(self.stack_pointer.clone())),
+                    destination: self.frame_pointer.clone(),
+                });
+
+                out.push(LirInstruction::IntRet);
             }
         }
     }
@@ -825,10 +872,21 @@ impl LirContext {
                 add_interval(that);
                 add_interval(with);
             }
-            LirInstruction::SetBool { destination, .. } => {
+            LirInstruction::SetBool { destination, .. }
+            | LirInstruction::In { destination, .. } => {
                 add_interval(destination);
             }
-            _ => {}
+            LirInstruction::Out { value, .. } => {
+                add_interval(value);
+            }
+
+            LirInstruction::Jmp { .. }
+            | LirInstruction::Branch { .. }
+            | LirInstruction::Call { .. }
+            | LirInstruction::Ret
+            | LirInstruction::IntRet
+            | LirInstruction::Halt
+            | LirInstruction::AllocateStackFrame => {}
         }
     }
 
@@ -1139,10 +1197,21 @@ impl LirContext {
                 allocate_operand(that, MemorySignal::Read);
                 allocate_operand(with, MemorySignal::Read);
             }
-            LirInstruction::SetBool { destination, .. } => {
+            LirInstruction::SetBool { destination, .. }
+            | LirInstruction::In { destination, .. } => {
                 allocate_operand(destination, MemorySignal::Write);
             }
-            _ => {}
+            LirInstruction::Out { value, .. } => {
+                allocate_operand(value, MemorySignal::Read);
+            }
+
+            LirInstruction::Jmp { .. }
+            | LirInstruction::Branch { .. }
+            | LirInstruction::Call { .. }
+            | LirInstruction::Ret
+            | LirInstruction::IntRet
+            | LirInstruction::Halt
+            | LirInstruction::AllocateStackFrame => {}
         }
     }
 

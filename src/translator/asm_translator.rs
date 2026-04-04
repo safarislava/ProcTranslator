@@ -141,6 +141,10 @@ impl AsmTranslator {
                     let operator_code = self.operators[&Operator::Ret];
                     self.data.push(operator_code << 1);
                 }
+                LirInstruction::IntRet => {
+                    let operator_code = self.operators[&Operator::IntRet];
+                    self.data.push(operator_code << 1);
+                }
                 LirInstruction::SetBool {
                     condition,
                     destination,
@@ -178,6 +182,12 @@ impl AsmTranslator {
                     let current_address = self.data.len() as u64;
                     self.data[jump_address..jump_address + 8]
                         .copy_from_slice(&current_address.to_be_bytes());
+                }
+                LirInstruction::In { port, destination } => {
+                    self.translate_io(Operator::In, &port, &destination);
+                }
+                LirInstruction::Out { port, value } => {
+                    self.translate_io(Operator::Out, &port, &value);
                 }
                 LirInstruction::Halt => {
                     let operator_code = self.operators[&Operator::Hlt];
@@ -297,6 +307,26 @@ impl AsmTranslator {
         }
     }
 
+    fn translate_io(&mut self, operator: Operator, port: &LirOperand, operand: &LirOperand) {
+        let operator_code = self.operators[&operator];
+        let size_code = self.word_sizes[&WordSize::Long];
+
+        if let LirOperand::Direct(port) = port
+            && *port <= u8::MAX as u64
+        {
+            let port_code = port.to_le_bytes()[0];
+            let (value_code, value_postcode) = self.translate_operand(operand);
+
+            self.data.push((operator_code << 1) | size_code);
+            self.data.push(port_code);
+            self.data.push(value_code);
+            self.data.push(0);
+            self.data.extend(value_postcode);
+        } else {
+            panic!("Invalid port")
+        }
+    }
+
     fn patch_jumps(&mut self) {
         for (offset, block_id) in &self.jumps {
             if let Some(&target_address) = self.block_address.get(block_id) {
@@ -319,11 +349,31 @@ impl AsmTranslator {
     }
 }
 
-pub fn translate(blocks: Vec<LirBlock>, interrupt_blocks: [BlockId; 8]) -> (Vec<u8>, [Address; 8]) {
+pub struct ControlUnitPackage {
+    pub program: Vec<u8>,
+    pub data: HashMap<Address, u64>,
+    pub interrupt_vectors: [Address; 8],
+}
+
+impl ControlUnitPackage {
+    fn new(program: Vec<u8>, data: HashMap<Address, u64>, interrupt_vectors: [Address; 8]) -> Self {
+        Self {
+            program,
+            data,
+            interrupt_vectors,
+        }
+    }
+}
+
+pub fn translate(
+    blocks: Vec<LirBlock>,
+    data: HashMap<Address, u64>,
+    interrupt_blocks: [BlockId; 8],
+) -> ControlUnitPackage {
     let mut translator = AsmTranslator::default();
     translator.add_blocks(blocks);
     let interrupt_vectors = translator.get_interrupt_vectors(interrupt_blocks);
-    (translator.data, interrupt_vectors)
+    ControlUnitPackage::new(translator.data, data, interrupt_vectors)
 }
 
 impl Default for AsmTranslator {
@@ -349,6 +399,7 @@ impl Default for AsmTranslator {
             (Operator::Jmp, 0x40),
             (Operator::Call, 0x41),
             (Operator::Ret, 0x42),
+            (Operator::IntRet, 0x43),
             (Operator::Beq, 0x50),
             (Operator::Bne, 0x51),
             (Operator::Bgt, 0x52),
@@ -360,6 +411,10 @@ impl Default for AsmTranslator {
             (Operator::Bvs, 0x58),
             (Operator::Bvc, 0x59),
             (Operator::Cmp, 0x60),
+            (Operator::In, 0x70),
+            (Operator::Out, 0x71),
+            (Operator::EI, 0x72),
+            (Operator::DI, 0x73),
         ]);
         let modes = HashMap::from([
             (Mode::Direct, 0x0),

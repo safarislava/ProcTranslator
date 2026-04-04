@@ -33,6 +33,7 @@ pub enum Operator {
     Jmp,
     Call,
     Ret,
+    IntRet,
     Beq,
     Bne,
     Bgt,
@@ -44,6 +45,10 @@ pub enum Operator {
     Bvs,
     Bvc,
     Cmp,
+    In,
+    Out,
+    EI,
+    DI,
 }
 
 #[derive(Clone, Eq, PartialEq, Hash)]

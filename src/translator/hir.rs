@@ -77,6 +77,15 @@ pub enum HirInstruction {
         destination: HirOperand,
         class_name: String,
     },
+
+    Input {
+        port: HirOperand,
+        destination: HirOperand,
+    },
+    Output {
+        port: HirOperand,
+        value: HirOperand,
+    },
 }
 
 #[derive(Debug, Clone)]
@@ -88,6 +97,7 @@ pub enum HirTerminator {
         false_block: BlockId,
     },
     Return(Option<HirOperand>),
+    IntReturn,
 }
 
 #[derive(Debug, Clone)]
@@ -395,6 +405,10 @@ impl HirContext {
             AbstractSyntaxNode::Callable {
                 name, arguments, ..
             } => {
+                if name == "in" || name == "out" {
+                    return;
+                }
+
                 let block_id = match &self.current_class {
                     Some(current_class) => self.classes[current_class].methods[&name],
                     None => self.functions[&name],
@@ -447,8 +461,17 @@ impl HirContext {
                 self.current_class = None;
             }
             AbstractSyntaxNode::Return { value } => {
-                let operand = value.map(|value| self.generate_expression(value));
-                self.emit_terminator(HirTerminator::Return(operand))
+                let is_interrupt = self.current_class.is_none()
+                    && self.functions.iter().any(|(name, &id)| {
+                        id == self.current_block.unwrap() && name.starts_with("interrupt")
+                    });
+
+                if is_interrupt {
+                    self.emit_terminator(HirTerminator::IntReturn);
+                } else {
+                    let operand = value.map(|value| self.generate_expression(value));
+                    self.emit_terminator(HirTerminator::Return(operand));
+                }
             }
             AbstractSyntaxNode::Break => {
                 if let Some((_, break_target)) = self.loop_stack.last() {
@@ -546,12 +569,24 @@ impl HirContext {
                     _ => HirOperand::Value(destination),
                 };
 
-                let block = self.functions[&name];
-                self.emit(HirInstruction::Call {
-                    destination: destination.clone(),
-                    block,
-                    arguments,
-                });
+                if name == "in" {
+                    self.emit(HirInstruction::Input {
+                        destination: destination.clone(),
+                        port: arguments[0].clone(),
+                    })
+                } else if name == "out" {
+                    self.emit(HirInstruction::Output {
+                        port: arguments[0].clone(),
+                        value: arguments[1].clone(),
+                    })
+                } else {
+                    let block = self.functions[&name];
+                    self.emit(HirInstruction::Call {
+                        destination: destination.clone(),
+                        block,
+                        arguments,
+                    });
+                }
                 destination
             }
             TypedExpression::Assign { name, value, .. } => {

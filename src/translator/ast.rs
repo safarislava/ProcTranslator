@@ -1,5 +1,6 @@
 use crate::translator::common::{
-    AbstractSyntaxNode, RawAbstractSyntaxTree, RawExpression, ResBox, Type, Variable,
+    AbstractSyntaxNode, AbstractSyntaxTree, RawAbstractSyntaxTree, RawExpression, ResBox, Type,
+    Variable,
 };
 use crate::translator::expression::parse_expression;
 use crate::translator::parser::{SyntaxNode, SyntaxTree};
@@ -148,7 +149,7 @@ fn build_for_loop(
 }
 
 pub fn build_ast(tree: SyntaxTree) -> ResBox<RawAbstractSyntaxTree> {
-    let processed_children: Vec<RawAbstractSyntaxTree> = tree
+    let mut processed_children: Vec<RawAbstractSyntaxTree> = tree
         .children
         .into_iter()
         .map(build_ast)
@@ -216,6 +217,45 @@ pub fn build_ast(tree: SyntaxTree) -> ResBox<RawAbstractSyntaxTree> {
             RawAbstractSyntaxTree::with_children(AbstractSyntaxNode::Scope, processed_children)
         }
         SyntaxNode::File => {
+            let in_function = RawAbstractSyntaxTree::with_children(
+                AbstractSyntaxNode::Callable {
+                    result_type: Type::Int,
+                    name: "in".to_string(),
+                    arguments: vec![Variable {
+                        name: "port".to_string(),
+                        typ: Type::Int,
+                    }],
+                },
+                vec![AbstractSyntaxTree::new(AbstractSyntaxNode::Return {
+                    value: Some(RawExpression::Literal {
+                        typ: (),
+                        value: "0".to_string(),
+                    }),
+                })],
+            );
+            processed_children.push(in_function);
+
+            let out_function = RawAbstractSyntaxTree::with_children(
+                AbstractSyntaxNode::Callable {
+                    result_type: Type::Void,
+                    name: "out".to_string(),
+                    arguments: vec![
+                        Variable {
+                            name: "port".to_string(),
+                            typ: Type::Int,
+                        },
+                        Variable {
+                            name: "value".to_string(),
+                            typ: Type::Int,
+                        },
+                    ],
+                },
+                vec![AbstractSyntaxTree::new(AbstractSyntaxNode::Return {
+                    value: None,
+                })],
+            );
+            processed_children.push(out_function);
+
             RawAbstractSyntaxTree::with_children(AbstractSyntaxNode::File, processed_children)
         }
     };
