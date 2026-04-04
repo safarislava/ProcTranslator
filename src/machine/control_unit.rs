@@ -28,6 +28,7 @@ pub enum PcSelector {
 enum ExecutionState {
     Start,
     Execute(u8),
+    Interrupt(u8),
     Done,
     Stop,
 }
@@ -81,15 +82,20 @@ impl ControlUnit {
         match self.execution_state {
             ExecutionState::Start => {
                 if self.interrupt_flag && self.interrupt {
-                    self.interrupt();
-                } else {
-                    self.fetch();
+                    self.execution_state = ExecutionState::Interrupt(0);
+                    return false;
                 }
+                self.fetch();
                 info!("{}", self.log);
                 false
             }
             ExecutionState::Execute(step) => {
                 self.execute_step(step);
+                info!("{}", self.log);
+                false
+            }
+            ExecutionState::Interrupt(step) => {
+                self.interrupt(step);
                 info!("{}", self.log);
                 false
             }
@@ -108,27 +114,35 @@ impl ControlUnit {
         self.interrupt_vector = interrupt_vector;
     }
 
-    fn interrupt(&mut self) {
+    fn interrupt(&mut self, step: u8) {
         self.tick();
-        self.log += "| INTERRUPT";
+        match step {
+            0 => {
+                self.log += "| INTERRUPT ";
+                self.interrupt_flag = false;
+                self.stack.push(self.pc);
+                self.latch_pc(PcSelector::ByInterrupt);
 
-        self.interrupt_flag = false;
-        let nzcv = self.data_path.transmit_nzcv();
+                let nzcv = self.data_path.transmit_nzcv();
+                self.data_path.write_data = nzcv.to_byte() as i64;
 
-        self.data_path.write_data = nzcv.to_byte() as i64;
+                self.execution_state = ExecutionState::Interrupt(1);
+            }
+            1 => {
+                self.data_path.read_address_register(7);
+                self.data_path
+                    .update_left_data(DataSelector::AddressRegister);
+                self.data_path.update_left_alu_input(AluInputSelector::Data);
+                self.data_path.execute_alu(AluOperator::Trl);
+                self.data_path.pre_mode_selector = PreModeSelector::DecrementByte;
+                self.data_path.latch_data_address();
+                self.data_path.latch_address_register(7, &WordSize::Long);
+                self.data_path.write_data_memory(&WordSize::Byte);
 
-        self.data_path.read_address_register(7);
-        self.data_path
-            .update_left_data(DataSelector::AddressRegister);
-        self.data_path.update_left_alu_input(AluInputSelector::Data);
-        self.data_path.execute_alu(AluOperator::Trl);
-        self.data_path.pre_mode_selector = PreModeSelector::DecrementByte;
-        self.data_path.latch_data_address();
-        self.data_path.latch_address_register(7, &WordSize::Long);
-        self.data_path.write_data_memory(&WordSize::Byte);
-
-        self.stack.push(self.pc);
-        self.latch_pc(PcSelector::ByInterrupt);
+                self.execution_state = ExecutionState::Done;
+            }
+            _ => unreachable!(),
+        }
     }
 
     fn fetch(&mut self) {
@@ -415,11 +429,16 @@ impl ControlUnit {
                 self.data_path.post_mode_selector = PostModeSelector::IncrementByte;
                 self.data_path.latch_address_register(7, &WordSize::Long);
                 self.data_path.read_data_memory();
+
+                self.execution_state = ExecutionState::Execute(1);
+            }
+            1 => {
                 self.latch_read_data();
                 self.data_path.update_left_data(DataSelector::ReadData);
                 self.data_path.update_left_alu_input(AluInputSelector::Data);
                 self.data_path.execute_alu(AluOperator::Trl);
                 self.data_path.restore_nzcv();
+                self.interrupt_flag = true;
 
                 self.execution_state = ExecutionState::Done;
             }
@@ -448,6 +467,9 @@ impl ControlUnit {
             0 => {
                 let port = self.parse_port(1);
                 self.data_path.read_io(port);
+                self.interrupt = false;
+                self.interrupt_vector = 0;
+
                 self.data_path.external_selector = ExternalSelector::IO;
                 self.data_path.update_right_data(DataSelector::External);
                 self.log += &format!("| IN #{} ", self.data_path.io.output);
