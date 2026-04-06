@@ -148,6 +148,8 @@ pub struct LirBlock {
 }
 
 pub struct LirContext {
+    virtual_register_counter: u64,
+
     classes_size: HashMap<String, u32>,
     block_to_function: HashMap<BlockId, BlockId>,
     register_to_function: HashMap<usize, BlockId>,
@@ -180,8 +182,9 @@ pub struct LirContext {
 }
 
 impl LirContext {
-    fn new() -> Self {
+    fn new(register_counter: u64) -> Self {
         Self {
+            virtual_register_counter: register_counter,
             classes_size: HashMap::new(),
             block_to_function: HashMap::new(),
             register_to_function: HashMap::new(),
@@ -209,6 +212,12 @@ impl LirContext {
             spilled_data_registers: HashMap::new(),
             spilled_address_registers: HashMap::new(),
         }
+    }
+
+    fn new_virtual_data_register(&mut self) -> LirOperand {
+        let register = self.virtual_register_counter;
+        self.virtual_register_counter += 1;
+        LirOperand::VirtualRegister(register as usize, RegisterType::Data)
     }
 
     fn get_virtual_register(&mut self, operand: HirOperand) -> LirOperand {
@@ -265,6 +274,20 @@ impl LirContext {
                 let normalized_value = match value_str.as_str() {
                     "true" => "1".to_string(),
                     "false" => "0".to_string(),
+                    s if s.starts_with('\'') && s.ends_with('\'') && s.len() >= 3 => {
+                        let inner = &s[1..s.len() - 1];
+
+                        let char_value = match inner {
+                            "\\n" => '\n' as u64,
+                            "\\r" => '\r' as u64,
+                            "\\t" => '\t' as u64,
+                            "\\\\" => '\\' as u64,
+                            "\\'" => '\'' as u64,
+                            "\\0" => 0_u64,
+                            _ => inner.chars().next().unwrap_or('\0') as u64,
+                        };
+                        char_value.to_string()
+                    }
                     _ => value_str,
                 };
                 let address = self.get_constant_address(normalized_value);
@@ -363,74 +386,74 @@ impl LirContext {
                 operator,
                 right,
             } => {
-                let dest = self.get_virtual_register(destination);
-                let left_op = self.lower_operand(left);
-                let right_op = self.lower_operand(right);
+                let destination = self.get_virtual_register(destination);
+                let left = self.lower_operand(left);
+                let right = self.lower_operand(right);
 
                 match operator {
                     ExpressionBinaryOperator::Assign => {}
                     ExpressionBinaryOperator::Add => {
                         out.push(LirInstruction::Mov {
                             size: WordSize::Long,
-                            source: left_op.clone(),
-                            destination: dest.clone(),
+                            source: left.clone(),
+                            destination: destination.clone(),
                         });
                         out.push(LirInstruction::Add {
                             size: WordSize::Long,
-                            source: right_op,
-                            destination: dest.clone(),
+                            source: right,
+                            destination: destination.clone(),
                         });
                     }
 
                     ExpressionBinaryOperator::Sub => {
                         out.push(LirInstruction::Mov {
                             size: WordSize::Long,
-                            source: left_op.clone(),
-                            destination: dest.clone(),
+                            source: left.clone(),
+                            destination: destination.clone(),
                         });
                         out.push(LirInstruction::Sub {
                             size: WordSize::Long,
-                            source: right_op,
-                            destination: dest.clone(),
+                            source: right,
+                            destination: destination.clone(),
                         });
                     }
 
                     ExpressionBinaryOperator::Multiply => {
                         out.push(LirInstruction::Mov {
                             size: WordSize::Long,
-                            source: left_op.clone(),
-                            destination: dest.clone(),
+                            source: left.clone(),
+                            destination: destination.clone(),
                         });
                         out.push(LirInstruction::Mul {
                             size: WordSize::Long,
-                            source: right_op,
-                            destination: dest.clone(),
+                            source: right,
+                            destination: destination.clone(),
                         });
                     }
 
                     ExpressionBinaryOperator::Divide => {
                         out.push(LirInstruction::Mov {
                             size: WordSize::Long,
-                            source: left_op.clone(),
-                            destination: dest.clone(),
+                            source: left.clone(),
+                            destination: destination.clone(),
                         });
                         out.push(LirInstruction::Div {
                             size: WordSize::Long,
-                            source: right_op,
-                            destination: dest.clone(),
+                            source: right,
+                            destination: destination.clone(),
                         });
                     }
 
                     ExpressionBinaryOperator::Remainder => {
                         out.push(LirInstruction::Mov {
                             size: WordSize::Long,
-                            source: left_op.clone(),
-                            destination: dest.clone(),
+                            source: left.clone(),
+                            destination: destination.clone(),
                         });
                         out.push(LirInstruction::Rem {
                             size: WordSize::Long,
-                            source: right_op,
-                            destination: dest.clone(),
+                            source: right,
+                            destination: destination.clone(),
                         });
                     }
 
@@ -442,8 +465,8 @@ impl LirContext {
                     | ExpressionBinaryOperator::GreaterEqual) => {
                         out.push(LirInstruction::Cmp {
                             size: WordSize::Long,
-                            that: right_op,
-                            with: left_op,
+                            that: right,
+                            with: left,
                         });
 
                         let condition = match operator {
@@ -458,7 +481,7 @@ impl LirContext {
 
                         out.push(LirInstruction::SetBool {
                             condition,
-                            destination: dest.clone(),
+                            destination: destination.clone(),
                         });
                     }
 
@@ -651,6 +674,90 @@ impl LirContext {
                 let port = Self::lower_constant_to_direct(port);
                 let value = self.lower_operand(value);
                 out.push(LirInstruction::Out { port, value })
+            }
+            HirInstruction::LoadIndex {
+                destination,
+                array,
+                index,
+            } => {
+                let destination = self.get_virtual_register(destination);
+                let array = self.lower_operand(array);
+                let index = self.lower_operand(index);
+
+                let temp_register = self.new_virtual_data_register();
+                out.push(LirInstruction::Mov {
+                    size: WordSize::Long,
+                    source: index,
+                    destination: temp_register.clone(),
+                });
+                out.push(LirInstruction::Mul {
+                    size: WordSize::Long,
+                    source: LirOperand::Direct(8),
+                    destination: temp_register.clone(),
+                });
+                out.push(LirInstruction::Mov {
+                    size: WordSize::Long,
+                    source: LirOperand::IndirectOffset {
+                        base: Box::new(array),
+                        offset: Box::new(temp_register),
+                    },
+                    destination,
+                })
+            }
+            HirInstruction::StoreIndex {
+                array,
+                index,
+                value,
+            } => {
+                let array = self.lower_operand(array);
+                let index = self.lower_operand(index);
+                let value = self.lower_operand(value);
+
+                let temp_register = self.new_virtual_data_register();
+                out.push(LirInstruction::Mov {
+                    size: WordSize::Long,
+                    source: index,
+                    destination: temp_register.clone(),
+                });
+                out.push(LirInstruction::Mul {
+                    size: WordSize::Long,
+                    source: LirOperand::Direct(8),
+                    destination: temp_register.clone(),
+                });
+                out.push(LirInstruction::Mov {
+                    size: WordSize::Long,
+                    source: value,
+                    destination: LirOperand::IndirectOffset {
+                        base: Box::new(array),
+                        offset: Box::new(temp_register),
+                    },
+                })
+            }
+            HirInstruction::AllocateArray { destination, size } => {
+                let destination = self.get_virtual_register(destination);
+                let size = self.lower_operand(size);
+
+                out.push(LirInstruction::Mov {
+                    size: WordSize::Long,
+                    source: self.heap_pointer.clone(),
+                    destination,
+                });
+                let temp_register = self.new_virtual_data_register();
+                out.push(LirInstruction::Mov {
+                    size: WordSize::Long,
+                    source: size,
+                    destination: temp_register.clone(),
+                });
+                out.push(LirInstruction::Mul {
+                    size: WordSize::Long,
+                    source: LirOperand::Direct(8),
+                    destination: temp_register.clone(),
+                });
+                out.push(LirInstruction::Add {
+                    size: WordSize::Long,
+                    source: temp_register,
+                    destination: self.heap_pointer.clone(),
+                });
             }
         }
     }
@@ -1356,16 +1463,10 @@ impl LirContext {
     }
 }
 
-impl Default for LirContext {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 pub fn compile_lir(
     control_flow_graph: ControlFlowGraph,
 ) -> (Vec<LirBlock>, HashMap<Address, u64>, [BlockId; 8]) {
-    let mut context = LirContext::default();
+    let mut context = LirContext::new(control_flow_graph.register_counter);
     context.calculate_classes_size(control_flow_graph.classes);
 
     let entry_point = control_flow_graph.entry_block;

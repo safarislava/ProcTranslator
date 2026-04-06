@@ -1,7 +1,17 @@
-use crate::translator::common::{RawExpression, ResBox};
+use crate::translator::common::{RawExpression, ResBox, Type};
 use std::iter::Peekable;
 use std::str::Chars;
 use std::vec::IntoIter;
+
+fn parse_type_expr(s: &str) -> Type {
+    match s {
+        "void" => Type::Void,
+        "int" => Type::Int,
+        "char" => Type::Char,
+        "bool" => Type::Bool,
+        _ => Type::Class(s.to_string()),
+    }
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ExpressionBinaryOperator {
@@ -63,6 +73,12 @@ pub enum Expression<T> {
         name: String,
         value: Box<Expression<T>>,
     },
+    AssignIndex {
+        typ: T,
+        expression: Box<Expression<T>>,
+        index: Box<Expression<T>>,
+        value: Box<Expression<T>>,
+    },
     Increment {
         typ: T,
         expression: Box<Expression<T>>,
@@ -85,10 +101,20 @@ pub enum Expression<T> {
         typ: T,
         class_name: String,
     },
+    NewArray {
+        typ: T,
+        element_type: Type,
+        size: Box<Expression<T>>,
+    },
     Field {
         typ: T,
         object: Box<Expression<T>>,
         name: String,
+    },
+    Index {
+        typ: T,
+        expression: Box<Expression<T>>,
+        index: Box<Expression<T>>,
     },
     This {
         typ: T,
@@ -105,12 +131,15 @@ impl<T: Clone> Expression<T> {
             Expression::MethodCall { typ, .. } => typ.clone(),
             Expression::Assign { typ, .. } => typ.clone(),
             Expression::AssignField { typ, .. } => typ.clone(),
+            Expression::AssignIndex { typ, .. } => typ.clone(),
             Expression::Increment { typ, .. } => typ.clone(),
             Expression::Decrement { typ, .. } => typ.clone(),
             Expression::Negate { typ, .. } => typ.clone(),
             Expression::Not { typ, .. } => typ.clone(),
             Expression::New { typ, .. } => typ.clone(),
+            Expression::NewArray { typ, .. } => typ.clone(),
             Expression::Field { typ, .. } => typ.clone(),
+            Expression::Index { typ, .. } => typ.clone(),
             Expression::This { typ } => typ.clone(),
         }
     }
@@ -118,13 +147,16 @@ impl<T: Clone> Expression<T> {
 
 #[derive(Debug, Clone, PartialEq)]
 enum Token {
-    Number(String),
+    Number(u64),
     String(String),
-    Bool(String),
+    Char(char),
+    Bool(bool),
     Id(String),
     Operator(String),
     LeftBracket,
     RightBracket,
+    LeftSquareBracket,
+    RightSquareBracket,
     Comma,
     Dot,
 }
@@ -134,95 +166,93 @@ struct Tokenizer<'a> {
 }
 
 impl<'a> Tokenizer<'a> {
-    fn new(input: &'a str) -> Self {
-        Self {
-            chars: input.chars().peekable(),
-        }
-    }
+    fn tokenize(&mut self) -> ResBox<Vec<Token>> {
+        let mut tokens = Vec::new();
 
-    fn skip_whitespace(&mut self) {
         while let Some(&c) = self.chars.peek() {
             if c.is_whitespace() {
                 self.chars.next();
-            } else {
-                break;
-            }
-        }
-    }
-
-    fn read_while<F>(&mut self, cond: F) -> String
-    where
-        F: Fn(char) -> bool,
-    {
-        let mut s = String::new();
-        while let Some(&c) = self.chars.peek() {
-            if cond(c) {
-                s.push(c);
-                self.chars.next();
-            } else {
-                break;
-            }
-        }
-        s
-    }
-
-    fn next_token(&mut self) -> ResBox<Option<Token>> {
-        self.skip_whitespace();
-        let &c = match self.chars.peek() {
-            Some(c) => c,
-            None => return Ok(None),
-        };
-
-        let token = match c {
-            c if c.is_ascii_digit() => {
-                Token::Number(self.read_while(|c| c.is_ascii_digit() || c == '.'))
-            }
-            '"' => {
-                self.chars.next();
-                let s = self.read_while(|c| c != '"');
-                self.chars.next();
-                Token::String(s)
-            }
-            c if c.is_alphabetic() || c == '_' => {
-                let id = self.read_while(|c| c.is_alphanumeric() || c == '_');
+            } else if c.is_alphabetic() || c == '_' {
+                let mut id = String::new();
+                while let Some(&ch) = self.chars.peek() {
+                    if ch.is_alphanumeric() || ch == '_' {
+                        id.push(self.chars.next().unwrap());
+                    } else {
+                        break;
+                    }
+                }
                 match id.as_str() {
-                    "true" | "false" => Token::Bool(id),
-                    _ => Token::Id(id),
+                    "true" => tokens.push(Token::Bool(true)),
+                    "false" => tokens.push(Token::Bool(false)),
+                    _ => tokens.push(Token::Id(id)),
+                }
+            } else if c.is_ascii_digit() {
+                let mut num = String::new();
+                while let Some(&ch) = self.chars.peek() {
+                    if ch.is_ascii_digit() {
+                        num.push(self.chars.next().unwrap());
+                    } else {
+                        break;
+                    }
+                }
+                tokens.push(Token::Number(num.parse()?));
+            } else if c == '"' {
+                self.chars.next();
+                let mut s = String::new();
+                while let Some(&c) = self.chars.peek() {
+                    if c == '"' {
+                        self.chars.next();
+                        break;
+                    }
+                    s.push(self.chars.next().unwrap());
+                }
+                tokens.push(Token::String(s));
+            } else if c == '\'' {
+                self.chars.next();
+                if let Some(ch) = self.chars.next() {
+                    if self.chars.next() == Some('\'') {
+                        tokens.push(Token::Char(ch));
+                    } else {
+                        return Err("Invalid char literal".into());
+                    }
+                } else {
+                    return Err("Unexpected EOF in char literal".into());
+                }
+            } else {
+                let next_char = self.chars.next().unwrap();
+                match next_char {
+                    '(' => tokens.push(Token::LeftBracket),
+                    ')' => tokens.push(Token::RightBracket),
+                    '[' => tokens.push(Token::LeftSquareBracket),
+                    ']' => tokens.push(Token::RightSquareBracket),
+                    ',' => tokens.push(Token::Comma),
+                    '.' => tokens.push(Token::Dot),
+                    _ => {
+                        let mut op = next_char.to_string();
+                        if let Some(&p) = self.chars.peek() {
+                            let is_double = matches!(
+                                (next_char, p),
+                                ('+', '+')
+                                    | ('-', '-')
+                                    | ('&', '&')
+                                    | ('|', '|')
+                                    | ('+', '=')
+                                    | ('-', '=')
+                                    | ('*', '=')
+                                    | ('/', '=')
+                                    | ('=', '=')
+                                    | ('!', '=')
+                                    | ('<', '=')
+                                    | ('>', '=')
+                            );
+                            if is_double {
+                                op.push(self.chars.next().unwrap());
+                            }
+                        }
+                        tokens.push(Token::Operator(op));
+                    }
                 }
             }
-            '(' => {
-                self.chars.next();
-                Token::LeftBracket
-            }
-            ')' => {
-                self.chars.next();
-                Token::RightBracket
-            }
-            ',' => {
-                self.chars.next();
-                Token::Comma
-            }
-            '.' => {
-                self.chars.next();
-                Token::Dot
-            }
-            _ => {
-                let operator = self.read_while(|c| "+-*/%=<>!&|".contains(c));
-                if operator.is_empty() {
-                    self.chars.next();
-                    return self.next_token();
-                }
-                Token::Operator(operator)
-            }
-        };
-
-        Ok(Some(token))
-    }
-
-    fn get_tokens(&mut self) -> ResBox<Vec<Token>> {
-        let mut tokens = vec![];
-        while let Some(token) = self.next_token()? {
-            tokens.push(token);
         }
         Ok(tokens)
     }
@@ -233,238 +263,6 @@ struct Parser {
 }
 
 impl Parser {
-    fn new(tokens: Vec<Token>) -> Self {
-        Self {
-            tokens: tokens.into_iter().peekable(),
-        }
-    }
-
-    fn is_changeable(expression: &RawExpression) -> bool {
-        matches!(
-            expression,
-            Expression::Variable { .. } | Expression::Field { .. }
-        )
-    }
-
-    fn parse_expression(&mut self, min_order: u8) -> ResBox<RawExpression> {
-        let mut left = self.parse_primary()?;
-
-        loop {
-            let next = self.tokens.peek().cloned();
-
-            if let Some(Token::Dot) = next {
-                self.tokens.next();
-                let member = match self.tokens.next() {
-                    Some(Token::Id(id)) => id,
-                    _ => return Err("Expected identifier after '.'".into()),
-                };
-
-                if let Some(Token::LeftBracket) = self.tokens.peek() {
-                    self.tokens.next();
-                    let arguments = self.parse_arguments()?;
-                    left = Expression::MethodCall {
-                        typ: (),
-                        object: Box::new(left),
-                        name: member,
-                        arguments,
-                    };
-                } else {
-                    left = Expression::Field {
-                        typ: (),
-                        object: Box::new(left),
-                        name: member,
-                    };
-                }
-                continue;
-            }
-
-            if let Some(Token::Operator(operator)) = next.as_ref()
-                && (operator == "++" || operator == "--")
-            {
-                let operator_value = operator.clone();
-                self.tokens.next();
-
-                if Self::is_changeable(&left) {
-                    left = if operator_value == "++" {
-                        Expression::Increment {
-                            typ: (),
-                            expression: Box::new(left),
-                            postfix: true,
-                        }
-                    } else {
-                        Expression::Decrement {
-                            typ: (),
-                            expression: Box::new(left),
-                            postfix: true,
-                        }
-                    };
-                } else {
-                    return Err(format!(
-                        "Operator '{}' can only be applied to a variable",
-                        operator_value
-                    )
-                    .into());
-                }
-                continue;
-            }
-
-            if let Some(Token::Operator(op_str)) = next {
-                let operator = Self::link_binary_operator(&op_str)?;
-                let (left_order, right_order) = Self::binding_order(&operator);
-                if left_order < min_order {
-                    break;
-                }
-                self.tokens.next();
-
-                let right = self.parse_expression(right_order)?;
-
-                left = match operator {
-                    ExpressionBinaryOperator::Assign => {
-                        if !Self::is_changeable(&left) {
-                            return Err("Invalid assignment target".into());
-                        }
-                        match left {
-                            Expression::Variable { name, .. } => Expression::Assign {
-                                typ: (),
-                                name,
-                                value: Box::new(right),
-                            },
-                            Expression::Field {
-                                object,
-                                name: member,
-                                ..
-                            } => Expression::AssignField {
-                                typ: (),
-                                object,
-                                name: member,
-                                value: Box::new(right),
-                            },
-                            _ => unreachable!(),
-                        }
-                    }
-                    _ => Expression::BinaryOperator {
-                        typ: (),
-                        left: Box::new(left),
-                        operator,
-                        right: Box::new(right),
-                    },
-                };
-            } else {
-                break;
-            }
-        }
-        Ok(left)
-    }
-
-    fn parse_primary(&mut self) -> ResBox<RawExpression> {
-        let token = self.tokens.next().ok_or("Unexpected end of expression")?;
-        match token {
-            Token::Number(value) => Ok(Expression::Literal { typ: (), value }),
-            Token::String(value) => Ok(Expression::Literal {
-                typ: (),
-                value: format!("\"{}\"", value),
-            }),
-            Token::Bool(value) => Ok(Expression::Literal { typ: (), value }),
-            Token::Id(id) => match id.as_str() {
-                "this" => Ok(Expression::This { typ: () }),
-                "new" => {
-                    let class_name = match self.tokens.next() {
-                        Some(Token::Id(name)) => name,
-                        _ => return Err("Expected class name after 'new'".into()),
-                    };
-                    Ok(Expression::New {
-                        typ: (),
-                        class_name,
-                    })
-                }
-                name => {
-                    if let Some(Token::LeftBracket) = self.tokens.peek() {
-                        self.tokens.next();
-                        let arguments = self.parse_arguments()?;
-                        Ok(Expression::FunctionCall {
-                            typ: (),
-                            name: name.to_string(),
-                            arguments,
-                        })
-                    } else {
-                        Ok(Expression::Variable {
-                            typ: (),
-                            name: name.to_string(),
-                        })
-                    }
-                }
-            },
-            Token::LeftBracket => {
-                let expression = self.parse_expression(0)?;
-                if self.tokens.next() != Some(Token::RightBracket) {
-                    return Err("Expected ')'".into());
-                }
-                Ok(expression)
-            }
-            Token::Operator(operator) => {
-                match operator.as_str() {
-                    "++" | "--" => {
-                        let target = self.parse_primary()?;
-                        if Self::is_changeable(&target) {
-                            Ok(if operator == "++" {
-                                Expression::Increment {
-                                    typ: (),
-                                    expression: Box::new(target),
-                                    postfix: false,
-                                }
-                            } else {
-                                Expression::Decrement {
-                                    typ: (),
-                                    expression: Box::new(target),
-                                    postfix: false,
-                                }
-                            })
-                        } else {
-                            Err(format!(
-                                "Operator '{}' can only be applied to a variable or field",
-                                operator
-                            )
-                            .into())
-                        }
-                    }
-                    "-" => {
-                        let expression = self.parse_expression(15)?; // Унарный минус имеет высокий приоритет
-                        Ok(Expression::Negate {
-                            typ: (),
-                            expression: Box::new(expression),
-                        })
-                    }
-                    "!" => {
-                        let expression = self.parse_expression(15)?; // Унарное отрицание
-                        Ok(Expression::Not {
-                            typ: (),
-                            expression: Box::new(expression),
-                        })
-                    }
-                    _ => Err(format!("Unexpected unary operator: {}", operator).into()),
-                }
-            }
-            _ => Err(format!("Unexpected token: {:?}", token).into()),
-        }
-    }
-
-    fn parse_arguments(&mut self) -> ResBox<Vec<RawExpression>> {
-        let mut arguments = vec![];
-        if let Some(Token::RightBracket) = self.tokens.peek() {
-            self.tokens.next();
-            return Ok(arguments);
-        }
-        loop {
-            arguments.push(self.parse_expression(0)?);
-            match self.tokens.next() {
-                Some(Token::Comma) => continue,
-                Some(Token::RightBracket) => break,
-                _ => return Err("Expected ',' or ')' in arguments".into()),
-            }
-        }
-        Ok(arguments)
-    }
-
     fn link_binary_operator(operator: &str) -> ResBox<ExpressionBinaryOperator> {
         match operator {
             "=" => Ok(ExpressionBinaryOperator::Assign),
@@ -485,7 +283,7 @@ impl Parser {
             "*" => Ok(ExpressionBinaryOperator::Multiply),
             "/" => Ok(ExpressionBinaryOperator::Divide),
             "%" => Ok(ExpressionBinaryOperator::Remainder),
-            _ => Err("Unknown binary operator".into()),
+            _ => Err(format!("Unknown operator: {operator}").into()),
         }
     }
 
@@ -509,15 +307,280 @@ impl Parser {
             | ExpressionBinaryOperator::Remainder => (13, 14),
         }
     }
+
+    fn postfix_order(token: &Token) -> Option<(u8, ())> {
+        match token {
+            Token::LeftBracket | Token::LeftSquareBracket | Token::Dot => Some((16, ())),
+            Token::Operator(operator) if operator == "++" || operator == "--" => Some((16, ())),
+            _ => None,
+        }
+    }
+
+    fn parse_expression(&mut self, min_order: u8) -> ResBox<RawExpression> {
+        let token = self.tokens.next().ok_or("Unexpected EOF")?;
+        let mut left = self.parse_prefix(token)?;
+
+        loop {
+            let Some(operator) = self.tokens.peek().cloned() else {
+                break;
+            };
+
+            if let Some((left_order, ())) = Self::postfix_order(&operator) {
+                if left_order < min_order {
+                    break;
+                }
+                self.tokens.next();
+                left = self.parse_postfix(left, operator)?;
+                continue;
+            }
+
+            if let Token::Operator(ref operator) = operator
+                && let Ok(operator) = Self::link_binary_operator(operator)
+            {
+                let (left_order, right_order) = Self::binding_order(&operator);
+                if left_order < min_order {
+                    break;
+                }
+                self.tokens.next();
+                let right = self.parse_expression(right_order)?;
+
+                left = if operator == ExpressionBinaryOperator::Assign {
+                    match left {
+                        RawExpression::Variable { name, .. } => RawExpression::Assign {
+                            typ: Default::default(),
+                            name,
+                            value: Box::new(right),
+                        },
+                        RawExpression::Field { object, name, .. } => RawExpression::AssignField {
+                            typ: Default::default(),
+                            object,
+                            name,
+                            value: Box::new(right),
+                        },
+                        RawExpression::Index {
+                            expression, index, ..
+                        } => RawExpression::AssignIndex {
+                            typ: Default::default(),
+                            expression,
+                            index,
+                            value: Box::new(right),
+                        },
+                        _ => return Err("Invalid assignment target".into()),
+                    }
+                } else {
+                    RawExpression::BinaryOperator {
+                        typ: Default::default(),
+                        left: Box::new(left),
+                        operator,
+                        right: Box::new(right),
+                    }
+                };
+                continue;
+            }
+            break;
+        }
+        Ok(left)
+    }
+
+    fn parse_prefix(&mut self, token: Token) -> ResBox<RawExpression> {
+        match token {
+            Token::Number(n) => Ok(RawExpression::Literal {
+                typ: Default::default(),
+                value: n.to_string(),
+            }),
+            Token::String(s) => Ok(RawExpression::Literal {
+                typ: Default::default(),
+                value: format!("\"{}\"", s),
+            }),
+            Token::Char(c) => Ok(RawExpression::Literal {
+                typ: Default::default(),
+                value: format!("'{}'", c),
+            }),
+            Token::Bool(b) => Ok(RawExpression::Literal {
+                typ: Default::default(),
+                value: b.to_string(),
+            }),
+            Token::Id(id) => {
+                if id == "this" {
+                    Ok(RawExpression::This {
+                        typ: Default::default(),
+                    })
+                } else if id == "new" {
+                    let type_name = match self.tokens.next() {
+                        Some(Token::Id(name)) => name,
+                        _ => return Err("Expected type name after 'new'".into()),
+                    };
+
+                    match self.tokens.peek() {
+                        Some(Token::LeftSquareBracket) => {
+                            self.tokens.next();
+                            let size = self.parse_expression(0)?;
+                            if self.tokens.next() != Some(Token::RightSquareBracket) {
+                                return Err("Expected ']' after array size".into());
+                            }
+                            Ok(RawExpression::NewArray {
+                                typ: Default::default(),
+                                element_type: parse_type_expr(&type_name),
+                                size: Box::new(size),
+                            })
+                        }
+                        Some(Token::LeftBracket) => {
+                            self.tokens.next();
+                            if self.tokens.next() != Some(Token::RightBracket) {
+                                return Err(
+                                    "Arguments in 'new Class()' are not supported yet".into()
+                                );
+                            }
+                            Ok(RawExpression::New {
+                                typ: Default::default(),
+                                class_name: type_name,
+                            })
+                        }
+                        _ => Err("Expected '(' or '[' after type name in 'new'".into()),
+                    }
+                } else {
+                    Ok(RawExpression::Variable {
+                        typ: Default::default(),
+                        name: id,
+                    })
+                }
+            }
+            Token::LeftBracket => {
+                let expr = self.parse_expression(0)?;
+                if self.tokens.next() != Some(Token::RightBracket) {
+                    return Err("Expected ')'".into());
+                }
+                Ok(expr)
+            }
+            Token::Operator(operator) => {
+                let right_order = 15;
+                if operator == "-" {
+                    Ok(RawExpression::Negate {
+                        typ: Default::default(),
+                        expression: Box::new(self.parse_expression(right_order)?),
+                    })
+                } else if operator == "!" {
+                    Ok(RawExpression::Not {
+                        typ: Default::default(),
+                        expression: Box::new(self.parse_expression(right_order)?),
+                    })
+                } else if operator == "++" {
+                    Ok(RawExpression::Increment {
+                        typ: Default::default(),
+                        expression: Box::new(self.parse_expression(right_order)?),
+                        postfix: false,
+                    })
+                } else if operator == "--" {
+                    Ok(RawExpression::Decrement {
+                        typ: Default::default(),
+                        expression: Box::new(self.parse_expression(right_order)?),
+                        postfix: false,
+                    })
+                } else {
+                    Err(format!("Invalid prefix operator: {}", operator).into())
+                }
+            }
+            _ => Err(format!("Unexpected token in prefix position: {:?}", token).into()),
+        }
+    }
+
+    fn parse_postfix(&mut self, left: RawExpression, token: Token) -> ResBox<RawExpression> {
+        match token {
+            Token::Operator(op) if op == "++" => Ok(RawExpression::Increment {
+                typ: Default::default(),
+                expression: Box::new(left),
+                postfix: true,
+            }),
+            Token::Operator(operator) if operator == "--" => Ok(RawExpression::Decrement {
+                typ: Default::default(),
+                expression: Box::new(left),
+                postfix: true,
+            }),
+            Token::Dot => {
+                let name = match self.tokens.next() {
+                    Some(Token::Id(id)) => id,
+                    _ => return Err("Expected identifier after '.'".into()),
+                };
+                if let Some(Token::LeftBracket) = self.tokens.peek() {
+                    self.tokens.next();
+                    let arguments = self.parse_arguments()?;
+                    Ok(RawExpression::MethodCall {
+                        typ: Default::default(),
+                        object: Box::new(left),
+                        name,
+                        arguments,
+                    })
+                } else {
+                    Ok(RawExpression::Field {
+                        typ: Default::default(),
+                        object: Box::new(left),
+                        name,
+                    })
+                }
+            }
+            Token::LeftBracket => {
+                let arguments = self.parse_arguments()?;
+                if let RawExpression::Variable { name, .. } = left {
+                    Ok(RawExpression::FunctionCall {
+                        typ: Default::default(),
+                        name,
+                        arguments,
+                    })
+                } else {
+                    Err("Invalid target for function call".into())
+                }
+            }
+            Token::LeftSquareBracket => {
+                let index = self.parse_expression(0)?;
+                if self.tokens.next() != Some(Token::RightSquareBracket) {
+                    return Err("Expected ']'".into());
+                }
+                Ok(RawExpression::Index {
+                    typ: Default::default(),
+                    expression: Box::new(left),
+                    index: Box::new(index),
+                })
+            }
+            _ => Err("Invalid postfix token".into()),
+        }
+    }
+
+    fn parse_arguments(&mut self) -> ResBox<Vec<RawExpression>> {
+        let mut arguments = Vec::new();
+        if let Some(Token::RightBracket) = self.tokens.peek() {
+            self.tokens.next();
+            return Ok(arguments);
+        }
+        loop {
+            arguments.push(self.parse_expression(0)?);
+            match self.tokens.next() {
+                Some(Token::Comma) => continue,
+                Some(Token::RightBracket) => break,
+                _ => return Err("Expected ',' or ')' in arguments list".into()),
+            }
+        }
+        Ok(arguments)
+    }
 }
 
 pub fn parse_expression(code: &str) -> ResBox<RawExpression> {
-    let trimmed_code = code.trim().trim_end_matches(';');
-    if trimmed_code.is_empty() {
+    let mut tokenizer = Tokenizer {
+        chars: code.chars().peekable(),
+    };
+    let tokens = tokenizer.tokenize()?;
+
+    if tokens.is_empty() {
         return Err("Empty expression".into());
     }
-    let mut tokemizer = Tokenizer::new(trimmed_code);
-    let tokens = tokemizer.get_tokens()?;
-    let mut parser = Parser::new(tokens);
-    parser.parse_expression(0)
+
+    let mut parser = Parser {
+        tokens: tokens.into_iter().peekable(),
+    };
+    let expr = parser.parse_expression(0)?;
+
+    if parser.tokens.peek().is_some() {
+        return Err(format!("Unexpected tokens remaining after parsing expression: {code}").into());
+    }
+
+    Ok(expr)
 }

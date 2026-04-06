@@ -23,7 +23,7 @@ impl ClassInfo {
 }
 
 struct SemanticTable {
-    scopes: Vec<HashMap<String, Type>>,
+    scopes: Vec<HashMap<String, (Type, Option<i64>)>>,
     stacktrace: Vec<AbstractSyntaxNode<RawExpression>>,
     functions: HashMap<String, FunctionInfo>,
     classes: HashMap<String, ClassInfo>,
@@ -41,8 +41,17 @@ impl SemanticTable {
 
     fn find_var(&self, name: &str) -> Option<&Type> {
         for scope in self.scopes.iter().rev() {
-            if let Some(typ) = scope.get(name) {
+            if let Some((typ, _)) = scope.get(name) {
                 return Some(typ);
+            }
+        }
+        None
+    }
+
+    fn find_array_size(&self, name: &str) -> Option<i64> {
+        for scope in self.scopes.iter().rev() {
+            if let Some((_, size)) = scope.get(name) {
+                return *size;
             }
         }
         None
@@ -159,7 +168,7 @@ impl SemanticTable {
                     self.scopes
                         .last_mut()
                         .unwrap()
-                        .insert(arg.name.clone(), arg.typ.clone());
+                        .insert(arg.name.clone(), (arg.typ.clone(), None));
                 }
                 let children = self.analyze_children(&ast.children)?;
                 self.scopes.pop();
@@ -332,29 +341,42 @@ impl SemanticTable {
         Ok(typed_children)
     }
 
+    fn is_valid_type(&self, typ: &Type) -> bool {
+        match typ {
+            Type::Class(c) => self.classes.contains_key(c),
+            Type::Array(inner) => self.is_valid_type(inner),
+            _ => true,
+        }
+    }
+
     fn analyze_declaration(
         &mut self,
         typ: &Type,
         name: &str,
         expression: &Option<TypedExpression>,
     ) -> ResBox<()> {
-        if let Type::Class(c) = typ
-            && !self.classes.contains_key(c)
-        {
-            return Err(format!("Unknown type {}", c).into());
+        if !self.is_valid_type(typ) {
+            return Err(format!("Unknown type {:?}", typ).into());
         }
-        if let Some(expression) = expression
-            && expression.get_type() != *typ
-        {
-            return Err("Declaration type mismatch".into());
+
+        let mut known_size = None;
+        if let Some(expr) = expression {
+            if expr.get_type() != *typ {
+                return Err(format!("Declaration type mismatch for '{}'", name).into());
+            }
+            if let Expression::NewArray { size, .. } = expr
+                && let Expression::Literal { value, .. } = &**size
+                && let Ok(s) = value.parse::<i64>()
+            {
+                known_size = Some(s);
+            }
         }
         self.scopes
             .last_mut()
             .unwrap()
-            .insert(name.to_owned(), typ.clone());
+            .insert(name.to_owned(), (typ.clone(), known_size));
         Ok(())
     }
-
     fn analyze_expression(&self, expression: &RawExpression) -> ResBox<TypedExpression> {
         match expression {
             Expression::Literal { value, .. } => {
@@ -384,14 +406,38 @@ impl SemanticTable {
                 let typed_right = self.analyze_expression(right)?;
                 let left_type = typed_left.get_type();
                 let right_type = typed_right.get_type();
+
                 if left_type != right_type {
                     return Err("Binary operator type mismatch".into());
                 }
+
+                if Self::is_arithmetic_binary_op(operator) && left_type != Type::Int {
+                    return Err(format!(
+                        "Arithmetic operations can only be applied to type int, found {:?}",
+                        left_type
+                    )
+                    .into());
+                }
+
+                if Self::is_logical_binary_op(operator) && left_type != Type::Bool {
+                    return Err(
+                        "Logical operations (&&, ||) can only be applied to type bool".into(),
+                    );
+                }
+
+                if Self::is_relational_binary_op(operator) && left_type != Type::Int {
+                    return Err(
+                        "Relational operations (<, >, <=, >=) can only be applied to type int"
+                            .into(),
+                    );
+                }
+
                 let result_type = if Self::is_compering_binary_op(operator) {
                     Type::Bool
                 } else {
                     left_type
                 };
+
                 Ok(Expression::BinaryOperator {
                     typ: result_type,
                     left: Box::new(typed_left),
@@ -449,7 +495,7 @@ impl SemanticTable {
                         .fields
                         .get(member)
                         .cloned()
-                        .ok_or(format!("Field {} not found", member))?;
+                        .ok_or(format!("Field {} not found in {}", member, class_name))?;
                     Ok(Expression::Field {
                         typ: field_type,
                         object: Box::new(typed_object),
@@ -457,6 +503,38 @@ impl SemanticTable {
                     })
                 } else {
                     Err("Field access on non-object".into())
+                }
+            }
+            Expression::Index {
+                expression, index, ..
+            } => {
+                let typed_expression = self.analyze_expression(expression)?;
+                let typed_index = self.analyze_expression(index)?;
+                if typed_index.get_type() != Type::Int {
+                    return Err("Array index must be int".into());
+                }
+
+                if let Expression::Variable { name, .. } = &typed_expression
+                    && let Expression::Literal { value, .. } = &typed_index
+                    && let Ok(idx_val) = value.parse::<i64>()
+                    && let Some(arr_size) = self.find_array_size(name)
+                    && (idx_val < 0 || idx_val >= arr_size)
+                {
+                    return Err(format!(
+                        "Index out of bounds: array '{}' has size {}, but accessed at index {}",
+                        name, arr_size, idx_val
+                    )
+                    .into());
+                }
+
+                if let Type::Array(inner_type) = typed_expression.get_type() {
+                    Ok(Expression::Index {
+                        typ: *inner_type,
+                        expression: Box::new(typed_expression),
+                        index: Box::new(typed_index),
+                    })
+                } else {
+                    Err("Indexing non-array".into())
                 }
             }
             Expression::Assign { name, value, .. } => {
@@ -504,6 +582,46 @@ impl SemanticTable {
                     Err("Not an object".into())
                 }
             }
+            Expression::AssignIndex {
+                expression,
+                index,
+                value,
+                ..
+            } => {
+                let typed_expression = self.analyze_expression(expression)?;
+                let typed_index = self.analyze_expression(index)?;
+                let typed_value = self.analyze_expression(value)?;
+                if typed_index.get_type() != Type::Int {
+                    return Err("Array index must be int".into());
+                }
+
+                if let Expression::Variable { name, .. } = &typed_expression
+                    && let Expression::Literal { value, .. } = &typed_index
+                    && let Ok(idx_val) = value.parse::<i64>()
+                    && let Some(arr_size) = self.find_array_size(name)
+                    && (idx_val < 0 || idx_val >= arr_size)
+                {
+                    return Err(format!(
+                        "Index out of bounds: array '{}' has size {}, but accessed at index {}",
+                        name, arr_size, idx_val
+                    )
+                    .into());
+                }
+
+                if let Type::Array(inner_type) = typed_expression.get_type() {
+                    if *inner_type != typed_value.get_type() {
+                        return Err("Array assign type mismatch".into());
+                    }
+                    Ok(Expression::AssignIndex {
+                        typ: *inner_type,
+                        expression: Box::new(typed_expression),
+                        index: Box::new(typed_index),
+                        value: Box::new(typed_value),
+                    })
+                } else {
+                    Err("Indexing non-array".into())
+                }
+            }
             Expression::Increment {
                 expression,
                 postfix,
@@ -512,14 +630,16 @@ impl SemanticTable {
                 let typed_expression = self.analyze_expression(expression)?;
                 if !matches!(
                     typed_expression,
-                    Expression::Variable { .. } | Expression::Field { .. }
+                    Expression::Variable { .. }
+                        | Expression::Field { .. }
+                        | Expression::Index { .. }
                 ) {
                     return Err(
                         "Increment/Decrement can only be applied to a variable or field".into(),
                     );
                 }
                 let typ = typed_expression.get_type();
-                if typ != Type::Int && typ != Type::Float {
+                if typ != Type::Int {
                     return Err(
                         format!("Operator ++/-- cannot be applied to type {:?}", typ).into(),
                     );
@@ -538,14 +658,16 @@ impl SemanticTable {
                 let typed_expression = self.analyze_expression(expression)?;
                 if !matches!(
                     typed_expression,
-                    Expression::Variable { .. } | Expression::Field { .. }
+                    Expression::Variable { .. }
+                        | Expression::Field { .. }
+                        | Expression::Index { .. }
                 ) {
                     return Err(
                         "Increment/Decrement can only be applied to a variable or field".into(),
                     );
                 }
                 let typ = typed_expression.get_type();
-                if typ != Type::Int && typ != Type::Float {
+                if typ != Type::Int {
                     return Err(
                         format!("Operator ++/-- cannot be applied to type {:?}", typ).into(),
                     );
@@ -559,7 +681,7 @@ impl SemanticTable {
             Expression::Negate { expression, .. } => {
                 let typed_expr = self.analyze_expression(expression)?;
                 let typ = typed_expr.get_type();
-                if typ != Type::Int && typ != Type::Float {
+                if typ != Type::Int {
                     return Err("Need numeric for minus".into());
                 }
                 Ok(Expression::Negate {
@@ -584,6 +706,22 @@ impl SemanticTable {
                 Ok(Expression::New {
                     typ: Type::Class(class_name.clone()),
                     class_name: class_name.clone(),
+                })
+            }
+            Expression::NewArray {
+                element_type, size, ..
+            } => {
+                let typed_size = self.analyze_expression(size)?;
+                if typed_size.get_type() != Type::Int {
+                    return Err("Array size must be int".into());
+                }
+                if !self.is_valid_type(element_type) {
+                    return Err(format!("Unknown element type {:?}", element_type).into());
+                }
+                Ok(Expression::NewArray {
+                    typ: Type::Array(Box::new(element_type.clone())),
+                    element_type: element_type.clone(),
+                    size: Box::new(typed_size),
                 })
             }
             Expression::This { .. } => {
@@ -612,6 +750,38 @@ impl SemanticTable {
             typed_arguments.push(typed_argument);
         }
         Ok(typed_arguments)
+    }
+
+    fn is_arithmetic_binary_op(operator: &ExpressionBinaryOperator) -> bool {
+        matches!(
+            operator,
+            ExpressionBinaryOperator::Add
+                | ExpressionBinaryOperator::Sub
+                | ExpressionBinaryOperator::Multiply
+                | ExpressionBinaryOperator::Divide
+                | ExpressionBinaryOperator::Remainder
+                | ExpressionBinaryOperator::AssignAdd
+                | ExpressionBinaryOperator::AssignSub
+                | ExpressionBinaryOperator::AssignMul
+                | ExpressionBinaryOperator::AssignDiv
+        )
+    }
+
+    fn is_logical_binary_op(operator: &ExpressionBinaryOperator) -> bool {
+        matches!(
+            operator,
+            ExpressionBinaryOperator::And | ExpressionBinaryOperator::Or
+        )
+    }
+
+    fn is_relational_binary_op(operator: &ExpressionBinaryOperator) -> bool {
+        matches!(
+            operator,
+            ExpressionBinaryOperator::Less
+                | ExpressionBinaryOperator::LessEqual
+                | ExpressionBinaryOperator::Greater
+                | ExpressionBinaryOperator::GreaterEqual
+        )
     }
 
     fn is_compering_binary_op(operator: &ExpressionBinaryOperator) -> bool {
@@ -671,14 +841,14 @@ impl SemanticTable {
 }
 
 fn get_literal_type(value: &str) -> ResBox<Type> {
-    if value.parse::<bool>().is_ok() {
+    if value == "true" || value == "false" {
         Ok(Type::Bool)
     } else if value.parse::<i64>().is_ok() {
         Ok(Type::Int)
-    } else if value.parse::<f64>().is_ok() {
-        Ok(Type::Float)
+    } else if value.starts_with('\'') && value.ends_with('\'') {
+        Ok(Type::Char)
     } else if value.starts_with('"') && value.ends_with('"') {
-        Ok(Type::Str)
+        Ok(Type::Array(Box::new(Type::Char)))
     } else {
         Err(format!("Unknown literal type for value: {}", value).into())
     }
@@ -688,12 +858,13 @@ pub fn semantic_analyze(ast: RawAbstractSyntaxTree) -> ResBox<TypedAbstractSynta
     let mut table = SemanticTable::new();
     table.collect_definitions(&ast)?;
 
-    if !table.functions.contains_key("Main")
-        && !table
+    let has_main = table.functions.contains_key("Main")
+        || table
             .classes
             .iter()
-            .any(|i| i.1.methods.contains_key("Main"))
-    {
+            .any(|(_, info)| info.methods.contains_key("Main"));
+
+    if !has_main {
         return Err("Entry point 'Main' function not found".into());
     }
 

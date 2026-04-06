@@ -20,9 +20,9 @@ pub struct Variable {
 pub enum Type {
     Void,
     Int,
-    Float,
     Bool,
-    Str,
+    Char,
+    Array(Box<Type>),
     Class(String),
 }
 

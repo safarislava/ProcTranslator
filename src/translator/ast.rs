@@ -7,13 +7,13 @@ use crate::translator::parser::{SyntaxNode, SyntaxTree};
 
 type DeclarationInfo = (String, String, Option<RawExpression>);
 
-fn parse_type(s: &str) -> Type {
+pub fn parse_type(s: &str) -> Type {
     match s.trim() {
         "void" => Type::Void,
         "int" => Type::Int,
-        "float" => Type::Float,
-        "str" => Type::Str,
+        "char" => Type::Char,
         "bool" => Type::Bool,
+        s if s.ends_with("[]") => Type::Array(Box::new(parse_type(&s[0..s.len() - 2]))),
         other => Type::Class(other.to_string()),
     }
 }
@@ -75,8 +75,10 @@ fn parse_declaration(code: &str) -> ResBox<Option<DeclarationInfo>> {
     let first = parts[0];
     let rest = parts[1].trim();
 
-    let is_primitive = matches!(first, "int" | "float" | "str" | "bool" | "void");
-    let is_class = first.chars().next().is_some_and(|c| c.is_uppercase());
+    let base_type = first.trim_end_matches("[]");
+
+    let is_primitive = matches!(base_type, "int" | "bool" | "void" | "char");
+    let is_class = base_type.chars().next().is_some_and(|c| c.is_uppercase());
     if !is_primitive && !is_class {
         return Ok(None);
     }

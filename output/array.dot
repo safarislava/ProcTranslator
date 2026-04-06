@@ -1,0 +1,23 @@
+digraph CFG {
+  rankdir=TB;
+  node [shape=box, fontname="Courier"];
+  edge [fontname="Courier"];
+
+  B0 [label="B0|call prologue\lalloc s0\llink r0 = new array[\"10\"]\ls0 = link r0\lalloc s1\llink r1 = new array[\"10\"]\ls1 = link r1\lalloc s2\ls2 = \"0\"\ljump B3\l"];
+  B1 [label="B1|"];
+  B2 [label="B2|"];
+  B3 [label="B3|r2 = load s2\lr3 = r2 Less \"10\"\lbranch r3 ? B4 : B5\l"];
+  B4 [label="B4|r4 = load s2\lr5 = r4 Remainder \"2\"\lr6 = r5 Equal \"0\"\lbranch r6 ? B6 : B7\l"];
+  B5 [label="B5|link r11 = load s0\lr12 = link r11[\"0\"]\lreturn r12\l"];
+  B6 [label="B6|link r7 = load s0\lr8 = load s2\llink r7[r8] = \"'a'\"\ljump B8\l"];
+  B7 [label="B7|"];
+  B8 [label="B8|r9 = load s2\lr10 = r9 Add \"1\"\ls2 = r10\ljump B3\l"];
+  B0 -> B3;
+  B3 -> B4 [label="true"];
+  B3 -> B5 [label="false"];
+  B4 -> B6 [label="true"];
+  B4 -> B7 [label="false"];
+  B6 -> B8;
+  B8 -> B3;
+  B0 [style=filled, fillcolor=lightgreen];
+}

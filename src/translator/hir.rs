@@ -73,9 +73,23 @@ pub enum HirInstruction {
         offset: usize,
         value: HirOperand,
     },
+    LoadIndex {
+        destination: HirOperand,
+        array: HirOperand,
+        index: HirOperand,
+    },
+    StoreIndex {
+        array: HirOperand,
+        index: HirOperand,
+        value: HirOperand,
+    },
     AllocateObject {
         destination: HirOperand,
         class_name: String,
+    },
+    AllocateArray {
+        destination: HirOperand,
+        size: HirOperand,
     },
 
     Input {
@@ -433,7 +447,7 @@ impl HirContext {
                     let slot = self.declare_variable(argument.name);
                     let register = self.new_register();
                     let destination = match argument.typ {
-                        Type::Class(_) => HirOperand::Link(register),
+                        Type::Class(_) | Type::Array(_) => HirOperand::Link(register),
                         _ => HirOperand::Value(register),
                     };
                     self.emit(HirInstruction::LoadParameter {
@@ -512,7 +526,7 @@ impl HirContext {
             TypedExpression::Variable { name, .. } => {
                 let destination = self.new_register();
                 let destination = match expression_type {
-                    Type::Class(_) => HirOperand::Link(destination),
+                    Type::Class(_) | Type::Array(_) => HirOperand::Link(destination),
                     _ => HirOperand::Value(destination),
                 };
 
@@ -544,7 +558,7 @@ impl HirContext {
                 let right = self.generate_expression(*right);
                 let destination = self.new_register();
                 let destination = match expression_type {
-                    Type::Class(_) => HirOperand::Link(destination),
+                    Type::Class(_) | Type::Array(_) => HirOperand::Link(destination),
                     _ => HirOperand::Value(destination),
                 };
 
@@ -565,7 +579,7 @@ impl HirContext {
                     .collect();
                 let destination = self.new_register();
                 let destination = match expression_type {
-                    Type::Class(_) => HirOperand::Link(destination),
+                    Type::Class(_) | Type::Array(_) => HirOperand::Link(destination),
                     _ => HirOperand::Value(destination),
                 };
 
@@ -625,7 +639,7 @@ impl HirContext {
                 let operand = self.generate_expression(*expression);
                 let destination = self.new_register();
                 let destination = match expression_type {
-                    Type::Class(_) => HirOperand::Link(destination),
+                    Type::Class(_) | Type::Array(_) => HirOperand::Link(destination),
                     _ => HirOperand::Value(destination),
                 };
                 let zero_const = HirOperand::Constant("0".to_string());
@@ -641,7 +655,7 @@ impl HirContext {
                 let operand = self.generate_expression(*expression);
                 let destination = self.new_register();
                 let destination = match expression_type {
-                    Type::Class(_) => HirOperand::Link(destination),
+                    Type::Class(_) | Type::Array(_) => HirOperand::Link(destination),
                     _ => HirOperand::Value(destination),
                 };
                 let false_const = HirOperand::Constant("false".to_string());
@@ -673,7 +687,7 @@ impl HirContext {
                 let block = self.classes[&class_name].methods[&name];
                 let destination = self.new_register();
                 let destination = match expression_type {
-                    Type::Class(_) => HirOperand::Link(destination),
+                    Type::Class(_) | Type::Array(_) => HirOperand::Link(destination),
                     _ => HirOperand::Value(destination),
                 };
 
@@ -701,6 +715,23 @@ impl HirContext {
                 });
                 HirOperand::Void
             }
+            TypedExpression::AssignIndex {
+                expression,
+                index,
+                value,
+                ..
+            } => {
+                let array = self.generate_expression(*expression);
+                let index = self.generate_expression(*index);
+                let value = self.generate_expression(*value);
+
+                self.emit(HirInstruction::StoreIndex {
+                    array,
+                    index,
+                    value,
+                });
+                HirOperand::Void
+            }
             TypedExpression::New { class_name, .. } => {
                 let object = HirOperand::Link(self.new_register());
 
@@ -715,7 +746,7 @@ impl HirContext {
                     .values()
                     .filter_map(|(expr, off)| expr.as_ref().map(|e| (e.clone(), *off)))
                     .collect();
-                fields.sort_by_key(|(_, off)| *off);
+                fields.sort_by_key(|(_, offset)| *offset);
 
                 for (expression, offset) in fields {
                     let value = self.generate_expression(expression);
@@ -727,18 +758,44 @@ impl HirContext {
                 }
                 object
             }
+            TypedExpression::NewArray { size, .. } => {
+                let size = self.generate_expression(*size);
+                let destination = HirOperand::Link(self.new_register());
+                self.emit(HirInstruction::AllocateArray {
+                    destination: destination.clone(),
+                    size,
+                });
+                destination
+            }
             TypedExpression::Field { object, name, .. } => {
                 let offset = self.resolve_field_offset(&object.get_type(), &name);
                 let object = self.generate_expression(*object);
                 let destination = self.new_register();
                 let destination = match expression_type {
-                    Type::Class(_) => HirOperand::Link(destination),
+                    Type::Class(_) | Type::Array(_) => HirOperand::Link(destination),
                     _ => HirOperand::Value(destination),
                 };
                 self.emit(HirInstruction::LoadField {
                     destination: destination.clone(),
                     object,
                     offset,
+                });
+                destination
+            }
+            TypedExpression::Index {
+                expression, index, ..
+            } => {
+                let array = self.generate_expression(*expression);
+                let index = self.generate_expression(*index);
+                let destination = self.new_register();
+                let destination = match expression_type {
+                    Type::Class(_) | Type::Array(_) => HirOperand::Link(destination),
+                    _ => HirOperand::Value(destination),
+                };
+                self.emit(HirInstruction::LoadIndex {
+                    destination: destination.clone(),
+                    array,
+                    index,
                 });
                 destination
             }
@@ -810,6 +867,35 @@ impl HirContext {
 
                 if postfix { old_value } else { new_value }
             }
+            TypedExpression::Index {
+                expression, index, ..
+            } => {
+                let array = self.generate_expression(*expression);
+                let index = self.generate_expression(*index);
+
+                let old_value = HirOperand::Value(self.new_register());
+                self.emit(HirInstruction::LoadIndex {
+                    destination: old_value.clone(),
+                    array: array.clone(),
+                    index: index.clone(),
+                });
+
+                let new_value = HirOperand::Value(self.new_register());
+                let one_const = HirOperand::Constant("1".to_string());
+                self.emit(HirInstruction::BinaryOperator {
+                    destination: new_value.clone(),
+                    left: old_value.clone(),
+                    operator,
+                    right: one_const,
+                });
+                self.emit(HirInstruction::StoreIndex {
+                    array,
+                    index,
+                    value: new_value.clone(),
+                });
+
+                if postfix { old_value } else { new_value }
+            }
             _ => unreachable!(),
         }
     }
@@ -872,6 +958,7 @@ pub struct ControlFlowGraph {
     pub entry_block: BlockId,
     pub interrupt_blocks: [BlockId; 8],
     pub classes: HashMap<String, ClassInfo>,
+    pub register_counter: u64,
 }
 
 pub fn compile_hir(ast: TypedAbstractSyntaxTree) -> ControlFlowGraph {
@@ -885,5 +972,6 @@ pub fn compile_hir(ast: TypedAbstractSyntaxTree) -> ControlFlowGraph {
         entry_block: context.main_block.unwrap(),
         interrupt_blocks: context.interrupt_block,
         classes: context.classes,
+        register_counter: context.register_counter,
     }
 }

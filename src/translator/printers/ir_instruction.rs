@@ -71,6 +71,23 @@ impl fmt::Display for HirInstruction {
             HirInstruction::Output { port, value } => {
                 write!(f, "output {} = {}", port, value)
             }
+            HirInstruction::LoadIndex {
+                destination,
+                array,
+                index,
+            } => {
+                write!(f, "{} = {}[{}]", destination, array, index)
+            }
+            HirInstruction::StoreIndex {
+                array,
+                index,
+                value,
+            } => {
+                write!(f, "{}[{}] = {}", array, index, value)
+            }
+            HirInstruction::AllocateArray { destination, size } => {
+                write!(f, "{} = new array[{}]", destination, size)
+            }
         }
     }
 }
