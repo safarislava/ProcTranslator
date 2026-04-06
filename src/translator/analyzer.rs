@@ -1,9 +1,70 @@
-use crate::translator::common::{
-    AbstractSyntaxNode, AbstractSyntaxTree, RawAbstractSyntaxTree, RawExpression, ResBox, Type,
-    TypedAbstractSyntaxTree, TypedExpression,
-};
+use crate::translator::ast::{RawAbstractSyntaxNode, RawAbstractSyntaxTree};
+use crate::translator::common::{RawExpression, ResBox, Type, TypedExpression, Variable};
 use crate::translator::expression::{Expression, ExpressionBinaryOperator};
 use std::collections::HashMap;
+
+#[derive(Debug, Clone)]
+pub enum TypedAbstractSyntaxNode {
+    If {
+        condition: TypedExpression,
+    },
+    ElseIf {
+        condition: TypedExpression,
+    },
+    Else,
+    While {
+        condition: TypedExpression,
+    },
+    For {
+        initializer: Option<Box<TypedAbstractSyntaxNode>>,
+        condition: Option<TypedExpression>,
+        increment: Option<TypedExpression>,
+    },
+    Callable {
+        result_type: Type,
+        name: String,
+        arguments: Vec<Variable>,
+    },
+    Class {
+        name: String,
+    },
+    Expression {
+        expression: TypedExpression,
+    },
+    Declaration {
+        typ: Type,
+        name: String,
+        expression: Option<TypedExpression>,
+    },
+    Return {
+        value: Option<TypedExpression>,
+    },
+    Break,
+    Continue,
+    Scope,
+    File,
+}
+
+#[derive(Debug, Clone)]
+pub struct TypedAbstractSyntaxTree {
+    pub node: TypedAbstractSyntaxNode,
+    pub children: Vec<TypedAbstractSyntaxTree>,
+}
+
+impl TypedAbstractSyntaxTree {
+    pub fn new(node: TypedAbstractSyntaxNode) -> Self {
+        Self {
+            node,
+            children: vec![],
+        }
+    }
+    pub fn with_children(
+        node: TypedAbstractSyntaxNode,
+        children: Vec<TypedAbstractSyntaxTree>,
+    ) -> Self {
+        Self { node, children }
+    }
+}
 
 type FunctionInfo = (Type, Vec<Type>);
 
@@ -23,8 +84,8 @@ impl ClassInfo {
 }
 
 struct SemanticTable {
-    scopes: Vec<HashMap<String, (Type, Option<i64>)>>,
-    stacktrace: Vec<AbstractSyntaxNode<RawExpression>>,
+    scopes: Vec<HashMap<String, Type>>,
+    stacktrace: Vec<RawAbstractSyntaxNode>,
     functions: HashMap<String, FunctionInfo>,
     classes: HashMap<String, ClassInfo>,
 }
@@ -41,17 +102,8 @@ impl SemanticTable {
 
     fn find_var(&self, name: &str) -> Option<&Type> {
         for scope in self.scopes.iter().rev() {
-            if let Some((typ, _)) = scope.get(name) {
+            if let Some(typ) = scope.get(name) {
                 return Some(typ);
-            }
-        }
-        None
-    }
-
-    fn find_array_size(&self, name: &str) -> Option<i64> {
-        for scope in self.scopes.iter().rev() {
-            if let Some((_, size)) = scope.get(name) {
-                return *size;
             }
         }
         None
@@ -59,7 +111,7 @@ impl SemanticTable {
 
     fn current_class_context(&self) -> Option<String> {
         for node in self.stacktrace.iter().rev() {
-            if let AbstractSyntaxNode::Class { name } = node {
+            if let RawAbstractSyntaxNode::Class { name } = node {
                 return Some(name.clone());
             }
         }
@@ -68,7 +120,7 @@ impl SemanticTable {
 
     fn collect_definitions(&mut self, ast: &RawAbstractSyntaxTree) -> ResBox<()> {
         match &ast.node {
-            AbstractSyntaxNode::Class { name } => {
+            RawAbstractSyntaxNode::Class { name } => {
                 if self.classes.contains_key(name) {
                     return Err(format!("Class '{}' already exists", name).into());
                 }
@@ -79,7 +131,7 @@ impl SemanticTable {
                 }
                 self.stacktrace.pop();
             }
-            AbstractSyntaxNode::Callable {
+            RawAbstractSyntaxNode::Callable {
                 result_type,
                 name,
                 arguments,
@@ -101,18 +153,18 @@ impl SemanticTable {
                         .insert(name.clone(), (result_type.clone(), arg_types));
                 }
             }
-            AbstractSyntaxNode::Declaration { typ, name, .. } => {
+            RawAbstractSyntaxNode::Declaration { typ, name, .. } => {
                 if let Some(class_name) = self.current_class_context()
                     && matches!(
                         self.stacktrace.last(),
-                        Some(AbstractSyntaxNode::Class { .. })
+                        Some(RawAbstractSyntaxNode::Class { .. })
                     )
                 {
                     let class_info = self.classes.get_mut(&class_name).unwrap();
                     class_info.fields.insert(name.clone(), typ.clone());
                 }
             }
-            AbstractSyntaxNode::File | AbstractSyntaxNode::Scope => {
+            RawAbstractSyntaxNode::File | RawAbstractSyntaxNode::Scope => {
                 self.stacktrace.push(ast.node.clone());
                 for child in &ast.children {
                     self.collect_definitions(child)?;
@@ -128,7 +180,7 @@ impl SemanticTable {
         self.stacktrace.push(ast.node.clone());
 
         let (typed_node, typed_children) = match &ast.node {
-            AbstractSyntaxNode::If { condition } => {
+            RawAbstractSyntaxNode::If { condition } => {
                 let typed_condition = self.analyze_expression(condition)?;
                 if typed_condition.get_type() != Type::Bool {
                     return Err("Condition must be bool".into());
@@ -137,13 +189,13 @@ impl SemanticTable {
                 let children = self.analyze_children(&ast.children)?;
                 self.scopes.pop();
                 (
-                    AbstractSyntaxNode::If {
+                    TypedAbstractSyntaxNode::If {
                         condition: typed_condition,
                     },
                     children,
                 )
             }
-            AbstractSyntaxNode::While { condition } => {
+            RawAbstractSyntaxNode::While { condition } => {
                 let typed_condition = self.analyze_expression(condition)?;
                 if typed_condition.get_type() != Type::Bool {
                     return Err("Condition must be bool".into());
@@ -152,13 +204,13 @@ impl SemanticTable {
                 let children = self.analyze_children(&ast.children)?;
                 self.scopes.pop();
                 (
-                    AbstractSyntaxNode::While {
+                    TypedAbstractSyntaxNode::While {
                         condition: typed_condition,
                     },
                     children,
                 )
             }
-            AbstractSyntaxNode::Callable {
+            RawAbstractSyntaxNode::Callable {
                 result_type,
                 name,
                 arguments,
@@ -168,7 +220,7 @@ impl SemanticTable {
                     self.scopes
                         .last_mut()
                         .unwrap()
-                        .insert(arg.name.clone(), (arg.typ.clone(), None));
+                        .insert(arg.name.clone(), arg.typ.clone());
                 }
                 let children = self.analyze_children(&ast.children)?;
                 self.scopes.pop();
@@ -182,7 +234,7 @@ impl SemanticTable {
                 }
 
                 (
-                    AbstractSyntaxNode::Callable {
+                    TypedAbstractSyntaxNode::Callable {
                         result_type: result_type.clone(),
                         name: name.clone(),
                         arguments: arguments.clone(),
@@ -190,10 +242,10 @@ impl SemanticTable {
                     children,
                 )
             }
-            AbstractSyntaxNode::Class { name } => {
+            RawAbstractSyntaxNode::Class { name } => {
                 self.scopes.push(HashMap::new());
                 for child in &ast.children {
-                    if let AbstractSyntaxNode::Declaration {
+                    if let RawAbstractSyntaxNode::Declaration {
                         typ,
                         name,
                         expression,
@@ -203,15 +255,15 @@ impl SemanticTable {
                             Some(e) => Some(self.analyze_expression(e)?),
                             None => None,
                         };
-                        self.analyze_declaration(typ, name, &typed_expr)?;
+                        self.analyze_declaration(&typ, name, &typed_expr)?;
                     }
                 }
 
                 let mut typed_children = vec![];
                 for child in &ast.children {
-                    if !matches!(child.node, AbstractSyntaxNode::Declaration { .. }) {
+                    if !matches!(child.node, RawAbstractSyntaxNode::Declaration { .. }) {
                         typed_children.push(self.analyze(child)?);
-                    } else if let AbstractSyntaxNode::Declaration {
+                    } else if let RawAbstractSyntaxNode::Declaration {
                         typ,
                         name,
                         expression,
@@ -222,7 +274,7 @@ impl SemanticTable {
                             None => None,
                         };
                         typed_children.push(TypedAbstractSyntaxTree::new(
-                            AbstractSyntaxNode::Declaration {
+                            TypedAbstractSyntaxNode::Declaration {
                                 typ: typ.clone(),
                                 name: name.clone(),
                                 expression: typed_expr,
@@ -232,32 +284,34 @@ impl SemanticTable {
                 }
                 self.scopes.pop();
                 (
-                    AbstractSyntaxNode::Class { name: name.clone() },
+                    TypedAbstractSyntaxNode::Class { name: name.clone() },
                     typed_children,
                 )
             }
-            AbstractSyntaxNode::File | AbstractSyntaxNode::Scope | AbstractSyntaxNode::Else => {
+            RawAbstractSyntaxNode::File
+            | RawAbstractSyntaxNode::Scope
+            | RawAbstractSyntaxNode::Else => {
                 self.scopes.push(HashMap::new());
                 let children = self.analyze_children(&ast.children)?;
                 self.scopes.pop();
                 let typed_node = match &ast.node {
-                    AbstractSyntaxNode::File => AbstractSyntaxNode::File,
-                    AbstractSyntaxNode::Scope => AbstractSyntaxNode::Scope,
-                    AbstractSyntaxNode::Else => AbstractSyntaxNode::Else,
+                    RawAbstractSyntaxNode::File => TypedAbstractSyntaxNode::File,
+                    RawAbstractSyntaxNode::Scope => TypedAbstractSyntaxNode::Scope,
+                    RawAbstractSyntaxNode::Else => TypedAbstractSyntaxNode::Else,
                     _ => unreachable!(),
                 };
                 (typed_node, children)
             }
-            AbstractSyntaxNode::Expression { expression } => {
+            RawAbstractSyntaxNode::Expression { expression } => {
                 let typed_expr = self.analyze_expression(expression)?;
                 (
-                    AbstractSyntaxNode::Expression {
+                    TypedAbstractSyntaxNode::Expression {
                         expression: typed_expr,
                     },
                     vec![],
                 )
             }
-            AbstractSyntaxNode::Declaration {
+            RawAbstractSyntaxNode::Declaration {
                 typ,
                 name,
                 expression,
@@ -268,12 +322,12 @@ impl SemanticTable {
                 };
                 if !matches!(
                     self.stacktrace.get(self.stacktrace.len() - 2),
-                    Some(AbstractSyntaxNode::Class { .. })
+                    Some(RawAbstractSyntaxNode::Class { .. })
                 ) {
-                    self.analyze_declaration(typ, name, &typed_expr)?;
+                    self.analyze_declaration(&typ, name, &typed_expr)?;
                 }
                 (
-                    AbstractSyntaxNode::Declaration {
+                    TypedAbstractSyntaxNode::Declaration {
                         typ: typ.clone(),
                         name: name.clone(),
                         expression: typed_expr,
@@ -281,13 +335,13 @@ impl SemanticTable {
                     vec![],
                 )
             }
-            AbstractSyntaxNode::Return { value } => {
+            RawAbstractSyntaxNode::Return { value } => {
                 let function_type = self
                     .stacktrace
                     .iter()
                     .rev()
                     .find_map(|n| {
-                        if let AbstractSyntaxNode::Callable { result_type, .. } = n {
+                        if let RawAbstractSyntaxNode::Callable { result_type, .. } = n {
                             Some(result_type)
                         } else {
                             None
@@ -302,20 +356,23 @@ impl SemanticTable {
                 if typ != *function_type {
                     return Err("Return type mismatch".into());
                 }
-                (AbstractSyntaxNode::Return { value: typed_value }, vec![])
+                (
+                    TypedAbstractSyntaxNode::Return { value: typed_value },
+                    vec![],
+                )
             }
-            AbstractSyntaxNode::Break | AbstractSyntaxNode::Continue => {
+            RawAbstractSyntaxNode::Break | RawAbstractSyntaxNode::Continue => {
                 if !self.stacktrace.iter().any(|n| {
                     matches!(
                         n,
-                        AbstractSyntaxNode::While { .. } | AbstractSyntaxNode::For { .. }
+                        RawAbstractSyntaxNode::While { .. } | RawAbstractSyntaxNode::For { .. }
                     )
                 }) {
                     return Err("Jump outside loop".into());
                 }
                 let typed_node = match &ast.node {
-                    AbstractSyntaxNode::Break => AbstractSyntaxNode::Break,
-                    AbstractSyntaxNode::Continue => AbstractSyntaxNode::Continue,
+                    RawAbstractSyntaxNode::Break => TypedAbstractSyntaxNode::Break,
+                    RawAbstractSyntaxNode::Continue => TypedAbstractSyntaxNode::Continue,
                     _ => unreachable!(),
                 };
                 (typed_node, vec![])
@@ -344,7 +401,7 @@ impl SemanticTable {
     fn is_valid_type(&self, typ: &Type) -> bool {
         match typ {
             Type::Class(c) => self.classes.contains_key(c),
-            Type::Array(inner) => self.is_valid_type(inner),
+            Type::Array(inner, _) => self.is_valid_type(inner),
             _ => true,
         }
     }
@@ -355,28 +412,23 @@ impl SemanticTable {
         name: &str,
         expression: &Option<TypedExpression>,
     ) -> ResBox<()> {
-        if !self.is_valid_type(typ) {
-            return Err(format!("Unknown type {:?}", typ).into());
+        if let Type::Class(c) = typ
+            && !self.classes.contains_key(c)
+        {
+            return Err(format!("Unknown type {}", c).into());
         }
-
-        let mut known_size = None;
-        if let Some(expr) = expression {
-            if expr.get_type() != *typ {
-                return Err(format!("Declaration type mismatch for '{}'", name).into());
-            }
-            if let Expression::NewArray { size, .. } = expr
-                && let Expression::Literal { value, .. } = &**size
-                && let Ok(s) = value.parse::<i64>()
-            {
-                known_size = Some(s);
-            }
+        if let Some(expression) = expression
+            && expression.get_type() != *typ
+        {
+            return Err("Declaration type mismatch".into());
         }
         self.scopes
             .last_mut()
             .unwrap()
-            .insert(name.to_owned(), (typ.clone(), known_size));
+            .insert(name.to_owned(), typ.clone());
         Ok(())
     }
+
     fn analyze_expression(&self, expression: &RawExpression) -> ResBox<TypedExpression> {
         match expression {
             Expression::Literal { value, .. } => {
@@ -514,11 +566,11 @@ impl SemanticTable {
                     return Err("Array index must be int".into());
                 }
 
-                if let Expression::Variable { name, .. } = &typed_expression
+                if let Expression::Variable { name, typ } = &typed_expression
                     && let Expression::Literal { value, .. } = &typed_index
                     && let Ok(index) = value.parse::<i64>()
-                    && let Some(arr_size) = self.find_array_size(name)
-                    && (index < 0 || index >= arr_size)
+                    && let Type::Array(_, arr_size) = typ
+                    && (index < 0 || index >= *arr_size as i64)
                 {
                     return Err(format!(
                         "Index out of bounds: array '{}' has size {}, but accessed at index {}",
@@ -527,7 +579,7 @@ impl SemanticTable {
                     .into());
                 }
 
-                if let Type::Array(inner_type) = typed_expression.get_type() {
+                if let Type::Array(inner_type, _) = typed_expression.get_type() {
                     Ok(Expression::Index {
                         typ: *inner_type,
                         expression: Box::new(typed_expression),
@@ -595,11 +647,11 @@ impl SemanticTable {
                     return Err("Array index must be int".into());
                 }
 
-                if let Expression::Variable { name, .. } = &typed_expression
+                if let Expression::Variable { name, typ } = &typed_expression
                     && let Expression::Literal { value, .. } = &typed_index
                     && let Ok(index) = value.parse::<i64>()
-                    && let Some(arr_size) = self.find_array_size(name)
-                    && (index < 0 || index >= arr_size)
+                    && let Type::Array(_, arr_size) = typ
+                    && (index < 0 || index >= *arr_size as i64)
                 {
                     return Err(format!(
                         "Index out of bounds: array '{}' has size {}, but accessed at index {}",
@@ -608,7 +660,7 @@ impl SemanticTable {
                     .into());
                 }
 
-                if let Type::Array(inner_type) = typed_expression.get_type() {
+                if let Type::Array(inner_type, _) = typed_expression.get_type() {
                     if *inner_type != typed_value.get_type() {
                         return Err("Array assign type mismatch".into());
                     }
@@ -711,17 +763,13 @@ impl SemanticTable {
             Expression::NewArray {
                 element_type, size, ..
             } => {
-                let typed_size = self.analyze_expression(size)?;
-                if typed_size.get_type() != Type::Int {
-                    return Err("Array size must be int".into());
-                }
                 if !self.is_valid_type(element_type) {
                     return Err(format!("Unknown element type {:?}", element_type).into());
                 }
                 Ok(Expression::NewArray {
-                    typ: Type::Array(Box::new(element_type.clone())),
+                    typ: Type::Array(Box::new(element_type.clone()), *size),
                     element_type: element_type.clone(),
-                    size: Box::new(typed_size),
+                    size: *size,
                 })
             }
             Expression::This { .. } => {
@@ -798,40 +846,40 @@ impl SemanticTable {
 }
 
 impl SemanticTable {
-    fn node_guarantees_return<E>(&self, node: &AbstractSyntaxTree<E>) -> bool {
+    fn node_guarantees_return(&self, node: &RawAbstractSyntaxTree) -> bool {
         match &node.node {
-            AbstractSyntaxNode::Return { .. } => true,
-            AbstractSyntaxNode::If { .. } => self.if_guarantees_return(&node.children),
-            AbstractSyntaxNode::Scope
-            | AbstractSyntaxNode::While { .. }
-            | AbstractSyntaxNode::Callable { .. } => {
+            RawAbstractSyntaxNode::Return { .. } => true,
+            RawAbstractSyntaxNode::If { .. } => self.if_guarantees_return(&node.children),
+            RawAbstractSyntaxNode::Scope
+            | RawAbstractSyntaxNode::While { .. }
+            | RawAbstractSyntaxNode::Callable { .. } => {
                 node.children.iter().any(|c| self.node_guarantees_return(c))
             }
             _ => false,
         }
     }
 
-    fn if_guarantees_return<E>(&self, children: &[AbstractSyntaxTree<E>]) -> bool {
+    fn if_guarantees_return(&self, children: &[RawAbstractSyntaxTree]) -> bool {
         let else_node = children
             .iter()
-            .find(|c| matches!(c.node, AbstractSyntaxNode::Else));
+            .find(|c| matches!(c.node, RawAbstractSyntaxNode::Else));
 
         if else_node.is_none() {
             return false;
         }
 
-        let if_guarantees = children
-            .iter()
-            .any(|c| !matches!(c.node, AbstractSyntaxNode::Else) && self.node_guarantees_return(c));
+        let if_guarantees = children.iter().any(|c| {
+            !matches!(c.node, RawAbstractSyntaxNode::Else) && self.node_guarantees_return(c)
+        });
         let else_guarantees = self.else_guarantees_return(&else_node.unwrap().children);
 
         if_guarantees && else_guarantees
     }
 
-    fn else_guarantees_return<E>(&self, children: &[AbstractSyntaxTree<E>]) -> bool {
+    fn else_guarantees_return(&self, children: &[RawAbstractSyntaxTree]) -> bool {
         let else_node = children
             .iter()
-            .find(|c| matches!(c.node, AbstractSyntaxNode::Else));
+            .find(|c| matches!(c.node, RawAbstractSyntaxNode::Else));
 
         match else_node {
             Some(else_node) => self.else_guarantees_return(&else_node.children),
@@ -847,8 +895,6 @@ fn get_literal_type(value: &str) -> ResBox<Type> {
         Ok(Type::Int)
     } else if value.starts_with('\'') && value.ends_with('\'') {
         Ok(Type::Char)
-    } else if value.starts_with('"') && value.ends_with('"') {
-        Ok(Type::Array(Box::new(Type::Char)))
     } else {
         Err(format!("Unknown literal type for value: {}", value).into())
     }

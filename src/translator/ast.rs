@@ -1,19 +1,89 @@
-use crate::translator::common::{
-    AbstractSyntaxNode, AbstractSyntaxTree, RawAbstractSyntaxTree, RawExpression, ResBox, Type,
-    Variable,
-};
+use crate::translator::common::{RawExpression, ResBox, Type, Variable};
 use crate::translator::expression::parse_expression;
 use crate::translator::parser::{SyntaxNode, SyntaxTree};
 
 type DeclarationInfo = (String, String, Option<RawExpression>);
 
-pub fn parse_type(s: &str) -> Type {
-    match s.trim() {
+#[derive(Debug, Clone)]
+pub enum RawAbstractSyntaxNode {
+    If {
+        condition: RawExpression,
+    },
+    ElseIf {
+        condition: RawExpression,
+    },
+    Else,
+    While {
+        condition: RawExpression,
+    },
+    For {
+        initializer: Option<Box<RawAbstractSyntaxNode>>,
+        condition: Option<RawExpression>,
+        increment: Option<RawExpression>,
+    },
+    Callable {
+        result_type: Type,
+        name: String,
+        arguments: Vec<Variable>,
+    },
+    Class {
+        name: String,
+    },
+    Expression {
+        expression: RawExpression,
+    },
+    Declaration {
+        typ: Type,
+        name: String,
+        expression: Option<RawExpression>,
+    },
+    Return {
+        value: Option<RawExpression>,
+    },
+    Break,
+    Continue,
+    Scope,
+    File,
+}
+
+#[derive(Debug, Clone)]
+pub struct RawAbstractSyntaxTree {
+    pub node: RawAbstractSyntaxNode,
+    pub children: Vec<RawAbstractSyntaxTree>,
+}
+
+impl RawAbstractSyntaxTree {
+    pub fn new(node: RawAbstractSyntaxNode) -> Self {
+        Self {
+            node,
+            children: vec![],
+        }
+    }
+    pub fn with_children(
+        node: RawAbstractSyntaxNode,
+        children: Vec<RawAbstractSyntaxTree>,
+    ) -> Self {
+        Self { node, children }
+    }
+}
+
+fn parse_type(s: &str) -> Type {
+    let s = s.trim();
+
+    if s.ends_with(']') {
+        if let Some(start) = s.rfind('[') {
+            let base_str = &s[..start];
+            let size_str = s[start + 1..s.len() - 1].trim();
+            let size = size_str.parse::<u64>().unwrap();
+            return Type::Array(Box::new(parse_type(base_str)), size);
+        }
+    }
+
+    match s {
         "void" => Type::Void,
         "int" => Type::Int,
         "char" => Type::Char,
         "bool" => Type::Bool,
-        s if s.ends_with("[]") => Type::Array(Box::new(parse_type(&s[0..s.len() - 2]))),
         other => Type::Class(other.to_string()),
     }
 }
@@ -40,23 +110,23 @@ fn parse_arguments(arguments: &str) -> ResBox<Vec<Variable>> {
         .collect()
 }
 
-fn parse_statement_keyword(value: &str) -> ResBox<Option<AbstractSyntaxNode<RawExpression>>> {
+fn parse_statement_keyword(value: &str) -> ResBox<Option<RawAbstractSyntaxNode>> {
     let trimmed_value = value.trim().trim_end_matches(';');
 
     if trimmed_value == "return" {
-        return Ok(Some(AbstractSyntaxNode::Return { value: None }));
+        return Ok(Some(RawAbstractSyntaxNode::Return { value: None }));
     }
     if let Some(stripped_value) = trimmed_value.strip_prefix("return ") {
         let expression = parse_expression(stripped_value.trim())?;
-        return Ok(Some(AbstractSyntaxNode::Return {
+        return Ok(Some(RawAbstractSyntaxNode::Return {
             value: Some(expression),
         }));
     }
     if trimmed_value == "break" {
-        return Ok(Some(AbstractSyntaxNode::Break));
+        return Ok(Some(RawAbstractSyntaxNode::Break));
     }
     if trimmed_value == "continue" {
-        return Ok(Some(AbstractSyntaxNode::Continue));
+        return Ok(Some(RawAbstractSyntaxNode::Continue));
     }
     Ok(None)
 }
@@ -75,7 +145,10 @@ fn parse_declaration(code: &str) -> ResBox<Option<DeclarationInfo>> {
     let first = parts[0];
     let rest = parts[1].trim();
 
-    let base_type = first.trim_end_matches("[]");
+    let base_type = match first.find('[') {
+        Some(index) => &first[..index],
+        None => first,
+    };
 
     let is_primitive = matches!(base_type, "int" | "bool" | "void" | "char");
     let is_class = base_type.chars().next().is_some_and(|c| c.is_uppercase());
@@ -118,14 +191,14 @@ fn build_for_loop(
         None
     } else if let Ok(Some((typ, name, initializer))) = parse_declaration(parts[0]) {
         let typ = parse_type(&typ);
-        Some(Box::new(AbstractSyntaxNode::Declaration {
+        Some(Box::new(RawAbstractSyntaxNode::Declaration {
             typ,
             name,
             expression: initializer,
         }))
     } else {
         let expression = parse_expression(parts[0])?;
-        Some(Box::new(AbstractSyntaxNode::Expression { expression }))
+        Some(Box::new(RawAbstractSyntaxNode::Expression { expression }))
     };
 
     let condition = if parts[1].is_empty() {
@@ -141,7 +214,7 @@ fn build_for_loop(
     };
 
     Ok(RawAbstractSyntaxTree::with_children(
-        AbstractSyntaxNode::For {
+        RawAbstractSyntaxNode::For {
             initializer,
             condition,
             increment,
@@ -158,22 +231,22 @@ pub fn build_ast(tree: SyntaxTree) -> ResBox<RawAbstractSyntaxTree> {
         .collect::<Result<Vec<_>, _>>()?;
     let ast = match tree.node {
         SyntaxNode::If { condition } => RawAbstractSyntaxTree::with_children(
-            AbstractSyntaxNode::If {
+            RawAbstractSyntaxNode::If {
                 condition: parse_expression(&condition)?,
             },
             processed_children,
         ),
         SyntaxNode::ElseIf { condition } => RawAbstractSyntaxTree::with_children(
-            AbstractSyntaxNode::ElseIf {
+            RawAbstractSyntaxNode::ElseIf {
                 condition: parse_expression(&condition)?,
             },
             processed_children,
         ),
         SyntaxNode::Else => {
-            RawAbstractSyntaxTree::with_children(AbstractSyntaxNode::Else, processed_children)
+            RawAbstractSyntaxTree::with_children(RawAbstractSyntaxNode::Else, processed_children)
         }
         SyntaxNode::While { condition } => RawAbstractSyntaxTree::with_children(
-            AbstractSyntaxNode::While {
+            RawAbstractSyntaxNode::While {
                 condition: parse_expression(&condition)?,
             },
             processed_children,
@@ -184,13 +257,13 @@ pub fn build_ast(tree: SyntaxTree) -> ResBox<RawAbstractSyntaxTree> {
                 RawAbstractSyntaxTree::new(asn)
             } else if let Ok(Some((typ, name, expression))) = parse_declaration(&value) {
                 let typ = parse_type(&typ);
-                RawAbstractSyntaxTree::new(AbstractSyntaxNode::Declaration {
+                RawAbstractSyntaxTree::new(RawAbstractSyntaxNode::Declaration {
                     typ,
                     name,
                     expression,
                 })
             } else {
-                RawAbstractSyntaxTree::new(AbstractSyntaxNode::Expression {
+                RawAbstractSyntaxTree::new(RawAbstractSyntaxNode::Expression {
                     expression: parse_expression(&value)?,
                 })
             }
@@ -203,7 +276,7 @@ pub fn build_ast(tree: SyntaxTree) -> ResBox<RawAbstractSyntaxTree> {
             let arguments = parse_arguments(&arguments)?;
             let result_type = parse_type(&result_type);
             RawAbstractSyntaxTree::with_children(
-                AbstractSyntaxNode::Callable {
+                RawAbstractSyntaxNode::Callable {
                     result_type,
                     name,
                     arguments,
@@ -212,15 +285,15 @@ pub fn build_ast(tree: SyntaxTree) -> ResBox<RawAbstractSyntaxTree> {
             )
         }
         SyntaxNode::Class { name } => RawAbstractSyntaxTree::with_children(
-            AbstractSyntaxNode::Class { name },
+            RawAbstractSyntaxNode::Class { name },
             processed_children,
         ),
         SyntaxNode::Scope => {
-            RawAbstractSyntaxTree::with_children(AbstractSyntaxNode::Scope, processed_children)
+            RawAbstractSyntaxTree::with_children(RawAbstractSyntaxNode::Scope, processed_children)
         }
         SyntaxNode::File => {
             let in_function = RawAbstractSyntaxTree::with_children(
-                AbstractSyntaxNode::Callable {
+                RawAbstractSyntaxNode::Callable {
                     result_type: Type::Int,
                     name: "in".to_string(),
                     arguments: vec![Variable {
@@ -228,7 +301,7 @@ pub fn build_ast(tree: SyntaxTree) -> ResBox<RawAbstractSyntaxTree> {
                         typ: Type::Int,
                     }],
                 },
-                vec![AbstractSyntaxTree::new(AbstractSyntaxNode::Return {
+                vec![RawAbstractSyntaxTree::new(RawAbstractSyntaxNode::Return {
                     value: Some(RawExpression::Literal {
                         typ: (),
                         value: "0".to_string(),
@@ -238,7 +311,7 @@ pub fn build_ast(tree: SyntaxTree) -> ResBox<RawAbstractSyntaxTree> {
             processed_children.push(in_function);
 
             let out_function = RawAbstractSyntaxTree::with_children(
-                AbstractSyntaxNode::Callable {
+                RawAbstractSyntaxNode::Callable {
                     result_type: Type::Void,
                     name: "out".to_string(),
                     arguments: vec![
@@ -252,13 +325,13 @@ pub fn build_ast(tree: SyntaxTree) -> ResBox<RawAbstractSyntaxTree> {
                         },
                     ],
                 },
-                vec![AbstractSyntaxTree::new(AbstractSyntaxNode::Return {
+                vec![RawAbstractSyntaxTree::new(RawAbstractSyntaxNode::Return {
                     value: None,
                 })],
             );
             processed_children.push(out_function);
 
-            RawAbstractSyntaxTree::with_children(AbstractSyntaxNode::File, processed_children)
+            RawAbstractSyntaxTree::with_children(RawAbstractSyntaxNode::File, processed_children)
         }
     };
     Ok(ast)

@@ -53,11 +53,8 @@ impl fmt::Display for HirInstruction {
             } => {
                 write!(f, "{}[{}] = {}", object, offset, value)
             }
-            HirInstruction::AllocateObject {
-                destination,
-                class_name,
-            } => {
-                write!(f, "{} = new {}", destination, class_name)
+            HirInstruction::AllocateObject { destination, size } => {
+                write!(f, "{} = new object {}", destination, size)
             }
             HirInstruction::LoadGlobal { destination, id } => {
                 write!(f, "{} = load global {}", destination, id)
@@ -75,6 +72,7 @@ impl fmt::Display for HirInstruction {
                 destination,
                 array,
                 index,
+                ..
             } => {
                 write!(f, "{} = {}[{}]", destination, array, index)
             }
@@ -82,10 +80,13 @@ impl fmt::Display for HirInstruction {
                 array,
                 index,
                 value,
+                ..
             } => {
                 write!(f, "{}[{}] = {}", array, index, value)
             }
-            HirInstruction::AllocateArray { destination, size } => {
+            HirInstruction::AllocateArray {
+                destination, size, ..
+            } => {
                 write!(f, "{} = new array[{}]", destination, size)
             }
         }

@@ -4,7 +4,7 @@ digraph CFG {
   edge [fontname="Courier"];
 
   B0 [label="B0|call prologue\lalloc s0\lr0 = param[0]\ls0 = r0\lr1 = load s0\lr2 = r1 Remainder \"5\"\lr3 = r2 Equal \"0\"\lbranch r3 ? B4 : B5\l"];
-  B1 [label="B1|call prologue\lalloc s1\llink r16 = new array[\"10\"]\ls1 = link r16\lalloc s2\ls2 = \"0\"\ljump B19\l"];
+  B1 [label="B1|call prologue\lalloc s1\llink r16 = new array[10]\ls1 = link r16\lalloc s2\ls2 = \"0\"\ljump B19\l"];
   B2 [label="B2|"];
   B3 [label="B3|"];
   B4 [label="B4|return \"'a'\"\l"];
@@ -15,14 +15,14 @@ digraph CFG {
   B9 [label="B9|r10 = load s0\lr11 = r10 Remainder \"5\"\lr12 = r11 Equal \"3\"\lbranch r12 ? B10 : B11\l"];
   B10 [label="B10|return \"'d'\"\l"];
   B11 [label="B11|r13 = load s0\lr14 = r13 Remainder \"5\"\lr15 = r14 Equal \"4\"\lbranch r15 ? B12 : B13\l"];
-  B12 [label="B12|return \"'\\0'\"\l"];
+  B12 [label="B12|return \"'e'\"\l"];
   B13 [label="B13|jump B14\l"];
   B14 [label="B14|jump B15\l"];
   B15 [label="B15|jump B16\l"];
   B16 [label="B16|jump B17\l"];
   B17 [label="B17|jump B18\l"];
   B18 [label="B18|return \"'\\0'\"\l"];
-  B19 [label="B19|r17 = load s2\lr18 = r17 Less \"10\"\lbranch r18 ? B20 : B21\l"];
+  B19 [label="B19|r17 = load s2\lr18 = r17 Less \"9\"\lbranch r18 ? B20 : B21\l"];
   B20 [label="B20|link r19 = load s1\lr20 = load s2\lr21 = load s2\lr22 = call B0(r21)\llink r19[r20] = r22\lr23 = load s2\lr24 = r23 Add \"1\"\ls2 = r24\ljump B19\l"];
   B21 [label="B21|link r25 = load s1\lr26 = link r25[\"9\"]\lreturn r26\l"];
   B0 -> B4 [label="true"];

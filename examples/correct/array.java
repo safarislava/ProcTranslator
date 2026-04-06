@@ -18,8 +18,8 @@ char gen(int i) {
 }
 
 char Main() {
-    char[] a = new char[10];
-    for (int i = 0; i < 10; i++) {
+    char[10] a = new char[10];
+    for (int i = 0; i < 9; i++) {
         a[i] = gen(i);
     }
     return a[9];

@@ -13,7 +13,7 @@ fn parse_type_expr(s: &str) -> Type {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ExpressionBinaryOperator {
     Assign,
     AssignAdd,
@@ -35,7 +35,7 @@ pub enum ExpressionBinaryOperator {
     Remainder,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Expression<T> {
     Literal {
         typ: T,
@@ -104,7 +104,7 @@ pub enum Expression<T> {
     NewArray {
         typ: T,
         element_type: Type,
-        size: Box<Expression<T>>,
+        size: u64,
     },
     Field {
         typ: T,
@@ -428,15 +428,18 @@ impl Parser {
                     match self.tokens.peek() {
                         Some(Token::LeftSquareBracket) => {
                             self.tokens.next();
-                            let size = self.parse_expression(0)?;
-                            if self.tokens.next() != Some(Token::RightSquareBracket) {
-                                return Err("Expected ']' after array size".into());
+                            if let Token::Number(size) = self.tokens.next().unwrap() {
+                                if self.tokens.next() != Some(Token::RightSquareBracket) {
+                                    return Err("Expected ']' after array size".into());
+                                }
+                                Ok(RawExpression::NewArray {
+                                    typ: Default::default(),
+                                    element_type: parse_type_expr(&type_name),
+                                    size,
+                                })
+                            } else {
+                                Err("Array size must be constant".into())
                             }
-                            Ok(RawExpression::NewArray {
-                                typ: Default::default(),
-                                element_type: parse_type_expr(&type_name),
-                                size: Box::new(size),
-                            })
                         }
                         Some(Token::LeftBracket) => {
                             self.tokens.next();

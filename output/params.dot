@@ -4,6 +4,8 @@ digraph CFG {
   edge [fontname="Courier"];
 
   B0 [label="B0|call prologue\lalloc s0\lr0 = param[0]\ls0 = r0\lalloc s1\lr1 = param[1]\ls1 = r1\lalloc s2\lr2 = param[2]\ls2 = r2\lr3 = load s0\lr4 = load s1\lr5 = r3 Add r4\lr6 = load s2\lr7 = r5 Multiply r6\lreturn r7\l"];
-  B1 [label="B1|call prologue\lalloc s3\ls3 = \"9\"\lalloc s4\lr8 = \"0\" Sub \"1\"\ls4 = r8\lalloc s5\lr9 = load s3\lr10 = load s4\lr11 = call B0(r9, r10, \"4\")\ls5 = r11\lr12 = load s5\lreturn r12\l"];
+  B1 [label="B1|call prologue\lalloc s3\ls3 = \"9\"\lalloc s4\ls4 = \"-1\"\lalloc s5\lr8 = load s3\lr9 = load s4\lr10 = call B0(r8, r9, \"4\")\ls5 = r10\lr11 = load s5\lreturn r11\l"];
+  B2 [label="B2|"];
+  B3 [label="B3|"];
   B1 [style=filled, fillcolor=lightgreen];
 }

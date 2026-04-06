@@ -1,6 +1,5 @@
-use crate::translator::common::{
-    AbstractSyntaxNode, Type, TypedAbstractSyntaxTree, TypedExpression,
-};
+use crate::translator::analyzer::{TypedAbstractSyntaxNode, TypedAbstractSyntaxTree};
+use crate::translator::common::{Type, TypedExpression};
 use crate::translator::expression::ExpressionBinaryOperator;
 use std::collections::HashMap;
 use std::iter;
@@ -66,30 +65,33 @@ pub enum HirInstruction {
     LoadField {
         destination: HirOperand,
         object: HirOperand,
-        offset: usize,
+        offset: u64,
     },
     StoreField {
         object: HirOperand,
-        offset: usize,
+        offset: u64,
         value: HirOperand,
     },
     LoadIndex {
         destination: HirOperand,
         array: HirOperand,
+        type_size: u64,
         index: HirOperand,
     },
     StoreIndex {
         array: HirOperand,
         index: HirOperand,
+        type_size: u64,
         value: HirOperand,
     },
     AllocateObject {
         destination: HirOperand,
-        class_name: String,
+        size: u64,
     },
     AllocateArray {
         destination: HirOperand,
-        size: HirOperand,
+        size: u64,
+        type_size: u64,
     },
 
     Input {
@@ -133,13 +135,13 @@ impl HirBlock {
 
 #[derive(Debug)]
 pub struct ClassInfo {
-    pub fields: HashMap<String, (Option<TypedExpression>, usize)>,
+    pub fields: HashMap<String, (Option<TypedExpression>, Type, u64)>,
     pub methods: HashMap<String, BlockId>,
 }
 
 impl ClassInfo {
     pub fn new(
-        fields: HashMap<String, (Option<TypedExpression>, usize)>,
+        fields: HashMap<String, (Option<TypedExpression>, Type, u64)>,
         methods: HashMap<String, BlockId>,
     ) -> Self {
         ClassInfo { fields, methods }
@@ -269,13 +271,9 @@ impl HirContext {
         panic!("Variable {} not found", name);
     }
 
-    fn resolve_field_offset(&self, object_type: &Type, field_name: &str) -> usize {
+    fn resolve_field_offset(&self, object_type: &Type, field_name: &str) -> u64 {
         if let Type::Class(class_name) = object_type {
-            self.classes
-                .get(class_name)
-                .and_then(|c| c.fields.get(field_name))
-                .map(|(_, offset)| *offset)
-                .expect("Field not found")
+            self.classes.get(class_name).unwrap().fields[field_name].2
         } else {
             unreachable!("Type is not a class")
         }
@@ -285,7 +283,7 @@ impl HirContext {
 impl HirContext {
     fn generate_statement(&mut self, ast: TypedAbstractSyntaxTree) {
         match ast.node {
-            AbstractSyntaxNode::If { condition } => {
+            TypedAbstractSyntaxNode::If { condition } => {
                 let condition = self.generate_expression(condition);
                 let true_block = self.create_block();
                 let false_block = self.create_block();
@@ -302,10 +300,10 @@ impl HirContext {
                 let mut else_if_node: Option<TypedAbstractSyntaxTree> = None;
 
                 for child in &ast.children {
-                    if let AbstractSyntaxNode::Else = child.node {
+                    if let TypedAbstractSyntaxNode::Else = child.node {
                         has_else = true;
                         if child.children.len() == 1
-                            && let AbstractSyntaxNode::If { .. } = child.children[0].node
+                            && let TypedAbstractSyntaxNode::If { .. } = child.children[0].node
                         {
                             else_if_node = Some(child.children[0].clone());
                         }
@@ -333,7 +331,7 @@ impl HirContext {
                 } else if has_else {
                     self.enter_scope();
                     for child in &ast.children {
-                        if let AbstractSyntaxNode::Else = child.node {
+                        if let TypedAbstractSyntaxNode::Else = child.node {
                             for grandchild in &child.children {
                                 self.generate_statement(grandchild.clone());
                             }
@@ -354,7 +352,7 @@ impl HirContext {
                     self.set_current_block(merge_block);
                 }
             }
-            AbstractSyntaxNode::While { condition } => {
+            TypedAbstractSyntaxNode::While { condition } => {
                 let condition_block = self.create_block();
                 let true_block = self.create_block();
                 let false_block = self.create_block();
@@ -380,10 +378,10 @@ impl HirContext {
 
                 self.set_current_block(false_block);
             }
-            AbstractSyntaxNode::Expression { expression } => {
+            TypedAbstractSyntaxNode::Expression { expression } => {
                 self.generate_expression(expression);
             }
-            AbstractSyntaxNode::Declaration {
+            TypedAbstractSyntaxNode::Declaration {
                 name, expression, ..
             } => {
                 if self.scopes.len() > 1 {
@@ -416,7 +414,7 @@ impl HirContext {
                     }
                 }
             }
-            AbstractSyntaxNode::Callable {
+            TypedAbstractSyntaxNode::Callable {
                 name, arguments, ..
             } => {
                 if name == "in" || name == "out" {
@@ -447,7 +445,7 @@ impl HirContext {
                     let slot = self.declare_variable(argument.name);
                     let register = self.new_register();
                     let destination = match argument.typ {
-                        Type::Class(_) | Type::Array(_) => HirOperand::Link(register),
+                        Type::Class(_) | Type::Array(_, _) => HirOperand::Link(register),
                         _ => HirOperand::Value(register),
                     };
                     self.emit(HirInstruction::LoadParameter {
@@ -467,14 +465,14 @@ impl HirContext {
                 self.exit_scope();
                 self.this_register = None;
             }
-            AbstractSyntaxNode::Class { name } => {
+            TypedAbstractSyntaxNode::Class { name } => {
                 self.current_class = Some(name);
                 for child in ast.children {
                     self.generate_statement(child);
                 }
                 self.current_class = None;
             }
-            AbstractSyntaxNode::Return { value } => {
+            TypedAbstractSyntaxNode::Return { value } => {
                 let is_interrupt = self.current_class.is_none()
                     && self.functions.iter().any(|(name, &id)| {
                         id == self.current_block.unwrap() && name.starts_with("interrupt")
@@ -487,35 +485,35 @@ impl HirContext {
                     self.emit_terminator(HirTerminator::Return(operand));
                 }
             }
-            AbstractSyntaxNode::Break => {
+            TypedAbstractSyntaxNode::Break => {
                 if let Some((_, break_target)) = self.loop_stack.last() {
                     self.emit_terminator(HirTerminator::Jump(*break_target));
                 } else {
                     unreachable!();
                 }
             }
-            AbstractSyntaxNode::Continue => {
+            TypedAbstractSyntaxNode::Continue => {
                 if let Some((continue_target, _)) = self.loop_stack.last() {
                     self.emit_terminator(HirTerminator::Jump(*continue_target));
                 } else {
                     unreachable!();
                 }
             }
-            AbstractSyntaxNode::Scope => {
+            TypedAbstractSyntaxNode::Scope => {
                 self.enter_scope();
                 for child in ast.children {
                     self.generate_statement(child);
                 }
                 self.exit_scope();
             }
-            AbstractSyntaxNode::File => {
+            TypedAbstractSyntaxNode::File => {
                 for child in ast.children {
                     self.generate_statement(child);
                 }
             }
-            AbstractSyntaxNode::ElseIf { .. }
-            | AbstractSyntaxNode::Else
-            | AbstractSyntaxNode::For { .. } => unreachable!(),
+            TypedAbstractSyntaxNode::ElseIf { .. }
+            | TypedAbstractSyntaxNode::Else
+            | TypedAbstractSyntaxNode::For { .. } => unreachable!(),
         }
     }
 
@@ -526,7 +524,7 @@ impl HirContext {
             TypedExpression::Variable { name, .. } => {
                 let destination = self.new_register();
                 let destination = match expression_type {
-                    Type::Class(_) | Type::Array(_) => HirOperand::Link(destination),
+                    Type::Class(_) | Type::Array(_, _) => HirOperand::Link(destination),
                     _ => HirOperand::Value(destination),
                 };
 
@@ -558,7 +556,7 @@ impl HirContext {
                 let right = self.generate_expression(*right);
                 let destination = self.new_register();
                 let destination = match expression_type {
-                    Type::Class(_) | Type::Array(_) => HirOperand::Link(destination),
+                    Type::Class(_) | Type::Array(_, _) => HirOperand::Link(destination),
                     _ => HirOperand::Value(destination),
                 };
 
@@ -579,7 +577,7 @@ impl HirContext {
                     .collect();
                 let destination = self.new_register();
                 let destination = match expression_type {
-                    Type::Class(_) | Type::Array(_) => HirOperand::Link(destination),
+                    Type::Class(_) | Type::Array(_, _) => HirOperand::Link(destination),
                     _ => HirOperand::Value(destination),
                 };
 
@@ -639,7 +637,7 @@ impl HirContext {
                 let operand = self.generate_expression(*expression);
                 let destination = self.new_register();
                 let destination = match expression_type {
-                    Type::Class(_) | Type::Array(_) => HirOperand::Link(destination),
+                    Type::Class(_) | Type::Array(_, _) => HirOperand::Link(destination),
                     _ => HirOperand::Value(destination),
                 };
                 let zero_const = HirOperand::Constant("0".to_string());
@@ -655,7 +653,7 @@ impl HirContext {
                 let operand = self.generate_expression(*expression);
                 let destination = self.new_register();
                 let destination = match expression_type {
-                    Type::Class(_) | Type::Array(_) => HirOperand::Link(destination),
+                    Type::Class(_) | Type::Array(_, _) => HirOperand::Link(destination),
                     _ => HirOperand::Value(destination),
                 };
                 let false_const = HirOperand::Constant("false".to_string());
@@ -687,7 +685,7 @@ impl HirContext {
                 let block = self.classes[&class_name].methods[&name];
                 let destination = self.new_register();
                 let destination = match expression_type {
-                    Type::Class(_) | Type::Array(_) => HirOperand::Link(destination),
+                    Type::Class(_) | Type::Array(_, _) => HirOperand::Link(destination),
                     _ => HirOperand::Value(destination),
                 };
 
@@ -719,7 +717,7 @@ impl HirContext {
                 expression,
                 index,
                 value,
-                ..
+                typ,
             } => {
                 let array = self.generate_expression(*expression);
                 let index = self.generate_expression(*index);
@@ -728,23 +726,24 @@ impl HirContext {
                 self.emit(HirInstruction::StoreIndex {
                     array,
                     index,
+                    type_size: self.get_type_size(&typ),
                     value,
                 });
                 HirOperand::Void
             }
-            TypedExpression::New { class_name, .. } => {
+            TypedExpression::New { class_name, typ } => {
                 let object = HirOperand::Link(self.new_register());
 
                 self.emit(HirInstruction::AllocateObject {
                     destination: object.clone(),
-                    class_name: class_name.clone(),
+                    size: self.get_type_size(&typ),
                 });
 
                 let class_info = &self.classes[&class_name];
                 let mut fields: Vec<_> = class_info
                     .fields
                     .values()
-                    .filter_map(|(expr, off)| expr.as_ref().map(|e| (e.clone(), *off)))
+                    .filter_map(|(expr, _, off)| expr.as_ref().map(|e| (e.clone(), *off)))
                     .collect();
                 fields.sort_by_key(|(_, offset)| *offset);
 
@@ -758,12 +757,14 @@ impl HirContext {
                 }
                 object
             }
-            TypedExpression::NewArray { size, .. } => {
-                let size = self.generate_expression(*size);
+            TypedExpression::NewArray {
+                element_type, size, ..
+            } => {
                 let destination = HirOperand::Link(self.new_register());
                 self.emit(HirInstruction::AllocateArray {
                     destination: destination.clone(),
                     size,
+                    type_size: self.get_type_size(&element_type),
                 });
                 destination
             }
@@ -772,7 +773,7 @@ impl HirContext {
                 let object = self.generate_expression(*object);
                 let destination = self.new_register();
                 let destination = match expression_type {
-                    Type::Class(_) | Type::Array(_) => HirOperand::Link(destination),
+                    Type::Class(_) | Type::Array(_, _) => HirOperand::Link(destination),
                     _ => HirOperand::Value(destination),
                 };
                 self.emit(HirInstruction::LoadField {
@@ -783,18 +784,21 @@ impl HirContext {
                 destination
             }
             TypedExpression::Index {
-                expression, index, ..
+                expression,
+                index,
+                typ,
             } => {
                 let array = self.generate_expression(*expression);
                 let index = self.generate_expression(*index);
                 let destination = self.new_register();
                 let destination = match expression_type {
-                    Type::Class(_) | Type::Array(_) => HirOperand::Link(destination),
+                    Type::Class(_) | Type::Array(_, _) => HirOperand::Link(destination),
                     _ => HirOperand::Value(destination),
                 };
                 self.emit(HirInstruction::LoadIndex {
                     destination: destination.clone(),
                     array,
+                    type_size: self.get_type_size(&typ),
                     index,
                 });
                 destination
@@ -839,10 +843,7 @@ impl HirContext {
             TypedExpression::Field { object, name, .. } => {
                 let typ = object.get_type();
                 let object = self.generate_expression(*object);
-                let Type::Class(class_name) = typ else {
-                    unreachable!()
-                };
-                let offset = self.classes[&class_name].fields[&name].1;
+                let offset = self.resolve_field_offset(&typ, &*name);
 
                 let old_value = HirOperand::Value(self.new_register());
                 self.emit(HirInstruction::LoadField {
@@ -868,7 +869,9 @@ impl HirContext {
                 if postfix { old_value } else { new_value }
             }
             TypedExpression::Index {
-                expression, index, ..
+                expression,
+                index,
+                typ,
             } => {
                 let array = self.generate_expression(*expression);
                 let index = self.generate_expression(*index);
@@ -877,6 +880,7 @@ impl HirContext {
                 self.emit(HirInstruction::LoadIndex {
                     destination: old_value.clone(),
                     array: array.clone(),
+                    type_size: self.get_type_size(&typ),
                     index: index.clone(),
                 });
 
@@ -891,6 +895,7 @@ impl HirContext {
                 self.emit(HirInstruction::StoreIndex {
                     array,
                     index,
+                    type_size: self.get_type_size(&typ),
                     value: new_value.clone(),
                 });
 
@@ -904,35 +909,37 @@ impl HirContext {
 impl HirContext {
     fn scan_signatures(&mut self, ast: &TypedAbstractSyntaxTree) {
         match &ast.node {
-            AbstractSyntaxNode::File => {
+            TypedAbstractSyntaxNode::File => {
                 for child in &ast.children {
                     self.scan_signatures(child);
                 }
             }
-            AbstractSyntaxNode::Class { name } => {
+            TypedAbstractSyntaxNode::Class { name } => {
                 let mut class_info = ClassInfo::default();
-                let mut field_counter = 0;
+                let mut offset = 0;
 
                 for child in &ast.children {
                     match &child.node {
-                        AbstractSyntaxNode::Callable { name, .. } => {
+                        TypedAbstractSyntaxNode::Callable { name, .. } => {
                             let block_id = self.create_block();
                             class_info.methods.insert(name.clone(), block_id);
                         }
-                        AbstractSyntaxNode::Declaration {
-                            name, expression, ..
+                        TypedAbstractSyntaxNode::Declaration {
+                            name,
+                            expression,
+                            typ,
                         } => {
                             class_info
                                 .fields
-                                .insert(name.clone(), (expression.clone(), field_counter));
-                            field_counter += 1;
+                                .insert(name.clone(), (expression.clone(), typ.clone(), offset));
+                            offset += self.get_type_size(&typ);
                         }
                         _ => {}
                     }
                 }
                 self.classes.insert(name.clone(), class_info);
             }
-            AbstractSyntaxNode::Callable { name, .. } => {
+            TypedAbstractSyntaxNode::Callable { name, .. } => {
                 let block_id = self.create_block();
                 self.functions.insert(name.clone(), block_id);
                 match name.as_str() {
@@ -948,6 +955,23 @@ impl HirContext {
                 }
             }
             _ => {}
+        }
+    }
+
+    fn get_type_size(&self, typ: &Type) -> u64 {
+        match typ {
+            Type::Void => 0,
+            Type::Bool => 1,
+            Type::Char => 1,
+            Type::Int => 8,
+            Type::Array(typ, size) => self.get_type_size(typ) * size,
+            Type::Class(name) => {
+                let mut size = 0;
+                for (_, (_, typ, _)) in &self.classes[name].fields {
+                    size += self.get_type_size(typ);
+                }
+                size
+            }
         }
     }
 }

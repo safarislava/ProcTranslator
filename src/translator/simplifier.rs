@@ -1,4 +1,5 @@
-use crate::translator::common::{AbstractSyntaxNode, RawAbstractSyntaxTree, RawExpression};
+use crate::translator::ast::{RawAbstractSyntaxNode, RawAbstractSyntaxTree};
+use crate::translator::common::RawExpression;
 use crate::translator::expression::{Expression, ExpressionBinaryOperator};
 
 fn simplify_ast(ast: RawAbstractSyntaxTree) -> RawAbstractSyntaxTree {
@@ -7,14 +8,14 @@ fn simplify_ast(ast: RawAbstractSyntaxTree) -> RawAbstractSyntaxTree {
     let mut iterator = children.into_iter().peekable();
 
     while let Some(mut child) = iterator.next() {
-        if let AbstractSyntaxNode::If { .. } = child.node {
+        if let RawAbstractSyntaxNode::If { .. } = child.node {
             child = build_if_tree(child, &mut iterator);
         }
         simplified_children.push(simplify_ast(child));
     }
 
     match node {
-        AbstractSyntaxNode::For {
+        RawAbstractSyntaxNode::For {
             initializer,
             condition,
             increment,
@@ -28,9 +29,11 @@ fn simplify_ast(ast: RawAbstractSyntaxTree) -> RawAbstractSyntaxTree {
 
             let mut while_body = simplified_children;
             if let Some(increment) = increment {
-                while_body.push(RawAbstractSyntaxTree::new(AbstractSyntaxNode::Expression {
-                    expression: increment,
-                }));
+                while_body.push(RawAbstractSyntaxTree::new(
+                    RawAbstractSyntaxNode::Expression {
+                        expression: increment,
+                    },
+                ));
             }
 
             let condition = condition.unwrap_or_else(|| RawExpression::Literal {
@@ -39,12 +42,12 @@ fn simplify_ast(ast: RawAbstractSyntaxTree) -> RawAbstractSyntaxTree {
             });
 
             let while_node = RawAbstractSyntaxTree::with_children(
-                AbstractSyntaxNode::While { condition },
+                RawAbstractSyntaxNode::While { condition },
                 while_body,
             );
             scope_children.push(while_node);
 
-            RawAbstractSyntaxTree::with_children(AbstractSyntaxNode::Scope, scope_children)
+            RawAbstractSyntaxTree::with_children(RawAbstractSyntaxNode::Scope, scope_children)
         }
         other_node => RawAbstractSyntaxTree::with_children(other_node, simplified_children),
     }
@@ -54,22 +57,22 @@ fn build_if_tree(
     mut current_node: RawAbstractSyntaxTree,
     iterator: &mut std::iter::Peekable<impl Iterator<Item = RawAbstractSyntaxTree>>,
 ) -> RawAbstractSyntaxTree {
-    if let AbstractSyntaxNode::ElseIf { condition } = current_node.node {
-        current_node.node = AbstractSyntaxNode::If { condition };
+    if let RawAbstractSyntaxNode::ElseIf { condition } = current_node.node {
+        current_node.node = RawAbstractSyntaxNode::If { condition };
     }
 
     match iterator.peek().map(|typed_ast| &typed_ast.node) {
-        Some(AbstractSyntaxNode::ElseIf { .. }) => {
+        Some(RawAbstractSyntaxNode::ElseIf { .. }) => {
             let next_node = iterator.next().unwrap();
             let nested_if = build_if_tree(next_node, iterator);
             current_node
                 .children
                 .push(RawAbstractSyntaxTree::with_children(
-                    AbstractSyntaxNode::Else,
+                    RawAbstractSyntaxNode::Else,
                     vec![nested_if],
                 ));
         }
-        Some(AbstractSyntaxNode::Else) => {
+        Some(RawAbstractSyntaxNode::Else) => {
             let else_node = iterator.next().unwrap();
             current_node.children.push(else_node);
         }
@@ -130,8 +133,8 @@ fn simplify_expressions(ast: RawAbstractSyntaxTree) -> RawAbstractSyntaxTree {
     }
 
     match node {
-        AbstractSyntaxNode::Expression { expression } => RawAbstractSyntaxTree::with_children(
-            AbstractSyntaxNode::Expression {
+        RawAbstractSyntaxNode::Expression { expression } => RawAbstractSyntaxTree::with_children(
+            RawAbstractSyntaxNode::Expression {
                 expression: simplify_expression(expression),
             },
             simplified_children,

@@ -7,7 +7,7 @@ digraph CFG {
   B1 [label="B1|call prologue\lalloc s2\lr8 = param[0]\ls2 = r8\lalloc s3\ls3 = \"1\"\lalloc s4\ls4 = \"0\"\ljump B10\l"];
   B2 [label="B2|call prologue\lalloc s5\lr17 = param[0]\ls5 = r17\lalloc s6\lr18 = load s5\lr19 = call B0(r18)\ls6 = r19\lalloc s7\ls7 = \"0\"\ljump B13\l"];
   B3 [label="B3|call prologue\lalloc s10\ls10 = \"false\"\lalloc s11\ls11 = \"999\"\ljump B19\l"];
-  B4 [label="B4|call prologue\lalloc s13\lr59 = call B3()\ls13 = r59\lr60 = load s13\lreturn r60\l"];
+  B4 [label="B4|call prologue\lalloc s13\lr58 = call B3()\ls13 = r58\lr59 = load s13\lreturn r59\l"];
   B5 [label="B5|"];
   B6 [label="B6|"];
   B7 [label="B7|r1 = load s0\lr2 = r1 Greater \"0\"\lbranch r2 ? B8 : B9\l"];
@@ -24,7 +24,7 @@ digraph CFG {
   B18 [label="B18|r40 = load s7\lr41 = r40 Add \"1\"\ls7 = r41\ljump B13\l"];
   B19 [label="B19|r42 = load s11\lr43 = r42 GreaterEqual \"900\"\lbranch r43 ? B20 : B21\l"];
   B20 [label="B20|alloc s12\ls12 = \"999\"\ljump B22\l"];
-  B21 [label="B21|r58 = \"0\" Sub \"1\"\lreturn r58\l"];
+  B21 [label="B21|return \"-1\"\l"];
   B22 [label="B22|r44 = load s12\lr45 = r44 GreaterEqual \"900\"\lbranch r45 ? B23 : B24\l"];
   B23 [label="B23|r46 = load s11\lr47 = load s12\lr48 = r46 Multiply r47\lr49 = call B2(r48)\ls10 = r49\lr50 = load s10\lbranch r50 ? B25 : B26\l"];
   B24 [label="B24|r56 = load s11\lr57 = r56 Sub \"1\"\ls11 = r57\ljump B19\l"];

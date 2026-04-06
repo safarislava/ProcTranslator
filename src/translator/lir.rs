@@ -648,17 +648,13 @@ impl LirContext {
                     },
                 });
             }
-            HirInstruction::AllocateObject {
-                destination,
-                class_name,
-            } => {
+            HirInstruction::AllocateObject { destination, size } => {
                 out.push(LirInstruction::Mova {
                     size: WordSize::Long,
                     source: self.heap_pointer.clone(),
                     destination: self.get_virtual_register(destination),
                 });
 
-                let size = *self.classes_size.get(&class_name).unwrap() as u64;
                 out.push(LirInstruction::Add {
                     size: WordSize::Long,
                     source: LirOperand::Direct(size),
@@ -678,6 +674,7 @@ impl LirContext {
             HirInstruction::LoadIndex {
                 destination,
                 array,
+                type_size,
                 index,
             } => {
                 let destination = self.get_virtual_register(destination);
@@ -692,7 +689,7 @@ impl LirContext {
                 });
                 out.push(LirInstruction::Mul {
                     size: WordSize::Long,
-                    source: LirOperand::Direct(8),
+                    source: LirOperand::Direct(type_size),
                     destination: temp_register.clone(),
                 });
                 out.push(LirInstruction::Mov {
@@ -707,6 +704,7 @@ impl LirContext {
             HirInstruction::StoreIndex {
                 array,
                 index,
+                type_size,
                 value,
             } => {
                 let array = self.lower_operand(array);
@@ -721,7 +719,7 @@ impl LirContext {
                 });
                 out.push(LirInstruction::Mul {
                     size: WordSize::Long,
-                    source: LirOperand::Direct(8),
+                    source: LirOperand::Direct(type_size),
                     destination: temp_register.clone(),
                 });
                 out.push(LirInstruction::Mov {
@@ -733,29 +731,21 @@ impl LirContext {
                     },
                 })
             }
-            HirInstruction::AllocateArray { destination, size } => {
+            HirInstruction::AllocateArray {
+                destination,
+                size,
+                type_size,
+            } => {
                 let destination = self.get_virtual_register(destination);
-                let size = self.lower_operand(size);
 
                 out.push(LirInstruction::Mov {
                     size: WordSize::Long,
                     source: self.heap_pointer.clone(),
                     destination,
                 });
-                let temp_register = self.new_virtual_data_register();
-                out.push(LirInstruction::Mov {
-                    size: WordSize::Long,
-                    source: size,
-                    destination: temp_register.clone(),
-                });
-                out.push(LirInstruction::Mul {
-                    size: WordSize::Long,
-                    source: LirOperand::Direct(8),
-                    destination: temp_register.clone(),
-                });
                 out.push(LirInstruction::Add {
                     size: WordSize::Long,
-                    source: temp_register,
+                    source: LirOperand::Direct(type_size * size),
                     destination: self.heap_pointer.clone(),
                 });
             }
@@ -1477,7 +1467,7 @@ pub fn compile_lir(
 
     let mut data_section = HashMap::new();
     for (name, address) in context.constants {
-        let value = name.parse::<u64>().unwrap();
+        let value = name.parse::<i64>().unwrap() as u64;
         data_section.insert(address, value);
     }
 

@@ -11,7 +11,7 @@ impl IO {
         Self {
             input: 0,
             output: 0,
-            ports: HashMap::from([(0, 0), (1, 0)]),
+            ports: HashMap::from([(0, 0), (1, 0), (2, 0), (3, 0), (4, 1)]),
         }
     }
 
