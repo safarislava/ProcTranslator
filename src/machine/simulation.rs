@@ -1,5 +1,5 @@
 use crate::machine::control_unit::ControlUnit;
-use crate::translator::asm_translator::ControlUnitPackage;
+use crate::translator::asm::ControlUnitPackage;
 
 pub struct InterruptRequest {
     pub tick: u64,

@@ -1,10 +1,26 @@
+char gen(int i) {
+    if (i % 5 == 0) {
+        return 'a';
+    }
+    else if (i % 5 == 1) {
+        return 'b';
+    }
+    else if (i % 5 == 2) {
+        return 'c';
+    }
+    else if (i % 5 == 3) {
+        return 'd';
+    }
+    else if (i % 5 == 4) {
+        return 'e';
+    }
+    return '\0';
+}
+
 char Main() {
     char[] a = new char[10];
-    char[] b = new char[10];
     for (int i = 0; i < 10; i++) {
-        if (i % 2 == 0) {
-            a[i] = 'a';
-        }
+        a[i] = gen(i);
     }
-    return a[0];
+    return a[9];
 }

@@ -249,7 +249,7 @@ impl ControlUnit {
             }
             Operator::Ble => {
                 let nzcv = self.data_path.transmit_nzcv();
-                self.execute_branch(step, nzcv.zero && nzcv.negative != nzcv.overflow);
+                self.execute_branch(step, nzcv.zero || nzcv.negative != nzcv.overflow);
             }
             Operator::Bcs => self.execute_branch(step, self.data_path.transmit_nzcv().carry),
             Operator::Bcc => self.execute_branch(step, !self.data_path.transmit_nzcv().carry),

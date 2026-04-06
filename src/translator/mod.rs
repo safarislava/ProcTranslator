@@ -1,5 +1,5 @@
 pub mod analyzer;
-pub mod asm_translator;
+pub mod asm;
 pub mod ast;
 pub mod common;
 pub mod expression;

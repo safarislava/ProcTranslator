@@ -149,7 +149,7 @@ impl<T: Clone> Expression<T> {
 enum Token {
     Number(u64),
     String(String),
-    Char(char),
+    Char(String),
     Bool(bool),
     Id(String),
     Operator(String),
@@ -199,25 +199,39 @@ impl<'a> Tokenizer<'a> {
             } else if c == '"' {
                 self.chars.next();
                 let mut s = String::new();
-                while let Some(&c) = self.chars.peek() {
-                    if c == '"' {
-                        self.chars.next();
+                while let Some(ch) = self.chars.next() {
+                    if ch == '\\' {
+                        s.push('\\');
+                        if let Some(escaped) = self.chars.next() {
+                            s.push(escaped);
+                        } else {
+                            return Err("Unexpected EOF in string literal escape".into());
+                        }
+                    } else if ch == '"' {
                         break;
+                    } else {
+                        s.push(ch);
                     }
-                    s.push(self.chars.next().unwrap());
                 }
                 tokens.push(Token::String(s));
             } else if c == '\'' {
                 self.chars.next();
-                if let Some(ch) = self.chars.next() {
-                    if self.chars.next() == Some('\'') {
-                        tokens.push(Token::Char(ch));
+                let mut s = String::new();
+                while let Some(ch) = self.chars.next() {
+                    if ch == '\\' {
+                        s.push('\\');
+                        if let Some(escaped) = self.chars.next() {
+                            s.push(escaped);
+                        } else {
+                            return Err("Unexpected EOF in char literal escape".into());
+                        }
+                    } else if ch == '\'' {
+                        break;
                     } else {
-                        return Err("Invalid char literal".into());
+                        s.push(ch);
                     }
-                } else {
-                    return Err("Unexpected EOF in char literal".into());
                 }
+                tokens.push(Token::Char(s));
             } else {
                 let next_char = self.chars.next().unwrap();
                 match next_char {
@@ -455,10 +469,19 @@ impl Parser {
             Token::Operator(operator) => {
                 let right_order = 15;
                 if operator == "-" {
-                    Ok(RawExpression::Negate {
-                        typ: Default::default(),
-                        expression: Box::new(self.parse_expression(right_order)?),
-                    })
+                    if let Some(Token::Number(n)) = self.tokens.peek() {
+                        let value = format!("-{}", n);
+                        self.tokens.next();
+                        Ok(RawExpression::Literal {
+                            typ: Default::default(),
+                            value,
+                        })
+                    } else {
+                        Ok(RawExpression::Negate {
+                            typ: Default::default(),
+                            expression: Box::new(self.parse_expression(right_order)?),
+                        })
+                    }
                 } else if operator == "!" {
                     Ok(RawExpression::Not {
                         typ: Default::default(),
@@ -576,11 +599,11 @@ pub fn parse_expression(code: &str) -> ResBox<RawExpression> {
     let mut parser = Parser {
         tokens: tokens.into_iter().peekable(),
     };
-    let expr = parser.parse_expression(0)?;
+    let expression = parser.parse_expression(0)?;
 
     if parser.tokens.peek().is_some() {
         return Err(format!("Unexpected tokens remaining after parsing expression: {code}").into());
     }
 
-    Ok(expr)
+    Ok(expression)
 }

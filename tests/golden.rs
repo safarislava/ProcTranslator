@@ -1,5 +1,5 @@
 use proc_translator::machine::simulation::{InterruptRequest, simulate_machine};
-use proc_translator::translator::asm_translator::translate;
+use proc_translator::translator::asm::translate;
 use proc_translator::translator::common::compile_to_hir;
 use proc_translator::translator::lir::compile_lir;
 use serde::{Serialize, Serializer, ser::SerializeMap};

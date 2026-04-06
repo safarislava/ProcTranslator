@@ -516,13 +516,13 @@ impl SemanticTable {
 
                 if let Expression::Variable { name, .. } = &typed_expression
                     && let Expression::Literal { value, .. } = &typed_index
-                    && let Ok(idx_val) = value.parse::<i64>()
+                    && let Ok(index) = value.parse::<i64>()
                     && let Some(arr_size) = self.find_array_size(name)
-                    && (idx_val < 0 || idx_val >= arr_size)
+                    && (index < 0 || index >= arr_size)
                 {
                     return Err(format!(
                         "Index out of bounds: array '{}' has size {}, but accessed at index {}",
-                        name, arr_size, idx_val
+                        name, arr_size, index
                     )
                     .into());
                 }
@@ -597,13 +597,13 @@ impl SemanticTable {
 
                 if let Expression::Variable { name, .. } = &typed_expression
                     && let Expression::Literal { value, .. } = &typed_index
-                    && let Ok(idx_val) = value.parse::<i64>()
+                    && let Ok(index) = value.parse::<i64>()
                     && let Some(arr_size) = self.find_array_size(name)
-                    && (idx_val < 0 || idx_val >= arr_size)
+                    && (index < 0 || index >= arr_size)
                 {
                     return Err(format!(
                         "Index out of bounds: array '{}' has size {}, but accessed at index {}",
-                        name, arr_size, idx_val
+                        name, arr_size, index
                     )
                     .into());
                 }
