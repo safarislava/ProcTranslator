@@ -2,7 +2,7 @@
 source: tests/golden.rs
 expression: formatted
 ---
-in_source: |
+program: |
   int Main() {
       if (false) {
           return 1;
@@ -14,7 +14,10 @@ in_source: |
           return 3;
       }
   }
-out_log: |
+input: []
+int_output: []
+char_output: ''
+log: |2-
    INFO TICK 0 | PC=0 | MOV.w
    INFO TICK 1 | #99999
    INFO TICK 2 | A7
@@ -45,7 +48,7 @@ out_log: |
    INFO TICK 17 | A7
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99991]
-   INFO TICK 18 | PC=54 | CMP.w
+   INFO TICK 18 | PC=54 | CMP.b
    INFO TICK 19 | (#0)
    INFO TICK 20 | Load (#0) = 0
    INFO TICK 21 | #1
@@ -59,34 +62,34 @@ out_log: |
    INFO TICK 25
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99991]
-   INFO TICK 26 | PC=113 | CMP.w
-   INFO TICK 27 | (#8)
-   INFO TICK 28 | Load (#8) = 1
+   INFO TICK 26 | PC=397 | CMP.b
+   INFO TICK 27 | (#18)
+   INFO TICK 28 | Load (#18) = 1
    INFO TICK 29 | #1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99991]
-   INFO TICK 30 | PC=133 | BEQ.b
+   INFO TICK 30 | PC=417 | BEQ.b
    INFO TICK 31
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99991]
-   INFO TICK 32 | PC=151 | MOV.w
-   INFO TICK 33 | (#16)
-   INFO TICK 34 | Load (#16) = 2
+   INFO TICK 32 | PC=435 | MOV.w
+   INFO TICK 33 | (#19)
+   INFO TICK 34 | Load (#19) = 2
    INFO TICK 35 | D0
   DEBUG D [2, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99991]
-   INFO TICK 36 | PC=163 | MOVA.w
+   INFO TICK 36 | PC=447 | MOVA.w
    INFO TICK 37 | A6
    INFO TICK 38 | A7
   DEBUG D [2, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99991]
-   INFO TICK 39 | PC=167 | MOVA.w
+   INFO TICK 39 | PC=451 | MOVA.w
    INFO TICK 40 | (A7)+
    INFO TICK 41 | Load (#99991) = 0
    INFO TICK 42 | A6
   DEBUG D [2, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 0, 99999]
-   INFO TICK 43 | PC=171 | RET.b
+   INFO TICK 43 | PC=455 | RET.b
    INFO TICK 44
   DEBUG D [2, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 0, 99999]

@@ -44,7 +44,7 @@ impl ControlFlowGraph {
                             block.id, false_block
                         ));
                     }
-                    HirTerminator::Return(_) => {}
+                    HirTerminator::Return(_, _) => {}
                     HirTerminator::IntReturn => {}
                 }
             }

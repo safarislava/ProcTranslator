@@ -5,5 +5,6 @@ int Main() {
         x += 2;
     }
 
+    iout(4, x);
     return x;
 }

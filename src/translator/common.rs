@@ -16,7 +16,7 @@ pub struct Variable {
     pub name: String,
     pub typ: Type,
 }
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Type {
     Void,
     Int,

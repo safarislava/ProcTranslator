@@ -6,7 +6,7 @@ impl fmt::Display for HirOperand {
         match self {
             HirOperand::Value(register) => write!(f, "{}", register),
             HirOperand::Link(register) => write!(f, "link {}", register),
-            HirOperand::Constant(value) => write!(f, "\"{}\"", value),
+            HirOperand::Constant(value, _) => write!(f, "\"{}\"", value),
             HirOperand::Void => write!(f, "void"),
         }
     }

@@ -43,5 +43,6 @@ int calc() {
 
 int Main() {
     int res = calc();
+    iout(4, res);
     return res;
 }

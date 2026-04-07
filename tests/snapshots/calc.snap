@@ -2,7 +2,7 @@
 source: tests/golden.rs
 expression: formatted
 ---
-in_source: |
+program: |
   int Main() {
       int a = 1;
       int b = 2;
@@ -10,9 +10,14 @@ in_source: |
 
       int d = (a - b) * c;
 
+      iout(4, d);
       return d;
   }
-out_log: |
+input: []
+int_output:
+- -3
+char_output: ''
+log: |2-
    INFO TICK 0 | PC=0 | MOV.w
    INFO TICK 1 | #99999
    INFO TICK 2 | A7
@@ -114,25 +119,35 @@ out_log: |
    INFO TICK 64 | D1
   DEBUG D [0, -3, -3, -1, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99959]
-   INFO TICK 65 | PC=190 | MOV.w
+   INFO TICK 65 | PC=190 | OUT.w
    INFO TICK 66 | D1
-   INFO TICK 67 | D0
+  DEBUG D [0, -3, -3, -1, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99959]
+   INFO TICK 67 | PC=194 | MOV.w
+   INFO TICK 68 | (A6:#-32)
+   INFO TICK 69 | Load (#99959) = -3
+   INFO TICK 70 | D1
+  DEBUG D [0, -3, -3, -1, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99959]
+   INFO TICK 71 | PC=206 | MOV.w
+   INFO TICK 72 | D1
+   INFO TICK 73 | D0
   DEBUG D [-3, -3, -3, -1, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99959]
-   INFO TICK 68 | PC=194 | MOVA.w
-   INFO TICK 69 | A6
-   INFO TICK 70 | A7
+   INFO TICK 74 | PC=210 | MOVA.w
+   INFO TICK 75 | A6
+   INFO TICK 76 | A7
   DEBUG D [-3, -3, -3, -1, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99991]
-   INFO TICK 71 | PC=198 | MOVA.w
-   INFO TICK 72 | (A7)+
-   INFO TICK 73 | Load (#99991) = 0
-   INFO TICK 74 | A6
+   INFO TICK 77 | PC=214 | MOVA.w
+   INFO TICK 78 | (A7)+
+   INFO TICK 79 | Load (#99991) = 0
+   INFO TICK 80 | A6
   DEBUG D [-3, -3, -3, -1, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 0, 99999]
-   INFO TICK 75 | PC=202 | RET.b
-   INFO TICK 76
+   INFO TICK 81 | PC=218 | RET.b
+   INFO TICK 82
   DEBUG D [-3, -3, -3, -1, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 0, 99999]
-   INFO TICK 77 | PC=33 | HLT.b
-   INFO TICK 78 | Result : -3
+   INFO TICK 83 | PC=33 | HLT.b
+   INFO TICK 84 | Result : -3

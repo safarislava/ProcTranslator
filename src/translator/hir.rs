@@ -1,3 +1,4 @@
+use crate::isa::WordSize;
 use crate::translator::analyzer::{TypedAbstractSyntaxNode, TypedAbstractSyntaxTree};
 use crate::translator::common::{Type, TypedExpression};
 use crate::translator::expression::ExpressionBinaryOperator;
@@ -17,7 +18,7 @@ pub struct StackSlot(pub u64);
 pub enum HirOperand {
     Value(HirRegister),
     Link(HirRegister),
-    Constant(String),
+    Constant(String, Type),
     Void,
 }
 
@@ -28,61 +29,73 @@ pub enum HirInstruction {
         left: HirOperand,
         operator: ExpressionBinaryOperator,
         right: HirOperand,
+        word_size: WordSize,
     },
     Call {
         destination: HirOperand,
         block: BlockId,
-        arguments: Vec<HirOperand>,
+        arguments: Vec<(HirOperand, WordSize)>,
     },
     CallPrologue,
+    InterruptPrologue,
 
     LoadParameter {
         destination: HirOperand,
-        index: usize,
+        offset: u64,
+        word_size: WordSize,
     },
 
     LoadGlobal {
         destination: HirOperand,
         id: GlobalId,
+        word_size: WordSize,
     },
     StoreGlobal {
         id: GlobalId,
         value: HirOperand,
+        word_size: WordSize,
     },
 
     AllocateStack {
         slot: StackSlot,
+        slot_size: u64,
     },
     LoadStack {
         destination: HirOperand,
         slot: StackSlot,
+        word_size: WordSize,
     },
     StoreStack {
         slot: StackSlot,
         value: HirOperand,
+        word_size: WordSize,
     },
 
     LoadField {
         destination: HirOperand,
         object: HirOperand,
         offset: u64,
+        word_size: WordSize,
     },
     StoreField {
         object: HirOperand,
         offset: u64,
         value: HirOperand,
+        word_size: WordSize,
     },
     LoadIndex {
         destination: HirOperand,
         array: HirOperand,
         type_size: u64,
         index: HirOperand,
+        word_size: WordSize,
     },
     StoreIndex {
         array: HirOperand,
         index: HirOperand,
         type_size: u64,
         value: HirOperand,
+        word_size: WordSize,
     },
     AllocateObject {
         destination: HirOperand,
@@ -112,7 +125,7 @@ pub enum HirTerminator {
         true_block: BlockId,
         false_block: BlockId,
     },
-    Return(Option<HirOperand>),
+    Return(Option<HirOperand>, WordSize),
     IntReturn,
 }
 
@@ -165,6 +178,7 @@ struct HirContext {
     functions: HashMap<String, BlockId>,
     classes: HashMap<String, ClassInfo>,
     current_class: Option<String>,
+    current_function: Option<String>,
     this_register: Option<HirOperand>,
     main_block: Option<BlockId>,
     interrupt_block: [BlockId; 8],
@@ -184,6 +198,7 @@ impl HirContext {
             functions: HashMap::new(),
             classes: HashMap::new(),
             current_class: None,
+            current_function: None,
             this_register: None,
             main_block: None,
             interrupt_block: [0; 8],
@@ -253,9 +268,12 @@ impl HirContext {
         self.scopes.pop();
     }
 
-    fn declare_variable(&mut self, name: String) -> StackSlot {
+    fn declare_variable(&mut self, name: String, typ: Type) -> StackSlot {
         let slot = self.new_slot();
-        self.emit(HirInstruction::AllocateStack { slot });
+        self.emit(HirInstruction::AllocateStack {
+            slot,
+            slot_size: self.get_type_size(&typ),
+        });
 
         let current_scope = self.scopes.last_mut().expect("No scope active");
         current_scope.insert(name, slot);
@@ -382,10 +400,13 @@ impl HirContext {
                 self.generate_expression(expression);
             }
             TypedAbstractSyntaxNode::Declaration {
-                name, expression, ..
+                name,
+                expression,
+                typ,
             } => {
+                let word_size = self.get_word_size(&typ);
                 if self.scopes.len() > 1 {
-                    let slot = self.declare_variable(name);
+                    let slot = self.declare_variable(name, typ);
                     let value = if let Some(expression) = expression {
                         self.generate_expression(expression)
                     } else {
@@ -393,7 +414,11 @@ impl HirContext {
                     };
 
                     if !matches!(value, HirOperand::Void) {
-                        self.emit(HirInstruction::StoreStack { slot, value });
+                        self.emit(HirInstruction::StoreStack {
+                            slot,
+                            value,
+                            word_size,
+                        });
                     }
                 } else {
                     let global_id = self.new_global_id();
@@ -405,11 +430,13 @@ impl HirContext {
                         self.emit(HirInstruction::StoreGlobal {
                             id: global_id,
                             value,
+                            word_size,
                         });
                     } else {
                         self.emit(HirInstruction::StoreGlobal {
                             id: global_id,
-                            value: HirOperand::Constant("0".to_string()),
+                            value: HirOperand::Constant("0".to_string(), typ),
+                            word_size,
                         });
                     }
                 }
@@ -423,38 +450,50 @@ impl HirContext {
 
                 let block_id = match &self.current_class {
                     Some(current_class) => self.classes[current_class].methods[&name],
-                    None => self.functions[&name],
+                    None => {
+                        self.current_function = Some(name.clone());
+                        self.functions[&name]
+                    }
                 };
 
                 self.set_current_block(block_id);
                 self.enter_scope();
-                self.emit(HirInstruction::CallPrologue);
+                let is_interrupt = name.starts_with("interrupt");
+                if is_interrupt {
+                    self.emit(HirInstruction::InterruptPrologue);
+                } else {
+                    self.emit(HirInstruction::CallPrologue);
+                }
 
                 let mut parameter_offset = 0;
                 if self.current_class.is_some() {
                     let register = HirOperand::Link(self.new_register());
                     self.emit(HirInstruction::LoadParameter {
                         destination: register.clone(),
-                        index: 0,
+                        offset: 0,
+                        word_size: WordSize::Long,
                     });
                     self.this_register = Some(register);
-                    parameter_offset = 1;
+                    parameter_offset = 8;
                 }
 
-                for (i, argument) in arguments.into_iter().enumerate() {
-                    let slot = self.declare_variable(argument.name);
+                for argument in arguments.iter() {
+                    let slot = self.declare_variable(argument.name.clone(), argument.typ.clone());
                     let register = self.new_register();
                     let destination = match argument.typ {
                         Type::Class(_) | Type::Array(_, _) => HirOperand::Link(register),
                         _ => HirOperand::Value(register),
                     };
                     self.emit(HirInstruction::LoadParameter {
-                        destination,
-                        index: i + parameter_offset,
+                        destination: destination.clone(),
+                        offset: parameter_offset,
+                        word_size: self.get_word_size(&argument.typ),
                     });
+                    parameter_offset += self.get_type_size(&argument.typ);
                     self.emit(HirInstruction::StoreStack {
                         slot,
-                        value: HirOperand::Value(register),
+                        value: destination,
+                        word_size: self.get_word_size(&argument.typ),
                     });
                 }
 
@@ -473,17 +512,24 @@ impl HirContext {
                 self.current_class = None;
             }
             TypedAbstractSyntaxNode::Return { value } => {
-                let is_interrupt = self.current_class.is_none()
-                    && self.functions.iter().any(|(name, &id)| {
-                        id == self.current_block.unwrap() && name.starts_with("interrupt")
-                    });
+                let is_interrupt = if let Some(function) = &self.current_function {
+                    function.starts_with("interrupt")
+                } else {
+                    false
+                };
 
                 if is_interrupt {
                     self.emit_terminator(HirTerminator::IntReturn);
                 } else {
-                    let operand = value.map(|value| self.generate_expression(value));
-                    self.emit_terminator(HirTerminator::Return(operand));
+                    let word_size = value
+                        .as_ref()
+                        .map(|v| self.get_word_size(&v.get_type()))
+                        .unwrap_or(WordSize::Long);
+                    let operand = value.map(|v| self.generate_expression(v));
+                    self.emit_terminator(HirTerminator::Return(operand, word_size));
                 }
+
+                self.current_function = None;
             }
             TypedAbstractSyntaxNode::Break => {
                 if let Some((_, break_target)) = self.loop_stack.last() {
@@ -520,8 +566,9 @@ impl HirContext {
     fn generate_expression(&mut self, expression: TypedExpression) -> HirOperand {
         let expression_type = expression.get_type();
         match expression {
-            TypedExpression::Literal { value, .. } => HirOperand::Constant(value),
-            TypedExpression::Variable { name, .. } => {
+            TypedExpression::Literal { value, typ } => HirOperand::Constant(value, typ),
+            TypedExpression::Variable { name, typ } => {
+                let word_size = self.get_word_size(&typ);
                 let destination = self.new_register();
                 let destination = match expression_type {
                     Type::Class(_) | Type::Array(_, _) => HirOperand::Link(destination),
@@ -534,12 +581,14 @@ impl HirContext {
                     self.emit(HirInstruction::LoadStack {
                         destination: destination.clone(),
                         slot,
+                        word_size,
                     });
                     destination
                 } else if let Some(&id) = self.globals.get(&name) {
                     self.emit(HirInstruction::LoadGlobal {
                         destination: destination.clone(),
                         id,
+                        word_size,
                     });
                     destination
                 } else {
@@ -552,6 +601,7 @@ impl HirContext {
                 right,
                 ..
             } => {
+                let word_size = self.get_word_size(&left.get_type());
                 let left = self.generate_expression(*left);
                 let right = self.generate_expression(*right);
                 let destination = self.new_register();
@@ -565,6 +615,7 @@ impl HirContext {
                     left,
                     operator,
                     right,
+                    word_size,
                 });
                 destination
             }
@@ -573,7 +624,12 @@ impl HirContext {
             } => {
                 let arguments: Vec<_> = arguments
                     .into_iter()
-                    .map(|arg| self.generate_expression(arg))
+                    .map(|arg| {
+                        (
+                            self.generate_expression(arg.clone()),
+                            self.get_word_size(&arg.get_type()),
+                        )
+                    })
                     .collect();
                 let destination = self.new_register();
                 let destination = match expression_type {
@@ -581,15 +637,15 @@ impl HirContext {
                     _ => HirOperand::Value(destination),
                 };
 
-                if name == "in" {
+                if name == "iin" || name == "cin" {
                     self.emit(HirInstruction::Input {
                         destination: destination.clone(),
-                        port: arguments[0].clone(),
+                        port: arguments[0].0.clone(),
                     })
-                } else if name == "out" {
+                } else if name == "iout" || name == "cout" {
                     self.emit(HirInstruction::Output {
-                        port: arguments[0].clone(),
-                        value: arguments[1].clone(),
+                        port: arguments[0].0.clone(),
+                        value: arguments[1].0.clone(),
                     })
                 } else {
                     let block = self.functions[&name];
@@ -601,15 +657,24 @@ impl HirContext {
                 }
                 destination
             }
-            TypedExpression::Assign { name, value, .. } => {
+            TypedExpression::Assign { name, value, typ } => {
                 let value = self.generate_expression(*value);
+                let word_size = self.get_word_size(&typ);
 
                 let is_local = self.scopes.iter().any(|scope| scope.contains_key(&name));
                 if is_local {
                     let slot = self.resolve_variable_address(&name);
-                    self.emit(HirInstruction::StoreStack { slot, value });
+                    self.emit(HirInstruction::StoreStack {
+                        slot,
+                        value,
+                        word_size,
+                    });
                 } else if let Some(&id) = self.globals.get(&name) {
-                    self.emit(HirInstruction::StoreGlobal { id, value });
+                    self.emit(HirInstruction::StoreGlobal {
+                        id,
+                        value,
+                        word_size,
+                    });
                 } else {
                     panic!("Variable {} not found", name);
                 }
@@ -633,35 +698,39 @@ impl HirContext {
                 postfix,
                 ExpressionBinaryOperator::Sub,
             ),
-            TypedExpression::Negate { expression, .. } => {
+            TypedExpression::Negate { expression, typ } => {
+                let word_size = self.get_word_size(&typ);
                 let operand = self.generate_expression(*expression);
                 let destination = self.new_register();
                 let destination = match expression_type {
                     Type::Class(_) | Type::Array(_, _) => HirOperand::Link(destination),
                     _ => HirOperand::Value(destination),
                 };
-                let zero_const = HirOperand::Constant("0".to_string());
+                let zero_const = HirOperand::Constant("0".to_string(), typ);
                 self.emit(HirInstruction::BinaryOperator {
                     destination: destination.clone(),
                     left: zero_const,
                     operator: ExpressionBinaryOperator::Sub,
                     right: operand,
+                    word_size,
                 });
                 destination
             }
-            TypedExpression::Not { expression, .. } => {
+            TypedExpression::Not { expression, typ } => {
+                let word_size = self.get_word_size(&typ);
                 let operand = self.generate_expression(*expression);
                 let destination = self.new_register();
                 let destination = match expression_type {
                     Type::Class(_) | Type::Array(_, _) => HirOperand::Link(destination),
                     _ => HirOperand::Value(destination),
                 };
-                let false_const = HirOperand::Constant("false".to_string());
+                let false_const = HirOperand::Constant("false".to_string(), typ);
                 self.emit(HirInstruction::BinaryOperator {
                     destination: destination.clone(),
                     left: operand,
                     operator: ExpressionBinaryOperator::Equal,
                     right: false_const,
+                    word_size,
                 });
                 destination
             }
@@ -676,10 +745,14 @@ impl HirContext {
                 };
                 let object = self.generate_expression(*object);
 
-                let arguments_iterator = arguments
-                    .into_iter()
-                    .map(|arg| self.generate_expression(arg));
-                let combined_iterator = iter::once(object).chain(arguments_iterator);
+                let arguments_iterator = arguments.into_iter().map(|arg| {
+                    (
+                        self.generate_expression(arg.clone()),
+                        self.get_word_size(&arg.get_type()),
+                    )
+                });
+                let combined_iterator =
+                    iter::once((object, WordSize::Long)).chain(arguments_iterator);
                 let arguments = combined_iterator.collect();
 
                 let block = self.classes[&class_name].methods[&name];
@@ -700,8 +773,9 @@ impl HirContext {
                 object,
                 name,
                 value,
-                ..
+                typ,
             } => {
+                let word_size = self.get_word_size(&typ);
                 let offset = self.resolve_field_offset(&object.get_type(), &name);
                 let object = self.generate_expression(*object);
                 let value = self.generate_expression(*value);
@@ -710,6 +784,7 @@ impl HirContext {
                     object,
                     offset,
                     value,
+                    word_size,
                 });
                 HirOperand::Void
             }
@@ -719,6 +794,7 @@ impl HirContext {
                 value,
                 typ,
             } => {
+                let word_size = self.get_word_size(&typ);
                 let array = self.generate_expression(*expression);
                 let index = self.generate_expression(*index);
                 let value = self.generate_expression(*value);
@@ -728,6 +804,7 @@ impl HirContext {
                     index,
                     type_size: self.get_type_size(&typ),
                     value,
+                    word_size,
                 });
                 HirOperand::Void
             }
@@ -736,7 +813,7 @@ impl HirContext {
 
                 self.emit(HirInstruction::AllocateObject {
                     destination: object.clone(),
-                    size: self.get_type_size(&typ),
+                    size: self.get_type_allocation_size(&typ),
                 });
 
                 let class_info = &self.classes[&class_name];
@@ -748,11 +825,13 @@ impl HirContext {
                 fields.sort_by_key(|(_, offset)| *offset);
 
                 for (expression, offset) in fields {
-                    let value = self.generate_expression(expression);
+                    let value = self.generate_expression(expression.clone());
+                    let word_size = self.get_word_size(&expression.get_type());
                     self.emit(HirInstruction::StoreField {
                         object: object.clone(),
                         offset,
                         value,
+                        word_size,
                     });
                 }
                 object
@@ -768,7 +847,8 @@ impl HirContext {
                 });
                 destination
             }
-            TypedExpression::Field { object, name, .. } => {
+            TypedExpression::Field { object, name, typ } => {
+                let word_size = self.get_word_size(&typ);
                 let offset = self.resolve_field_offset(&object.get_type(), &name);
                 let object = self.generate_expression(*object);
                 let destination = self.new_register();
@@ -780,6 +860,7 @@ impl HirContext {
                     destination: destination.clone(),
                     object,
                     offset,
+                    word_size,
                 });
                 destination
             }
@@ -800,6 +881,7 @@ impl HirContext {
                     array,
                     type_size: self.get_type_size(&typ),
                     index,
+                    word_size: self.get_word_size(&typ),
                 });
                 destination
             }
@@ -817,53 +899,61 @@ impl HirContext {
         operator: ExpressionBinaryOperator,
     ) -> HirOperand {
         match expression {
-            TypedExpression::Variable { name, .. } => {
+            TypedExpression::Variable { name, typ } => {
+                let word_size = self.get_word_size(&typ);
                 let slot = self.resolve_variable_address(&name);
                 let old_value = HirOperand::Value(self.new_register());
                 self.emit(HirInstruction::LoadStack {
                     destination: old_value.clone(),
                     slot,
+                    word_size: word_size.clone(),
                 });
 
                 let new_value = HirOperand::Value(self.new_register());
-                let one_const = HirOperand::Constant("1".to_string());
+                let one_const = HirOperand::Constant("1".to_string(), typ);
                 self.emit(HirInstruction::BinaryOperator {
                     destination: new_value.clone(),
                     left: old_value.clone(),
                     operator,
                     right: one_const,
+                    word_size: word_size.clone(),
                 });
                 self.emit(HirInstruction::StoreStack {
                     slot,
                     value: new_value.clone(),
+                    word_size,
                 });
 
                 if postfix { old_value } else { new_value }
             }
-            TypedExpression::Field { object, name, .. } => {
-                let typ = object.get_type();
+            TypedExpression::Field { object, name, typ } => {
+                let word_size = self.get_word_size(&typ);
+                let object_type = object.get_type();
                 let object = self.generate_expression(*object);
-                let offset = self.resolve_field_offset(&typ, &*name);
+                let offset = self.resolve_field_offset(&object_type, &name);
 
                 let old_value = HirOperand::Value(self.new_register());
                 self.emit(HirInstruction::LoadField {
                     destination: old_value.clone(),
                     object: object.clone(),
                     offset,
+                    word_size: word_size.clone(),
                 });
 
                 let new_value = HirOperand::Value(self.new_register());
-                let one_const = HirOperand::Constant("1".to_string());
+                let one_const = HirOperand::Constant("1".to_string(), typ);
                 self.emit(HirInstruction::BinaryOperator {
                     destination: new_value.clone(),
                     left: old_value.clone(),
                     operator,
                     right: one_const,
+                    word_size: word_size.clone(),
                 });
                 self.emit(HirInstruction::StoreField {
                     object,
                     offset,
                     value: new_value.clone(),
+                    word_size,
                 });
 
                 if postfix { old_value } else { new_value }
@@ -882,21 +972,24 @@ impl HirContext {
                     array: array.clone(),
                     type_size: self.get_type_size(&typ),
                     index: index.clone(),
+                    word_size: self.get_word_size(&typ),
                 });
 
                 let new_value = HirOperand::Value(self.new_register());
-                let one_const = HirOperand::Constant("1".to_string());
+                let one_const = HirOperand::Constant("1".to_string(), typ.clone());
                 self.emit(HirInstruction::BinaryOperator {
                     destination: new_value.clone(),
                     left: old_value.clone(),
                     operator,
                     right: one_const,
+                    word_size: self.get_word_size(&typ),
                 });
                 self.emit(HirInstruction::StoreIndex {
                     array,
                     index,
                     type_size: self.get_type_size(&typ),
                     value: new_value.clone(),
+                    word_size: self.get_word_size(&typ),
                 });
 
                 if postfix { old_value } else { new_value }
@@ -932,7 +1025,7 @@ impl HirContext {
                             class_info
                                 .fields
                                 .insert(name.clone(), (expression.clone(), typ.clone(), offset));
-                            offset += self.get_type_size(&typ);
+                            offset += self.get_type_allocation_size(typ);
                         }
                         _ => {}
                     }
@@ -958,7 +1051,7 @@ impl HirContext {
         }
     }
 
-    fn get_type_size(&self, typ: &Type) -> u64 {
+    fn get_type_allocation_size(&self, typ: &Type) -> u64 {
         match typ {
             Type::Void => 0,
             Type::Bool => 1,
@@ -967,11 +1060,26 @@ impl HirContext {
             Type::Array(typ, size) => self.get_type_size(typ) * size,
             Type::Class(name) => {
                 let mut size = 0;
-                for (_, (_, typ, _)) in &self.classes[name].fields {
-                    size += self.get_type_size(typ);
+                for (_, typ, _) in self.classes[name].fields.values() {
+                    size += self.get_type_allocation_size(typ);
                 }
                 size
             }
+        }
+    }
+
+    fn get_type_size(&self, typ: &Type) -> u64 {
+        match typ {
+            Type::Void => 0,
+            Type::Bool | Type::Char => 1,
+            Type::Int | Type::Array(_, _) | Type::Class(_) => 8,
+        }
+    }
+
+    fn get_word_size(&self, typ: &Type) -> WordSize {
+        match typ {
+            Type::Bool | Type::Char => WordSize::Byte,
+            _ => WordSize::Long,
         }
     }
 }

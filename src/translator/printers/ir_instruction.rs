@@ -9,6 +9,7 @@ impl fmt::Display for HirInstruction {
                 left,
                 operator,
                 right,
+                ..
             } => {
                 write!(f, "{} = {} {:?} {}", destination, left, operator, right)
             }
@@ -19,7 +20,7 @@ impl fmt::Display for HirInstruction {
             } => {
                 let args = arguments
                     .iter()
-                    .map(|a| a.to_string())
+                    .map(|(a, _)| a.to_string())
                     .collect::<Vec<_>>()
                     .join(", ");
                 write!(f, "{} = call B{}({})", destination, block, args)
@@ -27,22 +28,32 @@ impl fmt::Display for HirInstruction {
             HirInstruction::CallPrologue => {
                 write!(f, "call prologue")
             }
-            HirInstruction::LoadParameter { destination, index } => {
-                write!(f, "{} = param[{}]", destination, index)
+            HirInstruction::InterruptPrologue => {
+                write!(f, "interrupt prologue")
             }
-            HirInstruction::AllocateStack { slot } => {
+            HirInstruction::LoadParameter {
+                destination,
+                offset,
+                ..
+            } => {
+                write!(f, "{} = param[{}]", destination, offset)
+            }
+            HirInstruction::AllocateStack { slot, .. } => {
                 write!(f, "alloc {}", slot)
             }
-            HirInstruction::StoreStack { slot, value } => {
+            HirInstruction::StoreStack { slot, value, .. } => {
                 write!(f, "{} = {}", slot, value)
             }
-            HirInstruction::LoadStack { destination, slot } => {
+            HirInstruction::LoadStack {
+                destination, slot, ..
+            } => {
                 write!(f, "{} = load {}", destination, slot)
             }
             HirInstruction::LoadField {
                 destination,
                 object,
                 offset,
+                ..
             } => {
                 write!(f, "{} = load field {}[{}]", destination, object, offset)
             }
@@ -50,16 +61,19 @@ impl fmt::Display for HirInstruction {
                 object,
                 offset,
                 value,
+                ..
             } => {
                 write!(f, "{}[{}] = {}", object, offset, value)
             }
             HirInstruction::AllocateObject { destination, size } => {
                 write!(f, "{} = new object {}", destination, size)
             }
-            HirInstruction::LoadGlobal { destination, id } => {
+            HirInstruction::LoadGlobal {
+                destination, id, ..
+            } => {
                 write!(f, "{} = load global {}", destination, id)
             }
-            HirInstruction::StoreGlobal { id, value } => {
+            HirInstruction::StoreGlobal { id, value, .. } => {
                 write!(f, "{} = store global {}", id, value)
             }
             HirInstruction::Input { destination, port } => {

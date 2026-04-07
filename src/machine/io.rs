@@ -1,9 +1,25 @@
-use std::collections::HashMap;
+pub struct IntInputDevice {
+    pub data: i64,
+    vector: u8,
+    pub interrupt: bool,
+}
+
+pub struct CharInputDevice {
+    pub data: char,
+    vector: u8,
+    pub interrupt: bool,
+}
 
 pub struct IO {
     pub input: i64,
     pub output: i64,
-    ports: HashMap<u8, i64>,
+
+    pub int_input_device: IntInputDevice,
+    pub char_input_device: CharInputDevice,
+    pub int_output_log: Vec<i64>,
+    pub char_output_log: Vec<char>,
+
+    pub interrupt_vector: u8,
 }
 
 impl IO {
@@ -11,39 +27,95 @@ impl IO {
         Self {
             input: 0,
             output: 0,
-            ports: HashMap::from([(0, 0), (1, 0), (2, 0), (3, 0), (4, 1)]),
+            int_input_device: IntInputDevice {
+                data: 0,
+                vector: 0,
+                interrupt: false,
+            },
+            char_input_device: CharInputDevice {
+                data: '\0',
+                vector: 1,
+                interrupt: false,
+            },
+            int_output_log: vec![],
+            char_output_log: vec![],
+            interrupt_vector: 0,
         }
     }
 
     pub fn read(&mut self, port: u8) {
-        if let Some(device_value) = self.ports.get_mut(&port) {
-            self.output = *device_value;
-        } else {
-            panic!("Port {} doesn't exist", port)
+        match port {
+            0 => {
+                self.output = self.int_input_device.data;
+                self.int_input_device.interrupt = false;
+            }
+            1 => {
+                self.output = self.int_input_device.vector as i64;
+            }
+            2 => {
+                self.output = self.char_input_device.data as i64;
+                self.char_input_device.interrupt = false;
+            }
+            3 => {
+                self.output = self.char_input_device.vector as i64;
+            }
+            _ => {}
         }
     }
 
     pub fn write(&mut self, port: u8) {
-        if let Some(device_value) = self.ports.get_mut(&port) {
-            *device_value = self.input;
-        } else {
-            panic!("Port {} doesn't exist", port)
-        }
-    }
-
-    pub fn read_internal(&mut self, port: u8) -> i64 {
-        if let Some(device_value) = self.ports.get_mut(&port) {
-            *device_value
-        } else {
-            panic!("Port {} doesn't exist", port)
+        match port {
+            1 => {
+                self.int_input_device.vector = self.input as u8;
+            }
+            3 => {
+                self.char_input_device.vector = self.input as u8;
+            }
+            4 => {
+                self.int_output_log.push(self.input);
+            }
+            5 => {
+                self.char_output_log.push((self.input as u8) as char);
+            }
+            _ => {}
         }
     }
 
     pub fn write_internal(&mut self, port: u8, value: i64) {
-        if let Some(device_value) = self.ports.get_mut(&port) {
-            *device_value = value;
-        } else {
-            panic!("Port {} doesn't exist", port)
+        match port {
+            0 => {
+                self.int_input_device.data = value;
+            }
+            1 => {
+                self.int_input_device.vector = value as u8;
+            }
+            2 => {
+                self.char_input_device.data = (value as u8) as char;
+            }
+            3 => {
+                self.char_input_device.vector = value as u8;
+            }
+            4 => {
+                self.int_output_log.push(self.input);
+            }
+            5 => {
+                self.char_output_log.push((self.input as u8) as char);
+            }
+            _ => {}
         }
+    }
+
+    pub fn check_interrupt(&mut self) -> bool {
+        self.int_input_device.interrupt || self.char_input_device.interrupt
+    }
+
+    pub fn update_interrupt_vector(&mut self) {
+        self.interrupt_vector = if self.int_input_device.interrupt {
+            self.int_input_device.vector
+        } else if self.char_input_device.interrupt {
+            self.char_input_device.vector
+        } else {
+            0
+        };
     }
 }

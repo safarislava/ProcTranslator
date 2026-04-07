@@ -1,7 +1,7 @@
 use crate::translator::common::Address;
 
 pub struct Memory {
-    data: Vec<u8>,
+    pub data: Vec<u8>,
 }
 
 impl Memory {
@@ -9,6 +9,15 @@ impl Memory {
         Self {
             data: vec![0; size],
         }
+    }
+
+    pub fn read_u8(&self, address: Address) -> u8 {
+        assert!(
+            address < self.data.len() as u64,
+            "Address {} is out of bounds",
+            address
+        );
+        self.data[address as usize]
     }
 
     pub fn read_u32(&self, address: Address) -> u32 {

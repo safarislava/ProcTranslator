@@ -1,7 +1,9 @@
 use crate::isa::{Mode, Operator, WordSize};
 use crate::translator::common::Address;
 use crate::translator::hir::BlockId;
-use crate::translator::lir::{Condition, LirBlock, LirInstruction, LirOperand, RegisterType};
+use crate::translator::lir::{
+    Condition, LirBlock, LirInstruction, LirOperand, LirPackage, RegisterType,
+};
 use std::collections::HashMap;
 
 pub struct AsmTranslator {
@@ -351,12 +353,16 @@ impl AsmTranslator {
 
 pub struct ControlUnitPackage {
     pub program: Vec<u8>,
-    pub data: HashMap<Address, u64>,
+    pub data: HashMap<Address, (u64, WordSize)>,
     pub interrupt_vectors: [Address; 8],
 }
 
 impl ControlUnitPackage {
-    fn new(program: Vec<u8>, data: HashMap<Address, u64>, interrupt_vectors: [Address; 8]) -> Self {
+    fn new(
+        program: Vec<u8>,
+        data: HashMap<Address, (u64, WordSize)>,
+        interrupt_vectors: [Address; 8],
+    ) -> Self {
         Self {
             program,
             data,
@@ -365,15 +371,11 @@ impl ControlUnitPackage {
     }
 }
 
-pub fn translate(
-    blocks: Vec<LirBlock>,
-    data: HashMap<Address, u64>,
-    interrupt_blocks: [BlockId; 8],
-) -> ControlUnitPackage {
+pub fn translate(lir_package: LirPackage) -> ControlUnitPackage {
     let mut translator = AsmTranslator::default();
-    translator.add_blocks(blocks);
-    let interrupt_vectors = translator.get_interrupt_vectors(interrupt_blocks);
-    ControlUnitPackage::new(translator.data, data, interrupt_vectors)
+    translator.add_blocks(lir_package.text_section);
+    let interrupt_vectors = translator.get_interrupt_vectors(lir_package.interrupt_blocks);
+    ControlUnitPackage::new(translator.data, lir_package.data_section, interrupt_vectors)
 }
 
 impl Default for AsmTranslator {

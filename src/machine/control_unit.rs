@@ -46,8 +46,6 @@ pub struct ControlUnit {
     operator: Operator,
     execution_state: ExecutionState,
     interrupt_flag: bool,
-    pub interrupt: bool,
-    interrupt_vector: u8,
     vector_table: HashMap<u8, Address>,
     pub tick: u64,
     log: String,
@@ -66,7 +64,7 @@ impl ControlUnit {
             PcSelector::NextTwoWords => self.pc + 8,
             PcSelector::ByDecoder => self.decoder_output,
             PcSelector::ByStack => self.stack.pop(),
-            PcSelector::ByInterrupt => self.vector_table[&self.interrupt_vector],
+            PcSelector::ByInterrupt => self.vector_table[&self.data_path.io.interrupt_vector],
         };
     }
 
@@ -81,7 +79,7 @@ impl ControlUnit {
     pub fn step(&mut self) -> bool {
         match self.execution_state {
             ExecutionState::Start => {
-                if self.interrupt_flag && self.interrupt {
+                if self.interrupt_flag && self.data_path.io.check_interrupt() {
                     self.execution_state = ExecutionState::Interrupt(0);
                     return false;
                 }
@@ -107,11 +105,6 @@ impl ControlUnit {
             }
             ExecutionState::Stop => true,
         }
-    }
-
-    pub fn set_interrupt_vector(&mut self, interrupt_vector: u8) {
-        self.interrupt = true;
-        self.interrupt_vector = interrupt_vector;
     }
 
     fn interrupt(&mut self, step: u8) {
@@ -428,7 +421,7 @@ impl ControlUnit {
                 self.data_path.latch_data_address();
                 self.data_path.post_mode_selector = PostModeSelector::IncrementByte;
                 self.data_path.latch_address_register(7, &WordSize::Long);
-                self.data_path.read_data_memory();
+                self.data_path.read_data_memory(&WordSize::Byte);
 
                 self.execution_state = ExecutionState::Execute(1);
             }
@@ -467,8 +460,8 @@ impl ControlUnit {
             0 => {
                 let port = self.parse_port(1);
                 self.data_path.read_io(port);
-                self.interrupt = false;
-                self.interrupt_vector = 0;
+
+                self.data_path.io.update_interrupt_vector();
 
                 self.data_path.external_selector = ExternalSelector::IO;
                 self.data_path.update_right_data(DataSelector::External);
@@ -488,6 +481,7 @@ impl ControlUnit {
             1 => {
                 let operand = self.parse_data_writable(2);
                 self.prepare_operand_read_data(Order::Master);
+                self.data_path.execute_alu(AluOperator::Trr);
                 self.store_operand(operand);
                 self.execution_state = ExecutionState::Done;
             }
@@ -603,9 +597,9 @@ impl ControlUnit {
                     _ => unreachable!(),
                 }
                 self.data_path.latch_data_address();
-                self.data_path.read_data_memory();
+                self.data_path.read_data_memory(&self.word_size);
                 self.data_path
-                    .latch_address_register(operand.main_register, &self.word_size);
+                    .latch_address_register(operand.main_register, &WordSize::Long);
 
                 match operand.mode {
                     Mode::Indirect => self.log += &format!("| (A{}) ", operand.main_register),
@@ -680,7 +674,7 @@ impl ControlUnit {
                 }
                 self.data_path.execute_alu(AluOperator::Add);
                 self.data_path.latch_data_address();
-                self.data_path.read_data_memory();
+                self.data_path.read_data_memory(&self.word_size);
             }
             Mode::IndirectDirect => {
                 self.latch_read_data();
@@ -703,7 +697,7 @@ impl ControlUnit {
                     }
                 }
                 self.data_path.latch_data_address();
-                self.data_path.read_data_memory();
+                self.data_path.read_data_memory(&self.word_size);
 
                 self.log += &format!("| (#{}) ", self.decoder_output);
             }
@@ -771,10 +765,13 @@ impl ControlUnit {
         })
     }
 
-    pub fn load_data_section(&mut self, data_section: HashMap<Address, u64>) {
-        data_section.iter().for_each(|(address, value)| {
-            self.data_path.data_memory.write_u64(*address, *value);
-        })
+    pub fn load_data_section(&mut self, data_section: HashMap<Address, (u64, WordSize)>) {
+        data_section
+            .iter()
+            .for_each(|(address, (value, word_size))| match word_size {
+                WordSize::Byte => self.data_path.data_memory.write_u8(*address, *value as u8),
+                WordSize::Long => self.data_path.data_memory.write_u64(*address, *value),
+            })
     }
 
     pub fn load_interrupt_vectors(&mut self, interrupt_vectors: [Address; 8]) {
@@ -802,8 +799,6 @@ impl Default for ControlUnit {
             operator: Operator::Hlt,
             execution_state: ExecutionState::Start,
             interrupt_flag: true,
-            interrupt: false,
-            interrupt_vector: 0,
             vector_table: HashMap::new(),
             tick: 0,
             log: String::from(""),

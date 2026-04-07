@@ -70,13 +70,13 @@ impl RawAbstractSyntaxTree {
 fn parse_type(s: &str) -> Type {
     let s = s.trim();
 
-    if s.ends_with(']') {
-        if let Some(start) = s.rfind('[') {
-            let base_str = &s[..start];
-            let size_str = s[start + 1..s.len() - 1].trim();
-            let size = size_str.parse::<u64>().unwrap();
-            return Type::Array(Box::new(parse_type(base_str)), size);
-        }
+    if s.ends_with(']')
+        && let Some(start) = s.rfind('[')
+    {
+        let base_str = &s[..start];
+        let size_str = s[start + 1..s.len() - 1].trim();
+        let size = size_str.parse::<u64>().unwrap();
+        return Type::Array(Box::new(parse_type(base_str)), size);
     }
 
     match s {
@@ -295,7 +295,7 @@ pub fn build_ast(tree: SyntaxTree) -> ResBox<RawAbstractSyntaxTree> {
             let in_function = RawAbstractSyntaxTree::with_children(
                 RawAbstractSyntaxNode::Callable {
                     result_type: Type::Int,
-                    name: "in".to_string(),
+                    name: "iin".to_string(),
                     arguments: vec![Variable {
                         name: "port".to_string(),
                         typ: Type::Int,
@@ -310,10 +310,28 @@ pub fn build_ast(tree: SyntaxTree) -> ResBox<RawAbstractSyntaxTree> {
             );
             processed_children.push(in_function);
 
+            let in_function = RawAbstractSyntaxTree::with_children(
+                RawAbstractSyntaxNode::Callable {
+                    result_type: Type::Char,
+                    name: "cin".to_string(),
+                    arguments: vec![Variable {
+                        name: "port".to_string(),
+                        typ: Type::Int,
+                    }],
+                },
+                vec![RawAbstractSyntaxTree::new(RawAbstractSyntaxNode::Return {
+                    value: Some(RawExpression::Literal {
+                        typ: (),
+                        value: "'\0'".to_string(),
+                    }),
+                })],
+            );
+            processed_children.push(in_function);
+
             let out_function = RawAbstractSyntaxTree::with_children(
                 RawAbstractSyntaxNode::Callable {
                     result_type: Type::Void,
-                    name: "out".to_string(),
+                    name: "iout".to_string(),
                     arguments: vec![
                         Variable {
                             name: "port".to_string(),
@@ -322,6 +340,27 @@ pub fn build_ast(tree: SyntaxTree) -> ResBox<RawAbstractSyntaxTree> {
                         Variable {
                             name: "value".to_string(),
                             typ: Type::Int,
+                        },
+                    ],
+                },
+                vec![RawAbstractSyntaxTree::new(RawAbstractSyntaxNode::Return {
+                    value: None,
+                })],
+            );
+            processed_children.push(out_function);
+
+            let out_function = RawAbstractSyntaxTree::with_children(
+                RawAbstractSyntaxNode::Callable {
+                    result_type: Type::Void,
+                    name: "cout".to_string(),
+                    arguments: vec![
+                        Variable {
+                            name: "port".to_string(),
+                            typ: Type::Int,
+                        },
+                        Variable {
+                            name: "value".to_string(),
+                            typ: Type::Char,
                         },
                     ],
                 },

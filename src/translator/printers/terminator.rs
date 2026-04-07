@@ -16,7 +16,7 @@ impl fmt::Display for HirTerminator {
                     condition, true_block, false_block
                 )
             }
-            HirTerminator::Return(val) => match val {
+            HirTerminator::Return(val, _) => match val {
                 Some(v) => write!(f, "return {}", v),
                 None => write!(f, "return"),
             },

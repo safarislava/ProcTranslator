@@ -255,7 +255,7 @@ impl SemanticTable {
                             Some(e) => Some(self.analyze_expression(e)?),
                             None => None,
                         };
-                        self.analyze_declaration(&typ, name, &typed_expr)?;
+                        self.analyze_declaration(typ, name, &typed_expr)?;
                     }
                 }
 
@@ -324,7 +324,7 @@ impl SemanticTable {
                     self.stacktrace.get(self.stacktrace.len() - 2),
                     Some(RawAbstractSyntaxNode::Class { .. })
                 ) {
-                    self.analyze_declaration(&typ, name, &typed_expr)?;
+                    self.analyze_declaration(typ, name, &typed_expr)?;
                 }
                 (
                     TypedAbstractSyntaxNode::Declaration {

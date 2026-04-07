@@ -15,5 +15,6 @@ int Main() {
         x = f(x);
     }
 
+    iout(4, x);
     return x;
 }

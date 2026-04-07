@@ -3,14 +3,16 @@ digraph CFG {
   node [shape=box, fontname="Courier"];
   edge [fontname="Courier"];
 
-  B0 [label="B0|call prologue\lbranch \"false\" ? B1 : B2\l"];
-  B1 [label="B1|return \"1\"\l"];
-  B2 [label="B2|branch \"true\" ? B3 : B4\l"];
-  B3 [label="B3|return \"2\"\l"];
-  B4 [label="B4|return \"3\"\l"];
-  B0 -> B1 [label="true"];
-  B0 -> B2 [label="false"];
-  B2 -> B3 [label="true"];
-  B2 -> B4 [label="false"];
+  B0 [label="B0|call prologue\lbranch \"false\" ? B3 : B4\l"];
+  B1 [label="B1|"];
+  B2 [label="B2|"];
+  B3 [label="B3|return \"1\"\l"];
+  B4 [label="B4|branch \"true\" ? B5 : B6\l"];
+  B5 [label="B5|return \"2\"\l"];
+  B6 [label="B6|return \"3\"\l"];
+  B0 -> B3 [label="true"];
+  B0 -> B4 [label="false"];
+  B4 -> B5 [label="true"];
+  B4 -> B6 [label="false"];
   B0 [style=filled, fillcolor=lightgreen];
 }

@@ -19,8 +19,14 @@ char gen(int i) {
 
 char Main() {
     char[10] a = new char[10];
+
     for (int i = 0; i < 9; i++) {
         a[i] = gen(i);
     }
-    return a[9];
+
+    for (int i = 0; i < 10; i++) {
+        cout(5, a[i]);
+    }
+
+    return a[8];
 }

@@ -125,8 +125,15 @@ impl DataPath {
         }
     }
 
-    pub fn read_data_memory(&mut self) {
-        self.memory_output = self.data_memory.read_u64(self.data_address) as i64;
+    pub fn read_data_memory(&mut self, selector: &WordSize) {
+        match selector {
+            WordSize::Byte => {
+                self.memory_output = self.data_memory.read_u8(self.data_address) as i64;
+            }
+            WordSize::Long => {
+                self.memory_output = self.data_memory.read_u64(self.data_address) as i64;
+            }
+        }
     }
 
     pub fn write_data_memory(&mut self, selector: &WordSize) {

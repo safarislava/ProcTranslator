@@ -2,7 +2,7 @@
 source: tests/golden.rs
 expression: formatted
 ---
-in_source: |
+program: |
   class Node {
       int counter = 5;
 
@@ -16,9 +16,14 @@ in_source: |
       Node node = new Node();
       node.Increment();
       node.Increment();
+      iout(4, node.counter);
       return;
   }
-out_log: |
+input: []
+int_output:
+- 9
+char_output: ''
+log: |2-
    INFO TICK 0 | PC=0 | MOV.w
    INFO TICK 1 | #99999
    INFO TICK 2 | A7
@@ -465,20 +470,36 @@ out_log: |
    INFO TICK 287 | D1
   DEBUG D [9, 9, 0, 0, 0, 0, 0, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40008, 99991, 99983]
-   INFO TICK 288 | PC=429 | MOVA.w
-   INFO TICK 289 | A6
-   INFO TICK 290 | A7
+   INFO TICK 288 | PC=429 | MOV.w
+   INFO TICK 289 | (A6:#-8)
+   INFO TICK 290 | Load (#99983) = 40000
+   INFO TICK 291 | A0
+  DEBUG D [9, 9, 0, 0, 0, 0, 0, 0]
+  DEBUG A [40000, 0, 0, 0, 0, 40008, 99991, 99983]
+   INFO TICK 292 | PC=441 | MOV.w
+   INFO TICK 293 | (A0:#0)
+   INFO TICK 294 | Load (#40000) = 9
+   INFO TICK 295 | D1
+  DEBUG D [9, 9, 0, 0, 0, 0, 0, 0]
+  DEBUG A [40000, 0, 0, 0, 0, 40008, 99991, 99983]
+   INFO TICK 296 | PC=453 | OUT.w
+   INFO TICK 297 | D1
+  DEBUG D [9, 9, 0, 0, 0, 0, 0, 0]
+  DEBUG A [40000, 0, 0, 0, 0, 40008, 99991, 99983]
+   INFO TICK 298 | PC=457 | MOVA.w
+   INFO TICK 299 | A6
+   INFO TICK 300 | A7
   DEBUG D [9, 9, 0, 0, 0, 0, 0, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40008, 99991, 99991]
-   INFO TICK 291 | PC=433 | MOVA.w
-   INFO TICK 292 | (A7)+
-   INFO TICK 293 | Load (#99991) = 0
-   INFO TICK 294 | A6
+   INFO TICK 301 | PC=461 | MOVA.w
+   INFO TICK 302 | (A7)+
+   INFO TICK 303 | Load (#99991) = 0
+   INFO TICK 304 | A6
   DEBUG D [9, 9, 0, 0, 0, 0, 0, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40008, 0, 99999]
-   INFO TICK 295 | PC=437 | RET.b
-   INFO TICK 296
+   INFO TICK 305 | PC=465 | RET.b
+   INFO TICK 306
   DEBUG D [9, 9, 0, 0, 0, 0, 0, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40008, 0, 99999]
-   INFO TICK 297 | PC=33 | HLT.b
-   INFO TICK 298 | Result : 9
+   INFO TICK 307 | PC=33 | HLT.b
+   INFO TICK 308 | Result : 9

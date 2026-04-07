@@ -11,5 +11,6 @@ void Main() {
     Node node = new Node();
     node.Increment();
     node.Increment();
+    iout(4, node.counter);
     return;
 }

@@ -1,4 +1,4 @@
-use proc_translator::machine::simulation::{InterruptRequest, simulate_machine};
+use proc_translator::machine::simulation::{DeviceChoice, InterruptRequest, simulate_machine};
 use proc_translator::translator::asm::translate;
 use proc_translator::translator::common::compile_to_hir;
 use proc_translator::translator::lir::compile_lir;
@@ -9,10 +9,18 @@ use std::sync::{Arc, Mutex};
 use tracing::subscriber::DefaultGuard;
 use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 
-#[derive(Debug)]
 pub struct TestOutput {
-    pub in_source: String,
-    pub out_log: String,
+    pub program: String,
+    input: Vec<InterruptLog>,
+    int_output: Vec<i64>,
+    char_output: Vec<char>,
+    pub log: String,
+}
+
+#[derive(Serialize)]
+pub struct InterruptLog {
+    tick: u64,
+    value: i64,
 }
 
 impl Serialize for TestOutput {
@@ -20,9 +28,12 @@ impl Serialize for TestOutput {
     where
         S: Serializer,
     {
-        let mut map = serializer.serialize_map(Some(2))?;
-        map.serialize_entry("in_source", &self.in_source)?;
-        map.serialize_entry("out_log", &self.out_log)?;
+        let mut map = serializer.serialize_map(Some(0))?;
+        map.serialize_entry("program", &self.program)?;
+        map.serialize_entry("input", &self.input)?;
+        map.serialize_entry("int_output", &self.int_output)?;
+        map.serialize_entry("char_output", &self.char_output.iter().collect::<String>())?;
+        map.serialize_entry("log", &self.log)?;
         map.end()
     }
 }
@@ -86,13 +97,13 @@ fn run_test(name: &str, interrupts: Vec<InterruptRequest>) -> TestOutput {
 
     let control_flow_graph = compile_to_hir(&content).expect("HIR compilation failed");
 
-    let (text_section, data_section, interrupt_blocks) = compile_lir(control_flow_graph);
-    let package = translate(text_section, data_section, interrupt_blocks);
-    simulate_machine(package, interrupts);
+    let lir_package = compile_lir(control_flow_graph);
+    let package = translate(lir_package);
+    let (int_output, char_output) = simulate_machine(package, interrupts.clone());
 
     drop(guard);
 
-    let out_log: String = {
+    let log: String = {
         let buf = log_buffer.lock().unwrap();
         let raw = String::from_utf8_lossy(&buf);
         raw.lines()
@@ -103,8 +114,17 @@ fn run_test(name: &str, interrupts: Vec<InterruptRequest>) -> TestOutput {
     };
 
     TestOutput {
-        in_source: content,
-        out_log,
+        program: content,
+        input: interrupts
+            .iter()
+            .map(|i| InterruptLog {
+                tick: i.tick,
+                value: i.value,
+            })
+            .collect(),
+        int_output,
+        char_output,
+        log,
     }
 }
 
@@ -232,12 +252,44 @@ fn test_params() {
 fn test_interrupt() {
     let output = run_test(
         "interrupt",
-        vec![InterruptRequest {
-            tick: 63,
-            value: 1,
-            port: 0,
-            vector_port: 1,
-        }],
+        vec![
+            InterruptRequest {
+                tick: 200,
+                value: 72,
+                device: DeviceChoice::CharInput,
+            },
+            InterruptRequest {
+                tick: 250,
+                value: 101,
+                device: DeviceChoice::CharInput,
+            },
+            InterruptRequest {
+                tick: 350,
+                value: 108,
+                device: DeviceChoice::CharInput,
+            },
+            InterruptRequest {
+                tick: 450,
+                value: 108,
+                device: DeviceChoice::CharInput,
+            },
+            InterruptRequest {
+                tick: 550,
+                value: 111,
+                device: DeviceChoice::CharInput,
+            },
+            InterruptRequest {
+                tick: 650,
+                value: 0,
+                device: DeviceChoice::CharInput,
+            },
+        ],
     );
     assert_golden_yaml!(&output, "interrupt");
+}
+
+#[test]
+fn test_array() {
+    let output = run_test("array", vec![]);
+    assert_golden_yaml!(&output, "array");
 }

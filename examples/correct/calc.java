@@ -5,5 +5,6 @@ int Main() {
 
     int d = (a - b) * c;
 
+    iout(4, d);
     return d;
 }

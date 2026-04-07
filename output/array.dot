@@ -24,7 +24,10 @@ digraph CFG {
   B18 [label="B18|return \"'\\0'\"\l"];
   B19 [label="B19|r17 = load s2\lr18 = r17 Less \"9\"\lbranch r18 ? B20 : B21\l"];
   B20 [label="B20|link r19 = load s1\lr20 = load s2\lr21 = load s2\lr22 = call B0(r21)\llink r19[r20] = r22\lr23 = load s2\lr24 = r23 Add \"1\"\ls2 = r24\ljump B19\l"];
-  B21 [label="B21|link r25 = load s1\lr26 = link r25[\"9\"]\lreturn r26\l"];
+  B21 [label="B21|alloc s3\ls3 = \"0\"\ljump B22\l"];
+  B22 [label="B22|r25 = load s3\lr26 = r25 Less \"10\"\lbranch r26 ? B23 : B24\l"];
+  B23 [label="B23|link r27 = load s1\lr28 = load s3\lr29 = link r27[r28]\loutput \"2\" = r29\lr31 = load s3\lr32 = r31 Add \"1\"\ls3 = r32\ljump B22\l"];
+  B24 [label="B24|link r33 = load s1\lr34 = link r33[\"0\"]\lreturn r34\l"];
   B0 -> B4 [label="true"];
   B0 -> B5 [label="false"];
   B1 -> B19;
@@ -44,5 +47,9 @@ digraph CFG {
   B19 -> B20 [label="true"];
   B19 -> B21 [label="false"];
   B20 -> B19;
+  B21 -> B22;
+  B22 -> B23 [label="true"];
+  B22 -> B24 [label="false"];
+  B23 -> B22;
   B1 [style=filled, fillcolor=lightgreen];
 }
