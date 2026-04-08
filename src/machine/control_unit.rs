@@ -1,8 +1,8 @@
 use crate::isa::{Mode, Operand, Operator, WordSize};
-use crate::machine::alu::AluOperator;
+use crate::machine::alu::{AluOperator, VectorAluOperator};
 use crate::machine::data_path::{
-    AluInputSelector, BufferSelector, DataPath, DataSelector, ExternalSelector, PostModeSelector,
-    PreModeSelector,
+    AluInputSelector, BufferSelector, DataPath, DataSelector, ExternalSelector,
+    OutputVectorSelector, PostModeSelector, PreModeSelector, WriteDataSelector,
 };
 use crate::machine::instruction_parser::InstructionParser;
 use crate::machine::memory::Memory;
@@ -132,6 +132,9 @@ impl ControlUnit {
                 self.data_path.latch_address_register(7, &WordSize::Long);
                 self.data_path.write_data_memory(&WordSize::Byte);
 
+                self.data_path.pre_mode_selector = PreModeSelector::None;
+                self.data_path.post_mode_selector = PostModeSelector::None;
+
                 self.execution_state = ExecutionState::Done;
             }
             _ => unreachable!(),
@@ -160,7 +163,6 @@ impl ControlUnit {
         match self.operator {
             Operator::Hlt => {}
             Operator::Mov
-            | Operator::Mova
             | Operator::Add
             | Operator::Adc
             | Operator::Sub
@@ -176,6 +178,12 @@ impl ControlUnit {
             | Operator::Asl
             | Operator::Asr
             | Operator::Cmp
+            | Operator::VAdd
+            | Operator::VSub
+            | Operator::VMul
+            | Operator::VDiv
+            | Operator::VRem
+            | Operator::VEnd
             | Operator::In
             | Operator::Out => self.latch_pc(PcSelector::NextWord),
             Operator::Jmp
@@ -207,7 +215,7 @@ impl ControlUnit {
                 self.log += &format!("| Result : {}", self.data_path.data_registers[0]);
             }
             Operator::Mov => self.execute_operator(step, AluOperator::Trr),
-            Operator::Mova => self.execute_operator(step, AluOperator::Trr), // todo
+            Operator::Cmp => self.execute_cmp(step),
             Operator::Add => self.execute_operator(step, AluOperator::Add),
             Operator::Adc => self.execute_operator(step, AluOperator::Adc),
             Operator::Sub => self.execute_operator(step, AluOperator::Sub),
@@ -248,11 +256,16 @@ impl ControlUnit {
             Operator::Bcc => self.execute_branch(step, !self.data_path.transmit_nzcv().carry),
             Operator::Bvs => self.execute_branch(step, self.data_path.transmit_nzcv().overflow),
             Operator::Bvc => self.execute_branch(step, !self.data_path.transmit_nzcv().overflow),
-            Operator::Cmp => self.execute_cmp(step),
             Operator::In => self.execute_input(step),
             Operator::Out => self.execute_output(step),
             Operator::EI => self.enable_interrupt(step),
             Operator::DI => self.disable_interrupt(step),
+            Operator::VAdd => self.execute_vector(step, VectorAluOperator::VAdd),
+            Operator::VSub => self.execute_vector(step, VectorAluOperator::VSub),
+            Operator::VMul => self.execute_vector(step, VectorAluOperator::VMul),
+            Operator::VDiv => self.execute_vector(step, VectorAluOperator::VDiv),
+            Operator::VRem => self.execute_vector(step, VectorAluOperator::VRem),
+            Operator::VEnd => self.execute_vector_end(step),
         }
     }
 
@@ -373,6 +386,122 @@ impl ControlUnit {
         }
     }
 
+    fn execute_vector(&mut self, step: u8, alu_op: VectorAluOperator) {
+        match step {
+            0 => {
+                let left = self.parse_data_readable(1);
+                self.prepare_operand(Order::Master, &left);
+                if Self::is_operand_needed_second_step(&left) {
+                    self.execution_state = ExecutionState::Execute(step + 1);
+                } else {
+                    self.iterate_vector(0);
+                    self.execution_state = ExecutionState::Execute(step + 2);
+                }
+            }
+            1 => {
+                self.prepare_operand_read_data(Order::Master);
+                self.iterate_vector(0);
+                self.execution_state = ExecutionState::Execute(step + 1);
+            }
+            2..=4 => {
+                let i = step as i64 - 2;
+                self.data_path.latch_read_data();
+                self.data_path.latch_input_vector_registers(i as usize);
+                self.iterate_vector(i + 1);
+                self.execution_state = ExecutionState::Execute(step + 1);
+            }
+            5 => {
+                self.data_path.latch_read_data();
+                self.data_path.latch_input_vector_registers(3);
+
+                let right = self.parse_data_readable(2);
+                self.prepare_operand(Order::Master, &right);
+                if Self::is_operand_needed_second_step(&right) {
+                    self.execution_state = ExecutionState::Execute(step + 1);
+                } else {
+                    self.iterate_vector(0);
+                    self.execution_state = ExecutionState::Execute(step + 2);
+                }
+            }
+            6 => {
+                self.prepare_operand_read_data(Order::Master);
+                self.iterate_vector(0);
+                self.execution_state = ExecutionState::Execute(step + 1);
+            }
+            7..=9 => {
+                let i = step as i64 - 7;
+                self.data_path.latch_read_data();
+                self.data_path.latch_input_vector_registers(i as usize + 4);
+                self.iterate_vector(i + 1);
+                self.execution_state = ExecutionState::Execute(step + 1);
+            }
+            10 => {
+                self.data_path.latch_read_data();
+                self.data_path.latch_input_vector_registers(7);
+                self.data_path.execute_vector_alu(alu_op);
+                self.execution_state = ExecutionState::Done;
+            }
+            _ => {}
+        }
+    }
+
+    fn iterate_vector(&mut self, i: i64) {
+        self.data_path.control_unit_output = i * 8;
+        self.data_path.external_selector = ExternalSelector::ControlUnit;
+        self.data_path.update_right_data(DataSelector::External);
+        self.data_path.update_left_alu_input(AluInputSelector::Data);
+        self.data_path
+            .update_right_alu_input(AluInputSelector::Data);
+        self.data_path.execute_alu(AluOperator::Add);
+        self.data_path.latch_data_address();
+        self.data_path.read_data_memory(&WordSize::Long);
+    }
+
+    fn execute_vector_end(&mut self, step: u8) {
+        match step {
+            0 => {
+                let destination = self.parse_data_readable(1);
+                self.prepare_operand(Order::Master, &destination);
+                if Self::is_operand_needed_second_step(&destination) {
+                    self.execution_state = ExecutionState::Execute(step + 1);
+                }
+                else {
+                    self.iterate_vector_end(0);
+                    self.execution_state = ExecutionState:: Execute(step + 2);
+                }
+            }
+            1 => {
+                self.iterate_vector_end(0);
+                self.execution_state = ExecutionState::Execute(step + 1);
+            }
+            2..=3 => {
+                self.iterate_vector_end(step as i64 - 1);
+                self.execution_state = ExecutionState::Execute(step + 1);
+            }
+            4 => {
+                self.iterate_vector_end(step as i64 - 1);
+                self.execution_state = ExecutionState::Done;
+            }
+            _ => unreachable!()
+        }
+    }
+
+    fn iterate_vector_end(&mut self, i: i64) {
+        self.data_path.control_unit_output = i * 8;
+        self.data_path.external_selector = ExternalSelector::ControlUnit;
+        self.data_path.update_right_data(DataSelector::External);
+        self.data_path.update_left_alu_input(AluInputSelector::Data);
+        self.data_path
+            .update_right_alu_input(AluInputSelector::Data);
+        self.data_path.execute_alu(AluOperator::Add);
+        self.data_path.latch_data_address();
+        self.data_path
+            .update_output_vector_mux(i as OutputVectorSelector);
+        self.data_path
+            .latch_write_data(WriteDataSelector::VectorAlu);
+        self.data_path.write_data_memory(&WordSize::Long);
+    }
+
     fn execute_jump(&mut self, step: u8) {
         match step {
             0 => {
@@ -426,12 +555,15 @@ impl ControlUnit {
                 self.execution_state = ExecutionState::Execute(1);
             }
             1 => {
-                self.latch_read_data();
+                self.data_path.latch_read_data();
                 self.data_path.update_left_data(DataSelector::ReadData);
                 self.data_path.update_left_alu_input(AluInputSelector::Data);
                 self.data_path.execute_alu(AluOperator::Trl);
                 self.data_path.restore_nzcv();
                 self.interrupt_flag = true;
+
+                self.data_path.pre_mode_selector = PreModeSelector::None;
+                self.data_path.post_mode_selector = PostModeSelector::None;
 
                 self.execution_state = ExecutionState::Done;
             }
@@ -746,7 +878,7 @@ impl ControlUnit {
             | Mode::IndirectPreDecrement
             | Mode::IndirectOffset
             | Mode::IndirectDirect => {
-                self.data_path.latch_write_data();
+                self.data_path.latch_write_data(WriteDataSelector::Alu);
                 self.data_path.write_data_memory(&self.word_size);
                 self.log += &format!(
                     "| Store (#{}) = {} ",

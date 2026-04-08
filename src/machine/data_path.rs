@@ -1,5 +1,5 @@
 use crate::isa::WordSize;
-use crate::machine::alu::{Alu, AluOperator};
+use crate::machine::alu::{Alu, AluOperator, VectorAluOperator};
 use crate::machine::io::IO;
 use crate::machine::memory::Memory;
 use crate::machine::nzcv::Nzcv;
@@ -11,6 +11,13 @@ pub type DataRegisterWriteSelector = u8;
 pub type AddressRegisterReadSelector = u8;
 
 pub type AddressRegisterWriteSelector = u8;
+
+pub type OutputVectorSelector = u8;
+
+pub enum WriteDataSelector {
+    Alu,
+    VectorAlu,
+}
 
 pub enum DataSelector {
     DataRegister,
@@ -56,10 +63,10 @@ pub struct DataPath {
     alu_output: i64,
 
     data_registers_mux: i64,
-    pub data_registers: Vec<i64>,
+    pub data_registers: [i64; 8],
 
     address_registers_mux: i64,
-    pub address_registers: Vec<i64>,
+    pub address_registers: [i64; 8],
 
     left_data: i64,
     left_buffer: i64,
@@ -78,6 +85,10 @@ pub struct DataPath {
 
     pub io: IO,
     pub control_unit_output: i64,
+
+    pub input_vector_registers: [i64; 8],
+    pub vector_alu_output: [i64; 4],
+    pub output_vector_mux: i64,
 }
 
 impl DataPath {
@@ -221,8 +232,46 @@ impl DataPath {
         self.read_data = self.memory_output;
     }
 
-    pub fn latch_write_data(&mut self) {
-        self.write_data = self.alu_output;
+    pub fn latch_write_data(&mut self, selector: WriteDataSelector) {
+        match selector {
+            WriteDataSelector::Alu => self.write_data = self.alu_output,
+            WriteDataSelector::VectorAlu => self.write_data = self.output_vector_mux,
+        }
+    }
+
+    pub fn latch_input_vector_registers(&mut self, i: usize) {
+        self.input_vector_registers[i] = self.read_data;
+    }
+
+    pub fn execute_vector_alu(&mut self, operator: VectorAluOperator) {
+        for i in 0..4 {
+            match operator {
+                VectorAluOperator::VAdd => {
+                    self.vector_alu_output[i] =
+                        self.input_vector_registers[i] + self.input_vector_registers[i + 4]
+                }
+                VectorAluOperator::VSub => {
+                    self.vector_alu_output[i] =
+                        self.input_vector_registers[i] - self.input_vector_registers[i + 4]
+                }
+                VectorAluOperator::VMul => {
+                    self.vector_alu_output[i] =
+                        self.input_vector_registers[i] * self.input_vector_registers[i + 4]
+                }
+                VectorAluOperator::VDiv => {
+                    self.vector_alu_output[i] =
+                        self.input_vector_registers[i] / self.input_vector_registers[i + 4]
+                }
+                VectorAluOperator::VRem => {
+                    self.vector_alu_output[i] =
+                        self.input_vector_registers[i] % self.input_vector_registers[i + 4]
+                }
+            }
+        }
+    }
+
+    pub fn update_output_vector_mux(&mut self, selector: OutputVectorSelector) {
+        self.output_vector_mux = self.vector_alu_output[selector as usize];
     }
 
     pub fn transmit_nzcv(&self) -> &Nzcv {
@@ -252,9 +301,9 @@ impl Default for DataPath {
             alu: Alu::default(),
             alu_output: 0,
             data_registers_mux: 0,
-            data_registers: vec![0; 8],
+            data_registers: [0; 8],
             address_registers_mux: 0,
-            address_registers: vec![0; 8],
+            address_registers: [0; 8],
             left_data: 0,
             left_buffer: 0,
             right_data: 0,
@@ -268,6 +317,9 @@ impl Default for DataPath {
             write_data: 0,
             io: IO::new(),
             control_unit_output: 0,
+            input_vector_registers: [0; 8],
+            vector_alu_output: [0; 4],
+            output_vector_mux: 0,
         }
     }
 }

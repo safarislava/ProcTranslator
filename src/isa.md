@@ -45,6 +45,10 @@ Operator code:
 0x02 - MOVA.size from, to
 - from = {D* | A*}
 - to = {D* | A*}
+
+0x03 - CMP.size that, with
+- that, with = {#* | D* | A* | MEMORY}
+- set NZVC as for (that - with)
 ---
 0x10 - ADD.size from, to
 - from = {#* | D* | A* | MEMORY}
@@ -127,7 +131,6 @@ Operator code:
 - PC <- (A7)
 - NZCV <- (A7)+
 ---
-
 0x50 - BEQ label 
 
 0x51 - BNE label
@@ -148,11 +151,24 @@ Operator code:
 
 0x59 - BVC label
 
----
-0x60 - CMP.size that, with
-- that, with = {#* | D* | A* | MEMORY}
-- set NZVC as for (that - with)
+--- 
+0x60 - VADD a, b
+- a, b = {A*}
 
+0x62 - VSUB a, b
+- a, b = {A*}
+
+0x63 - VMUL a, b
+- a, b = {A*}
+
+0x64 - VDIV a, b
+- a, b = {A*}
+
+0x65 - VREM a, b
+- a, b = {A*}
+
+0x66 - VEND c
+- c, = {A*}
 ---
 0x70 - IN port, to
 - to = {D* | A* | MEMORY}

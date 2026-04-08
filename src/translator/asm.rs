@@ -51,18 +51,6 @@ impl AsmTranslator {
                 } => {
                     self.translate_standard_instruction(Operator::Mov, size, &source, &destination);
                 }
-                LirInstruction::Mova {
-                    size,
-                    source,
-                    destination,
-                } => {
-                    self.translate_standard_instruction(
-                        Operator::Mova,
-                        size,
-                        &source,
-                        &destination,
-                    );
-                }
                 LirInstruction::Add {
                     size,
                     source,
@@ -136,6 +124,49 @@ impl AsmTranslator {
                     let operator = self.condition_to_operator(condition);
                     self.translate_branch(operator, label);
                 }
+                LirInstruction::VAdd { left, right } => {
+                    self.translate_standard_instruction(
+                        Operator::VAdd,
+                        WordSize::Byte,
+                        &left,
+                        &right,
+                    );
+                }
+                LirInstruction::VSub { left, right } => {
+                    self.translate_standard_instruction(
+                        Operator::VSub,
+                        WordSize::Byte,
+                        &left,
+                        &right,
+                    );
+                }
+                LirInstruction::VMul { left, right } => {
+                    self.translate_standard_instruction(
+                        Operator::VMul,
+                        WordSize::Byte,
+                        &left,
+                        &right,
+                    );
+                }
+                LirInstruction::VDiv { left, right } => {
+                    self.translate_standard_instruction(
+                        Operator::VDiv,
+                        WordSize::Byte,
+                        &left,
+                        &right,
+                    );
+                }
+                LirInstruction::VRem { left, right } => {
+                    self.translate_standard_instruction(
+                        Operator::VRem,
+                        WordSize::Byte,
+                        &left,
+                        &right,
+                    );
+                }
+                LirInstruction::VEnd { destination } => {
+                    self.translate_vector_end(&destination);
+                }
                 LirInstruction::Call { label } => {
                     self.translate_branch(Operator::Call, label);
                 }
@@ -185,11 +216,19 @@ impl AsmTranslator {
                     self.data[jump_address..jump_address + 8]
                         .copy_from_slice(&current_address.to_be_bytes());
                 }
-                LirInstruction::In { port, destination } => {
-                    self.translate_io(Operator::In, &port, &destination);
+                LirInstruction::In {
+                    port,
+                    destination,
+                    word_size,
+                } => {
+                    self.translate_io(Operator::In, &port, &destination, word_size);
                 }
-                LirInstruction::Out { port, value } => {
-                    self.translate_io(Operator::Out, &port, &value);
+                LirInstruction::Out {
+                    port,
+                    value,
+                    word_size,
+                } => {
+                    self.translate_io(Operator::Out, &port, &value, word_size);
                 }
                 LirInstruction::Halt => {
                     let operator_code = self.operators[&Operator::Hlt];
@@ -284,6 +323,18 @@ impl AsmTranslator {
         self.data.extend(destination_postcode);
     }
 
+    fn translate_vector_end(&mut self, destination: &LirOperand) {
+        let operator_code = self.operators[&Operator::VEnd];
+
+        let (source_code, source_postcode) = self.translate_operand(destination);
+
+        self.data.push(operator_code << 1);
+        self.data.push(source_code);
+        self.data.push(0);
+        self.data.push(0);
+        self.data.extend(source_postcode);
+    }
+
     fn translate_branch(&mut self, operator: Operator, label: BlockId) {
         let operator_code = self.operators[&operator];
         self.data.push(operator_code << 1);
@@ -309,9 +360,15 @@ impl AsmTranslator {
         }
     }
 
-    fn translate_io(&mut self, operator: Operator, port: &LirOperand, operand: &LirOperand) {
+    fn translate_io(
+        &mut self,
+        operator: Operator,
+        port: &LirOperand,
+        operand: &LirOperand,
+        word_size: WordSize,
+    ) {
         let operator_code = self.operators[&operator];
-        let size_code = self.word_sizes[&WordSize::Long];
+        let size_code = self.word_sizes[&word_size];
 
         if let LirOperand::Direct(port) = port
             && *port <= u8::MAX as u64
@@ -383,7 +440,7 @@ impl Default for AsmTranslator {
         let operators = HashMap::from([
             (Operator::Hlt, 0x00),
             (Operator::Mov, 0x01),
-            (Operator::Mova, 0x02),
+            (Operator::Cmp, 0x02),
             (Operator::Add, 0x10),
             (Operator::Adc, 0x11),
             (Operator::Sub, 0x12),
@@ -412,7 +469,12 @@ impl Default for AsmTranslator {
             (Operator::Bcc, 0x57),
             (Operator::Bvs, 0x58),
             (Operator::Bvc, 0x59),
-            (Operator::Cmp, 0x60),
+            (Operator::VAdd, 0x60),
+            (Operator::VSub, 0x62),
+            (Operator::VMul, 0x63),
+            (Operator::VDiv, 0x64),
+            (Operator::VRem, 0x65),
+            (Operator::VEnd, 0x66),
             (Operator::In, 0x70),
             (Operator::Out, 0x71),
             (Operator::EI, 0x72),

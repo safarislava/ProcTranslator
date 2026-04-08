@@ -10,16 +10,16 @@ class String {
     }
 
     void add(char v) {
-        buffer[this.pointer++] = v;
+        this.buffer[this.pointer++] = v;
         return;
     }
 
     bool end() {
-        return buffer[this.pointer - 1] == '\0';
+        return this.buffer[this.pointer - 1] == '\0';
     }
 
     char get(int i) {
-        return buffer[i];
+        return this.buffer[i];
     }
 }
 

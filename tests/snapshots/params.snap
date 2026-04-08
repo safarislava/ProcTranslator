@@ -1,6 +1,6 @@
 ---
 source: tests/golden.rs
-expression: formatted
+expression: yaml
 ---
 program: |-
   int calc(int a, int b, int c) {
@@ -39,7 +39,7 @@ log: |2-
    INFO TICK 11 | Load (#99991) = 0 | Store (#99991) = 0
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 0, 99991]
-   INFO TICK 12 | PC=195 | MOVA.w
+   INFO TICK 12 | PC=195 | MOV.w
    INFO TICK 13 | A7
    INFO TICK 14 | A6
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
@@ -152,7 +152,7 @@ log: |2-
    INFO TICK 86 | Load (#99871) = 0 | Store (#99871) = 99991
   DEBUG D [0, 9, -1, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99871]
-   INFO TICK 87 | PC=38 | MOVA.w
+   INFO TICK 87 | PC=38 | MOV.w
    INFO TICK 88 | A7
    INFO TICK 89 | A6
   DEBUG D [0, 9, -1, 0, 0, 0, 0, 0]
@@ -241,12 +241,12 @@ log: |2-
    INFO TICK 143 | D0
   DEBUG D [32, 4, 32, 8, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99871, 99847]
-   INFO TICK 144 | PC=182 | MOVA.w
+   INFO TICK 144 | PC=182 | MOV.w
    INFO TICK 145 | A6
    INFO TICK 146 | A7
   DEBUG D [32, 4, 32, 8, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99871, 99871]
-   INFO TICK 147 | PC=186 | MOVA.w
+   INFO TICK 147 | PC=186 | MOV.w
    INFO TICK 148 | (A7)+
    INFO TICK 149 | Load (#99871) = 99991
    INFO TICK 150 | A6
@@ -330,12 +330,12 @@ log: |2-
    INFO TICK 200 | D1
   DEBUG D [32, 32, -1, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99967]
-   INFO TICK 201 | PC=412 | MOVA.w
+   INFO TICK 201 | PC=412 | MOV.w
    INFO TICK 202 | A6
    INFO TICK 203 | A7
   DEBUG D [32, 32, -1, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99991]
-   INFO TICK 204 | PC=416 | MOVA.w
+   INFO TICK 204 | PC=416 | MOV.w
    INFO TICK 205 | (A7)+
    INFO TICK 206 | Load (#99991) = 0
    INFO TICK 207 | A6

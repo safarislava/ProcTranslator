@@ -58,11 +58,7 @@ struct TestWriterGuard<'a> {
 
 impl<'a> Write for TestWriterGuard<'a> {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        if self.needs_newline && !buf.is_empty() {
-            self.inner.push(b'\n');
-        }
         self.inner.extend_from_slice(buf);
-        self.needs_newline = !buf.ends_with(b"\n");
         Ok(buf.len())
     }
 
@@ -113,8 +109,14 @@ fn run_test(name: &str, interrupts: Vec<InterruptRequest>) -> TestOutput {
             .join("\n")
     };
 
+    let clean_program = content
+        .lines()
+        .map(|line| line.trim_end())
+        .collect::<Vec<_>>()
+        .join("\n");
+
     TestOutput {
-        program: content,
+        program: clean_program,
         input: interrupts
             .iter()
             .map(|i| InterruptLog {
@@ -128,48 +130,6 @@ fn run_test(name: &str, interrupts: Vec<InterruptRequest>) -> TestOutput {
     }
 }
 
-fn format_yaml_with_literal_blocks(yaml: &str) -> String {
-    let mut result = String::new();
-    let lines: Vec<&str> = yaml.lines().collect();
-    let mut i = 0;
-
-    while i < lines.len() {
-        let line = lines[i];
-
-        if line.starts_with("out_log:") {
-            result.push_str("out_log: |\n");
-            i += 1;
-
-            while i < lines.len() {
-                let list_line = lines[i];
-
-                if list_line.trim_start().starts_with("- ")
-                    || list_line.trim_start().starts_with("-'")
-                {
-                    let trimmed = list_line.trim_start();
-                    let content = if trimmed.starts_with("- '") && trimmed.ends_with('\'') {
-                        &trimmed[3..trimmed.len() - 1]
-                    } else if trimmed.starts_with("- ") {
-                        &trimmed[2..]
-                    } else {
-                        trimmed
-                    };
-                    result.push_str(&format!("  {}\n", content));
-                    i += 1;
-                } else {
-                    break;
-                }
-            }
-        } else {
-            result.push_str(line);
-            result.push('\n');
-            i += 1;
-        }
-    }
-
-    result.trim_end().to_string()
-}
-
 #[macro_export]
 macro_rules! assert_golden_yaml {
     ($output:expr, $snapshot_name:expr) => {{
@@ -178,14 +138,12 @@ macro_rules! assert_golden_yaml {
 
         let yaml = serde_yaml::to_string($output).expect("Failed to serialize TestOutput to YAML");
 
-        let formatted = $crate::format_yaml_with_literal_blocks(&yaml);
-
         let mut settings = insta::Settings::clone_current();
         settings.set_snapshot_path("snapshots");
         settings.set_prepend_module_to_snapshot(false);
 
         settings.bind(|| {
-            assert_snapshot!($snapshot_name, formatted);
+            assert_snapshot!($snapshot_name, yaml);
         });
     }};
 }
@@ -195,8 +153,7 @@ pub fn export_test_output(output: &TestOutput, path: &str) -> std::io::Result<()
 
     let yaml = serde_yaml::to_string(output).map_err(std::io::Error::other)?;
 
-    let formatted = format_yaml_with_literal_blocks(&yaml);
-    fs::write(path, formatted)?;
+    fs::write(path, yaml)?;
     Ok(())
 }
 
@@ -249,9 +206,15 @@ fn test_params() {
 }
 
 #[test]
-fn test_interrupt() {
+fn test_array() {
+    let output = run_test("array", vec![]);
+    assert_golden_yaml!(&output, "array");
+}
+
+#[test]
+fn test_cat() {
     let output = run_test(
-        "interrupt",
+        "cat",
         vec![
             InterruptRequest {
                 tick: 200,
@@ -285,11 +248,132 @@ fn test_interrupt() {
             },
         ],
     );
-    assert_golden_yaml!(&output, "interrupt");
+    assert_golden_yaml!(&output, "cat");
 }
 
 #[test]
-fn test_array() {
-    let output = run_test("array", vec![]);
-    assert_golden_yaml!(&output, "array");
+fn test_hello_world() {
+    let output = run_test("hello_world", vec![]);
+    assert_golden_yaml!(&output, "hello world");
+}
+
+#[test]
+fn test_hello_user() {
+    let output = run_test(
+        "hello_user",
+        vec![
+            InterruptRequest {
+                tick: 200,
+                value: 115,
+                device: DeviceChoice::CharInput,
+            },
+            InterruptRequest {
+                tick: 250,
+                value: 97,
+                device: DeviceChoice::CharInput,
+            },
+            InterruptRequest {
+                tick: 300,
+                value: 102,
+                device: DeviceChoice::CharInput,
+            },
+            InterruptRequest {
+                tick: 350,
+                value: 97,
+                device: DeviceChoice::CharInput,
+            },
+            InterruptRequest {
+                tick: 400,
+                value: 114,
+                device: DeviceChoice::CharInput,
+            },
+            InterruptRequest {
+                tick: 450,
+                value: 105,
+                device: DeviceChoice::CharInput,
+            },
+            InterruptRequest {
+                tick: 500,
+                value: 115,
+                device: DeviceChoice::CharInput,
+            },
+            InterruptRequest {
+                tick: 550,
+                value: 108,
+                device: DeviceChoice::CharInput,
+            },
+            InterruptRequest {
+                tick: 600,
+                value: 97,
+                device: DeviceChoice::CharInput,
+            },
+            InterruptRequest {
+                tick: 650,
+                value: 118,
+                device: DeviceChoice::CharInput,
+            },
+            InterruptRequest {
+                tick: 700,
+                value: 97,
+                device: DeviceChoice::CharInput,
+            },
+            InterruptRequest {
+                tick: 750,
+                value: 0,
+                device: DeviceChoice::CharInput,
+            },
+        ],
+    );
+    assert_golden_yaml!(&output, "hello_user");
+}
+
+#[test]
+fn test_sort() {
+    let output = run_test(
+        "sort",
+        vec![
+            InterruptRequest {
+                tick: 150,
+                value: 6,
+                device: DeviceChoice::IntInput,
+            },
+            InterruptRequest {
+                tick: 200,
+                value: 101,
+                device: DeviceChoice::IntInput,
+            },
+            InterruptRequest {
+                tick: 250,
+                value: 3,
+                device: DeviceChoice::IntInput,
+            },
+            InterruptRequest {
+                tick: 300,
+                value: -99,
+                device: DeviceChoice::IntInput,
+            },
+            InterruptRequest {
+                tick: 350,
+                value: 99,
+                device: DeviceChoice::IntInput,
+            },
+            InterruptRequest {
+                tick: 400,
+                value: 24,
+                device: DeviceChoice::IntInput,
+            },
+            InterruptRequest {
+                tick: 450,
+                value: 52,
+                device: DeviceChoice::IntInput,
+            },
+        ],
+    );
+    assert_golden_yaml!(&output, "sort");
+}
+
+#[test]
+fn test_vector() {
+    let output = run_test("vector", vec![]);
+    assert_golden_yaml!(&output, "vector");
 }

@@ -1,6 +1,9 @@
 use crate::translator::ast::{RawAbstractSyntaxNode, RawAbstractSyntaxTree};
 use crate::translator::common::{RawExpression, ResBox, Type, TypedExpression, Variable};
-use crate::translator::expression::{Expression, ExpressionBinaryOperator};
+use crate::translator::expression::{
+    Expression, is_arithmetic_binary_op, is_compering_binary_op,
+    is_logical_binary_op, is_relational_binary_op,
+};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
@@ -463,28 +466,31 @@ impl SemanticTable {
                     return Err("Binary operator type mismatch".into());
                 }
 
-                if Self::is_arithmetic_binary_op(operator) && left_type != Type::Int {
+                if is_arithmetic_binary_op(operator)
+                    && left_type != Type::Int
+                    && left_type != Type::Array(Box::new(Type::Int), 4)
+                {
                     return Err(format!(
-                        "Arithmetic operations can only be applied to type int, found {:?}",
+                        "Arithmetic operations can only be applied to type int or array[4], found {:?}",
                         left_type
                     )
                     .into());
                 }
 
-                if Self::is_logical_binary_op(operator) && left_type != Type::Bool {
+                if is_logical_binary_op(operator) && left_type != Type::Bool {
                     return Err(
                         "Logical operations (&&, ||) can only be applied to type bool".into(),
                     );
                 }
 
-                if Self::is_relational_binary_op(operator) && left_type != Type::Int {
+                if is_relational_binary_op(operator) && left_type != Type::Int {
                     return Err(
                         "Relational operations (<, >, <=, >=) can only be applied to type int"
                             .into(),
                     );
                 }
 
-                let result_type = if Self::is_compering_binary_op(operator) {
+                let result_type = if is_compering_binary_op(operator) {
                     Type::Bool
                 } else {
                     left_type
@@ -503,7 +509,7 @@ impl SemanticTable {
                 let (ret, parameters) = self
                     .functions
                     .get(name)
-                    .ok_or(format!("Func {} not found", name))?;
+                    .ok_or(format!("Function {} not found", name))?;
                 let typed_args = self.analyze_arguments(parameters, arguments)?;
                 Ok(Expression::FunctionCall {
                     typ: ret.clone(),
@@ -798,50 +804,6 @@ impl SemanticTable {
             typed_arguments.push(typed_argument);
         }
         Ok(typed_arguments)
-    }
-
-    fn is_arithmetic_binary_op(operator: &ExpressionBinaryOperator) -> bool {
-        matches!(
-            operator,
-            ExpressionBinaryOperator::Add
-                | ExpressionBinaryOperator::Sub
-                | ExpressionBinaryOperator::Multiply
-                | ExpressionBinaryOperator::Divide
-                | ExpressionBinaryOperator::Remainder
-                | ExpressionBinaryOperator::AssignAdd
-                | ExpressionBinaryOperator::AssignSub
-                | ExpressionBinaryOperator::AssignMul
-                | ExpressionBinaryOperator::AssignDiv
-        )
-    }
-
-    fn is_logical_binary_op(operator: &ExpressionBinaryOperator) -> bool {
-        matches!(
-            operator,
-            ExpressionBinaryOperator::And | ExpressionBinaryOperator::Or
-        )
-    }
-
-    fn is_relational_binary_op(operator: &ExpressionBinaryOperator) -> bool {
-        matches!(
-            operator,
-            ExpressionBinaryOperator::Less
-                | ExpressionBinaryOperator::LessEqual
-                | ExpressionBinaryOperator::Greater
-                | ExpressionBinaryOperator::GreaterEqual
-        )
-    }
-
-    fn is_compering_binary_op(operator: &ExpressionBinaryOperator) -> bool {
-        matches!(
-            operator,
-            ExpressionBinaryOperator::Equal
-                | ExpressionBinaryOperator::NotEqual
-                | ExpressionBinaryOperator::Less
-                | ExpressionBinaryOperator::LessEqual
-                | ExpressionBinaryOperator::Greater
-                | ExpressionBinaryOperator::GreaterEqual
-        )
     }
 }
 

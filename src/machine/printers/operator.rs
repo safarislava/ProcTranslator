@@ -6,7 +6,6 @@ impl Display for Operator {
         let code = match self {
             Operator::Hlt => "HLT",
             Operator::Mov => "MOV",
-            Operator::Mova => "MOVA",
             Operator::Add => "ADD",
             Operator::Adc => "ADC",
             Operator::Sub => "SUB",
@@ -40,6 +39,12 @@ impl Display for Operator {
             Operator::Out => "OUT",
             Operator::EI => "EI",
             Operator::DI => "DI",
+            Operator::VAdd => "VADD",
+            Operator::VSub => "VSUB",
+            Operator::VMul => "VMUL",
+            Operator::VDiv => "VDIV",
+            Operator::VRem => "VREM",
+            Operator::VEnd => "VEND",
         };
         f.write_str(code)
     }

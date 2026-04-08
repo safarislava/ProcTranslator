@@ -1,6 +1,6 @@
 ---
 source: tests/golden.rs
-expression: formatted
+expression: yaml
 ---
 program: |-
   bool Main() {
@@ -30,7 +30,7 @@ log: |2-
    INFO TICK 11 | Load (#99991) = 0 | Store (#99991) = 0
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 0, 99991]
-   INFO TICK 12 | PC=38 | MOVA.w
+   INFO TICK 12 | PC=38 | MOV.w
    INFO TICK 13 | A7
    INFO TICK 14 | A6
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
@@ -83,12 +83,12 @@ log: |2-
    INFO TICK 44 | D0
   DEBUG D [1, 1, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99991]
-   INFO TICK 45 | PC=152 | MOVA.w
+   INFO TICK 45 | PC=152 | MOV.w
    INFO TICK 46 | A6
    INFO TICK 47 | A7
   DEBUG D [1, 1, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99991]
-   INFO TICK 48 | PC=156 | MOVA.w
+   INFO TICK 48 | PC=156 | MOV.w
    INFO TICK 49 | (A7)+
    INFO TICK 50 | Load (#99991) = 0
    INFO TICK 51 | A6

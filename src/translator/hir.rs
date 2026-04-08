@@ -1,7 +1,7 @@
-use crate::isa::WordSize;
+use crate::isa::{WordSize};
 use crate::translator::analyzer::{TypedAbstractSyntaxNode, TypedAbstractSyntaxTree};
 use crate::translator::common::{Type, TypedExpression};
-use crate::translator::expression::ExpressionBinaryOperator;
+use crate::translator::expression::{ExpressionBinaryOperator, is_arithmetic_binary_op};
 use std::collections::HashMap;
 use std::iter;
 
@@ -23,11 +23,57 @@ pub enum HirOperand {
 }
 
 #[derive(Debug, Clone)]
+pub enum HirBinaryOperator {
+    Assign,
+    Or,
+    And,
+    Equal,
+    NotEqual,
+    Less,
+    LessEqual,
+    Greater,
+    GreaterEqual,
+    Add,
+    Sub,
+    Multiply,
+    Divide,
+    Remainder,
+    VectorAdd,
+    VectorSub,
+    VectorMultiply,
+    VectorDivide,
+    VectorRemainder,
+}
+
+fn translate_binary_operator(operator: ExpressionBinaryOperator) -> HirBinaryOperator {
+    match operator {
+        ExpressionBinaryOperator::Assign => HirBinaryOperator::Assign,
+        ExpressionBinaryOperator::AssignAdd
+        | ExpressionBinaryOperator::AssignSub
+        | ExpressionBinaryOperator::AssignMul
+        | ExpressionBinaryOperator::AssignDiv => unreachable!(),
+        ExpressionBinaryOperator::Or => HirBinaryOperator::Or,
+        ExpressionBinaryOperator::And => HirBinaryOperator::And,
+        ExpressionBinaryOperator::Equal => HirBinaryOperator::Equal,
+        ExpressionBinaryOperator::NotEqual => HirBinaryOperator::NotEqual,
+        ExpressionBinaryOperator::Less => HirBinaryOperator::Less,
+        ExpressionBinaryOperator::LessEqual => HirBinaryOperator::LessEqual,
+        ExpressionBinaryOperator::Greater => HirBinaryOperator::Greater,
+        ExpressionBinaryOperator::GreaterEqual => HirBinaryOperator::GreaterEqual,
+        ExpressionBinaryOperator::Add => HirBinaryOperator::Add,
+        ExpressionBinaryOperator::Sub => HirBinaryOperator::Sub,
+        ExpressionBinaryOperator::Multiply => HirBinaryOperator::Multiply,
+        ExpressionBinaryOperator::Divide => HirBinaryOperator::Divide,
+        ExpressionBinaryOperator::Remainder => HirBinaryOperator::Remainder,
+    }
+}
+
+#[derive(Debug, Clone)]
 pub enum HirInstruction {
     BinaryOperator {
         destination: HirOperand,
         left: HirOperand,
-        operator: ExpressionBinaryOperator,
+        operator: HirBinaryOperator,
         right: HirOperand,
         word_size: WordSize,
     },
@@ -110,10 +156,12 @@ pub enum HirInstruction {
     Input {
         port: HirOperand,
         destination: HirOperand,
+        word_size: WordSize,
     },
     Output {
         port: HirOperand,
         value: HirOperand,
+        word_size: WordSize,
     },
 }
 
@@ -404,6 +452,10 @@ impl HirContext {
                 expression,
                 typ,
             } => {
+                if self.current_class.is_some() && self.scopes.len() == 1 {
+                    return;
+                }
+
                 let word_size = self.get_word_size(&typ);
                 if self.scopes.len() > 1 {
                     let slot = self.declare_variable(name, typ);
@@ -503,6 +555,7 @@ impl HirContext {
 
                 self.exit_scope();
                 self.this_register = None;
+                self.current_function = None;
             }
             TypedAbstractSyntaxNode::Class { name } => {
                 self.current_class = Some(name);
@@ -528,8 +581,6 @@ impl HirContext {
                     let operand = value.map(|v| self.generate_expression(v));
                     self.emit_terminator(HirTerminator::Return(operand, word_size));
                 }
-
-                self.current_function = None;
             }
             TypedAbstractSyntaxNode::Break => {
                 if let Some((_, break_target)) = self.loop_stack.last() {
@@ -601,7 +652,8 @@ impl HirContext {
                 right,
                 ..
             } => {
-                let word_size = self.get_word_size(&left.get_type());
+                let typ = left.get_type();
+                let word_size = self.get_word_size(&typ);
                 let left = self.generate_expression(*left);
                 let right = self.generate_expression(*right);
                 let destination = self.new_register();
@@ -610,17 +662,39 @@ impl HirContext {
                     _ => HirOperand::Value(destination),
                 };
 
-                self.emit(HirInstruction::BinaryOperator {
-                    destination: destination.clone(),
-                    left,
-                    operator,
-                    right,
-                    word_size,
-                });
-                destination
+                if is_arithmetic_binary_op(&operator) && typ == Type::Array(Box::new(Type::Int), 4)
+                {
+                    let operator = match operator {
+                        ExpressionBinaryOperator::Add => HirBinaryOperator::VectorAdd,
+                        ExpressionBinaryOperator::Sub => HirBinaryOperator::VectorSub,
+                        ExpressionBinaryOperator::Multiply => HirBinaryOperator::VectorMultiply,
+                        ExpressionBinaryOperator::Divide => HirBinaryOperator::VectorDivide,
+                        ExpressionBinaryOperator::Remainder => HirBinaryOperator::VectorRemainder,
+                        _ => unreachable!(),
+                    };
+                    self.emit(HirInstruction::BinaryOperator {
+                        destination: destination.clone(),
+                        left,
+                        operator,
+                        right,
+                        word_size,
+                    });
+                    destination
+                } else {
+                    self.emit(HirInstruction::BinaryOperator {
+                        destination: destination.clone(),
+                        left,
+                        operator: translate_binary_operator(operator),
+                        right,
+                        word_size,
+                    });
+                    destination
+                }
             }
             TypedExpression::FunctionCall {
-                name, arguments, ..
+                name,
+                arguments,
+                typ,
             } => {
                 let arguments: Vec<_> = arguments
                     .into_iter()
@@ -641,11 +715,13 @@ impl HirContext {
                     self.emit(HirInstruction::Input {
                         destination: destination.clone(),
                         port: arguments[0].0.clone(),
+                        word_size: self.get_word_size(&typ),
                     })
                 } else if name == "iout" || name == "cout" {
                     self.emit(HirInstruction::Output {
                         port: arguments[0].0.clone(),
                         value: arguments[1].0.clone(),
+                        word_size: arguments[1].1.clone(),
                     })
                 } else {
                     let block = self.functions[&name];
@@ -710,7 +786,7 @@ impl HirContext {
                 self.emit(HirInstruction::BinaryOperator {
                     destination: destination.clone(),
                     left: zero_const,
-                    operator: ExpressionBinaryOperator::Sub,
+                    operator: HirBinaryOperator::Sub,
                     right: operand,
                     word_size,
                 });
@@ -728,7 +804,7 @@ impl HirContext {
                 self.emit(HirInstruction::BinaryOperator {
                     destination: destination.clone(),
                     left: operand,
-                    operator: ExpressionBinaryOperator::Equal,
+                    operator: HirBinaryOperator::Equal,
                     right: false_const,
                     word_size,
                 });
@@ -914,7 +990,7 @@ impl HirContext {
                 self.emit(HirInstruction::BinaryOperator {
                     destination: new_value.clone(),
                     left: old_value.clone(),
-                    operator,
+                    operator: translate_binary_operator(operator),
                     right: one_const,
                     word_size: word_size.clone(),
                 });
@@ -945,7 +1021,7 @@ impl HirContext {
                 self.emit(HirInstruction::BinaryOperator {
                     destination: new_value.clone(),
                     left: old_value.clone(),
-                    operator,
+                    operator: translate_binary_operator(operator),
                     right: one_const,
                     word_size: word_size.clone(),
                 });
@@ -980,7 +1056,7 @@ impl HirContext {
                 self.emit(HirInstruction::BinaryOperator {
                     destination: new_value.clone(),
                     left: old_value.clone(),
-                    operator,
+                    operator: translate_binary_operator(operator),
                     right: one_const,
                     word_size: self.get_word_size(&typ),
                 });

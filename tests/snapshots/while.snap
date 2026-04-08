@@ -1,6 +1,6 @@
 ---
 source: tests/golden.rs
-expression: formatted
+expression: yaml
 ---
 program: |-
   int f(int x) {
@@ -48,7 +48,7 @@ log: |2-
    INFO TICK 11 | Load (#99991) = 0 | Store (#99991) = 0
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 0, 99991]
-   INFO TICK 12 | PC=123 | MOVA.w
+   INFO TICK 12 | PC=123 | MOV.w
    INFO TICK 13 | A7
    INFO TICK 14 | A6
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
@@ -233,7 +233,7 @@ log: |2-
    INFO TICK 124 | Load (#99903) = 0 | Store (#99903) = 99991
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99903]
-   INFO TICK 125 | PC=38 | MOVA.w
+   INFO TICK 125 | PC=38 | MOV.w
    INFO TICK 126 | A7
    INFO TICK 127 | A6
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
@@ -277,12 +277,12 @@ log: |2-
    INFO TICK 152 | D0
   DEBUG D [5, 0, 5, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99903, 99895]
-   INFO TICK 153 | PC=110 | MOVA.w
+   INFO TICK 153 | PC=110 | MOV.w
    INFO TICK 154 | A6
    INFO TICK 155 | A7
   DEBUG D [5, 0, 5, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99903, 99903]
-   INFO TICK 156 | PC=114 | MOVA.w
+   INFO TICK 156 | PC=114 | MOV.w
    INFO TICK 157 | (A7)+
    INFO TICK 158 | Load (#99903) = 99991
    INFO TICK 159 | A6
@@ -524,7 +524,7 @@ log: |2-
    INFO TICK 305 | Load (#99903) = 99991 | Store (#99903) = 99991
   DEBUG D [5, 5, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99903]
-   INFO TICK 306 | PC=38 | MOVA.w
+   INFO TICK 306 | PC=38 | MOV.w
    INFO TICK 307 | A7
    INFO TICK 308 | A6
   DEBUG D [5, 5, 0, 0, 0, 0, 0, 0]
@@ -568,12 +568,12 @@ log: |2-
    INFO TICK 333 | D0
   DEBUG D [10, 5, 10, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99903, 99895]
-   INFO TICK 334 | PC=110 | MOVA.w
+   INFO TICK 334 | PC=110 | MOV.w
    INFO TICK 335 | A6
    INFO TICK 336 | A7
   DEBUG D [10, 5, 10, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99903, 99903]
-   INFO TICK 337 | PC=114 | MOVA.w
+   INFO TICK 337 | PC=114 | MOV.w
    INFO TICK 338 | (A7)+
    INFO TICK 339 | Load (#99903) = 99991
    INFO TICK 340 | A6
@@ -754,12 +754,12 @@ log: |2-
    INFO TICK 447 | D0
   DEBUG D [10, 10, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99983]
-   INFO TICK 448 | PC=618 | MOVA.w
+   INFO TICK 448 | PC=618 | MOV.w
    INFO TICK 449 | A6
    INFO TICK 450 | A7
   DEBUG D [10, 10, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99991, 99991]
-   INFO TICK 451 | PC=622 | MOVA.w
+   INFO TICK 451 | PC=622 | MOV.w
    INFO TICK 452 | (A7)+
    INFO TICK 453 | Load (#99991) = 0
    INFO TICK 454 | A6
