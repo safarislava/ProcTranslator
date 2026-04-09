@@ -8,7 +8,7 @@ use std::fs;
 fn main() -> ResBox<()> {
     setup_logger();
 
-    let name = "double";
+    let name = "vector_test_simd";
     let content = fs::read_to_string(format!("examples/correct/{name}.java"))?;
 
     let control_flow_graph = compile_to_hir(&content)?;

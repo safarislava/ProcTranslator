@@ -1,0 +1,40 @@
+digraph CFG {
+  rankdir=TB;
+  node [shape=box, fontname="Courier", style=filled, fillcolor=white, margin="0.2,0.1"];
+  edge [fontname="Courier"];
+
+  "B0" [label="B0\l---\lcall prologue\lalloc s0\ls0 = '42'\lalloc s1\llink r0 = new array[100]\ls1 = link r0\lalloc s2\ls2 = '0'\ljump B5\l "];
+  "B1" [label="B1\l---\lcall prologue\lalloc s9\lr47 = param[0]\ls9 = r47\lreturn '0'\l "];
+  "B2" [label="B2\l---\lcall prologue\lalloc s10\lr48 = param[0]\ls10 = r48\lreturn ''0''\l "];
+  "B3" [label="B3\l---\lcall prologue\lalloc s11\lr49 = param[0]\ls11 = r49\lalloc s12\lr50 = param[8]\ls12 = r50\lreturn\l "];
+  "B4" [label="B4\l---\lcall prologue\lalloc s13\lr51 = param[0]\ls13 = r51\lalloc s14\lr52 = param[8]\ls14 = r52\lreturn\l "];
+  "B5" [label="B5\l---\lr1 = load s2\lr2 = r1 Less '100'\lbranch r2 ? B6 : B7\l "];
+  "B6" [label="B6\l---\lr3 = load s0\lr4 = r3 Multiply '1103515245'\lr5 = r4 Add '12345'\lr6 = r5 Remainder '2147483648'\ls0 = r6\llink r7 = load s1\lr8 = load s2\lr9 = load s0\llink r7[r8] = r9\lr10 = load s2\lr11 = r10 Add '1'\ls2 = r11\ljump B5\l "];
+  "B7" [label="B7\l---\lalloc s3\llink r12 = new array[100]\ls3 = link r12\lalloc s4\ls4 = '0'\ljump B8\l "];
+  "B8" [label="B8\l---\lr13 = load s4\lr14 = r13 Less '100'\lbranch r14 ? B9 : B10\l "];
+  "B9" [label="B9\l---\lr15 = load s0\lr16 = r15 Multiply '1103515245'\lr17 = r16 Add '12345'\lr18 = r17 Remainder '2147483648'\ls0 = r18\llink r19 = load s3\lr20 = load s4\lr21 = load s0\llink r19[r20] = r21\lr22 = load s4\lr23 = r22 Add '1'\ls4 = r23\ljump B8\l "];
+  "B10" [label="B10\l---\lalloc s5\llink r24 = new array[100]\ls5 = link r24\lalloc s6\ls6 = '0'\ljump B11\l "];
+  "B11" [label="B11\l---\lr25 = load s6\lr26 = r25 Less '100'\lbranch r26 ? B12 : B13\l "];
+  "B12" [label="B12\l---\lalloc s7\llink r27 = load s1\lr28 = load s6\llink r29 = link r27[r28:]\llink r30 = load s3\lr31 = load s6\llink r32 = link r30[r31:]\llink r33 = link r29 Add link r32\ls7 = link r33\llink r34 = load s5\lr35 = load s6\llink r36 = load s7\llink r34[r35:] = link r36\lr37 = load s6\lr38 = r37 Add '4'\ls6 = r38\ljump B11\l "];
+  "B13" [label="B13\l---\lalloc s8\ls8 = '0'\ljump B14\l "];
+  "B14" [label="B14\l---\lr39 = load s8\lr40 = r39 Less '100'\lbranch r40 ? B15 : B16\l "];
+  "B15" [label="B15\l---\llink r41 = load s5\lr42 = load s8\lr43 = link r41[r42]\loutput '4' = r43\lr45 = load s8\lr46 = r45 Add '1'\ls8 = r46\ljump B14\l "];
+  "B16" [label="B16\l---\lreturn\l "];
+  "B0" -> "B5";
+  "B5" -> "B6" [label="true"];
+  "B5" -> "B7" [label="false"];
+  "B6" -> "B5";
+  "B7" -> "B8";
+  "B8" -> "B9" [label="true"];
+  "B8" -> "B10" [label="false"];
+  "B9" -> "B8";
+  "B10" -> "B11";
+  "B11" -> "B12" [label="true"];
+  "B11" -> "B13" [label="false"];
+  "B12" -> "B11";
+  "B13" -> "B14";
+  "B14" -> "B15" [label="true"];
+  "B14" -> "B16" [label="false"];
+  "B15" -> "B14";
+  "B0" [fillcolor=lightgreen];
+}

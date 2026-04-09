@@ -179,6 +179,10 @@ impl SemanticTable {
         Ok(())
     }
 
+    fn types_compatible(&self, target: &Type, source: &Type) -> bool {
+        target == source
+    }
+
     fn analyze(&mut self, ast: &RawAbstractSyntaxTree) -> ResBox<TypedAbstractSyntaxTree> {
         self.stacktrace.push(ast.node.clone());
 
@@ -356,7 +360,7 @@ impl SemanticTable {
                     None => None,
                 };
                 let typ = typed_value.as_ref().map_or(Type::Void, |v| v.get_type());
-                if typ != *function_type {
+                if !self.types_compatible(function_type, &typ) {
                     return Err("Return type mismatch".into());
                 }
                 (
@@ -421,7 +425,7 @@ impl SemanticTable {
             return Err(format!("Unknown type {}", c).into());
         }
         if let Some(expression) = expression
-            && expression.get_type() != *typ
+            && !self.types_compatible(typ, &expression.get_type())
         {
             return Err("Declaration type mismatch".into());
         }
@@ -462,13 +466,14 @@ impl SemanticTable {
                 let left_type = typed_left.get_type();
                 let right_type = typed_right.get_type();
 
-                if left_type != right_type {
+                if !self.types_compatible(&left_type, &right_type) {
                     return Err("Binary operator type mismatch".into());
                 }
 
                 if is_arithmetic_binary_op(operator)
                     && left_type != Type::Int
                     && left_type != Type::Array(Box::new(Type::Int), 4)
+                    && left_type != Type::Array(Box::new(Type::Int), 0)
                 {
                     return Err(format!(
                         "Arithmetic operations can only be applied to type int or array[4], found {:?}",
@@ -595,13 +600,68 @@ impl SemanticTable {
                     Err("Indexing non-array".into())
                 }
             }
+            RawExpression::AssignSlice {
+                expression,
+                start,
+                value,
+                size, 
+                ..
+            } => {
+                let typed_expression = self.analyze_expression(expression)?;
+                let typed_start = self.analyze_expression(start)?;
+                let typed_value = self.analyze_expression(value)?;
+
+                let target_type = typed_expression.get_type();
+                let value_type = typed_value.get_type();
+
+                let element_type = match &target_type {
+                    Type::Array(inner, _) => inner,
+                    _ => return Err("Slicing target must be an array".into()),
+                };
+
+                if !self.types_compatible(&Type::Array(element_type.clone(), *size), &value_type) {
+                    return Err("Type mismatch in slice assignment".into());
+                }
+
+                Ok(Expression::AssignSlice {
+                    typ: *element_type.clone(),
+                    expression: Box::new(typed_expression),
+                    start: Box::new(typed_start),
+                    size: *size,
+                    value: Box::new(typed_value),
+                })
+            }
+            RawExpression::Slice {
+                expression, start, size, ..
+            } => {
+                let typed_expression = self.analyze_expression(expression)?;
+                let array_type = typed_expression.get_type();
+
+                let (element_type, ..) = match array_type {
+                    Type::Array(inner, size) => (inner, size),
+                    _ => return Err("Slicing can only be applied to arrays".into()),
+                };
+
+                let typed_start = self.analyze_expression(start)?;
+
+                if typed_start.get_type() != Type::Int {
+                    return Err("Slice boundaries must be of type int".into());
+                }
+
+                Ok(Expression::Slice {
+                    typ: Type::Array(element_type, *size),
+                    expression: Box::new(typed_expression),
+                    start: Box::new(typed_start),
+                    size: *size,
+                })
+            }
             Expression::Assign { name, value, .. } => {
                 let variable_type = self
                     .find_var(name)
                     .ok_or(format!("Undefined {}", name))?
                     .clone();
                 let typed_value = self.analyze_expression(value)?;
-                if variable_type != typed_value.get_type() {
+                if !self.types_compatible(&variable_type, &typed_value.get_type()) {
                     return Err("Assign type mismatch".into());
                 }
                 Ok(Expression::Assign {
@@ -627,7 +687,7 @@ impl SemanticTable {
                         .get(member)
                         .ok_or("Field not found")?
                         .clone();
-                    if field_type != typed_value.get_type() {
+                    if !self.types_compatible(&field_type, &typed_value.get_type()) {
                         return Err("Field assign mismatch".into());
                     }
                     Ok(Expression::AssignField {
@@ -798,7 +858,7 @@ impl SemanticTable {
         let mut typed_arguments = Vec::new();
         for (parameter, argument) in parameters.iter().zip(arguments) {
             let typed_argument = self.analyze_expression(argument)?;
-            if *parameter != typed_argument.get_type() {
+            if !self.types_compatible(parameter, &typed_argument.get_type()) {
                 return Err("Arg type mismatch".into());
             }
             typed_arguments.push(typed_argument);

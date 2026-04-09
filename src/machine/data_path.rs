@@ -246,7 +246,9 @@ impl DataPath {
     }
 
     pub fn execute_vector_alu(&mut self, operator: VectorAluOperator) {
-        self.vector_alu_output = self.vector_alu.execute_operator(operator, self.input_vector_registers);
+        self.vector_alu_output = self
+            .vector_alu
+            .execute_operator(operator, self.input_vector_registers);
     }
 
     pub fn update_output_vector_mux(&mut self, selector: OutputVectorSelector) {

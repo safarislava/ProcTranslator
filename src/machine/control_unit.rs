@@ -1,5 +1,5 @@
 use crate::isa::{Mode, Operand, Operator, WordSize};
-use crate::machine::alu::{AluOperator};
+use crate::machine::alu::AluOperator;
 use crate::machine::data_path::{
     AluInputSelector, BufferSelector, DataPath, DataSelector, ExternalSelector,
     OutputVectorSelector, PostModeSelector, PreModeSelector, WriteDataSelector,
@@ -7,10 +7,10 @@ use crate::machine::data_path::{
 use crate::machine::instruction_parser::InstructionParser;
 use crate::machine::memory::Memory;
 use crate::machine::stack::Stack;
+use crate::machine::vector_alu::VectorAluOperator;
 use crate::translator::common::Address;
 use std::collections::HashMap;
 use tracing::{debug, info};
-use crate::machine::vector_alu::VectorAluOperator;
 
 pub enum Order {
     Master,

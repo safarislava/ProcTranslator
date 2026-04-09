@@ -160,6 +160,19 @@ pub enum Expression<T> {
         expression: Box<Expression<T>>,
         index: Box<Expression<T>>,
     },
+    AssignSlice {
+        typ: T,
+        expression: Box<Expression<T>>,
+        start: Box<Expression<T>>,
+        size: u64,
+        value: Box<Expression<T>>,
+    },
+    Slice {
+        typ: T,
+        expression: Box<Expression<T>>,
+        start: Box<Expression<T>>,
+        size: u64,
+    },
     This {
         typ: T,
     },
@@ -184,6 +197,8 @@ impl<T: Clone> Expression<T> {
             Expression::NewArray { typ, .. } => typ.clone(),
             Expression::Field { typ, .. } => typ.clone(),
             Expression::Index { typ, .. } => typ.clone(),
+            Expression::AssignSlice { typ, .. } => typ.clone(),
+            Expression::Slice { typ, .. } => typ.clone(),
             Expression::This { typ } => typ.clone(),
         }
     }
@@ -203,6 +218,7 @@ enum Token {
     RightSquareBracket,
     Comma,
     Dot,
+    Colon,
 }
 
 struct Tokenizer<'a> {
@@ -285,6 +301,7 @@ impl<'a> Tokenizer<'a> {
                     ']' => tokens.push(Token::RightSquareBracket),
                     ',' => tokens.push(Token::Comma),
                     '.' => tokens.push(Token::Dot),
+                    ':' => tokens.push(Token::Colon),
                     _ => {
                         let mut op = next_char.to_string();
                         if let Some(&p) = self.chars.peek() {
@@ -426,6 +443,15 @@ impl Parser {
                             typ: Default::default(),
                             expression,
                             index,
+                            value: Box::new(right),
+                        },
+                        RawExpression::Slice {
+                            expression, start, size, ..
+                        } => RawExpression::AssignSlice {
+                            typ: Default::default(),
+                            expression,
+                            start,
+                            size,
                             value: Box::new(right),
                         },
                         _ => return Err("Invalid assignment target".into()),
@@ -606,15 +632,36 @@ impl Parser {
                 }
             }
             Token::LeftSquareBracket => {
-                let index = self.parse_expression(0)?;
-                if self.tokens.next() != Some(Token::RightSquareBracket) {
-                    return Err("Expected ']'".into());
+                let start_or_index = self.parse_expression(0)?;
+
+                if let Some(Token::Colon) = self.tokens.peek() {
+                    self.tokens.next();
+
+                    if let Token::Number(size) = self.tokens.next().unwrap() {
+                        if self.tokens.next() != Some(Token::RightSquareBracket) {
+                            return Err("Expected ']' after slice range".into());
+                        }
+
+                        Ok(RawExpression::Slice {
+                            typ: Default::default(),
+                            expression: Box::new(left),
+                            start: Box::new(start_or_index),
+                            size,
+                        })
+                    } else {
+                        Err("Slice must have constant size".into())
+                    }
+                } else {
+                    if self.tokens.next() != Some(Token::RightSquareBracket) {
+                        return Err("Expected ']'".into());
+                    }
+
+                    Ok(RawExpression::Index {
+                        typ: Default::default(),
+                        expression: Box::new(left),
+                        index: Box::new(start_or_index),
+                    })
                 }
-                Ok(RawExpression::Index {
-                    typ: Default::default(),
-                    expression: Box::new(left),
-                    index: Box::new(index),
-                })
             }
             _ => Err("Invalid postfix token".into()),
         }

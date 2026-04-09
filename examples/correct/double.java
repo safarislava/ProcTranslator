@@ -1,10 +1,4 @@
-void Main() {
-    int a1 = -1;
-    int a2 = 0;
-
-    int b1 = 1;
-    int b2 = 0;
-
+void sum(int a2, int a1, int b2, int b1) {
     int c1 = a1 + b1;
 
     int a1hb = a1 >> 63;
@@ -23,7 +17,15 @@ void Main() {
 
     int c2 = a2 + b2 + carry;
 
-    iout(4, c1);
     iout(4, c2);
+    iout(4, c1);
+    return;
+}
+
+void Main() {
+    sum(0, -1, 0, 1);
+    sum(10, -5, 0, 10);
+    sum(5, -9223372036854775808, 5, -9223372036854775808);
+    sum(9223372036854775807, -1, 0, 1);
     return;
 }

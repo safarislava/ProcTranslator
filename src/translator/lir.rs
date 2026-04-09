@@ -241,6 +241,12 @@ impl LirContext {
         LirOperand::VirtualRegister(register as usize, RegisterType::Data)
     }
 
+    fn new_virtual_address_register(&mut self) -> LirOperand {
+        let register = self.virtual_register_counter;
+        self.virtual_register_counter += 1;
+        LirOperand::VirtualRegister(register as usize, RegisterType::Address)
+    }
+
     fn get_virtual_register(&mut self, operand: HirOperand) -> LirOperand {
         match operand {
             HirOperand::Value(register) => self.get_virtual_data_register(register),
@@ -982,6 +988,88 @@ impl LirContext {
                     destination: self.heap_pointer.clone(),
                 });
             }
+            HirInstruction::StoreSlice {
+                target,
+                start,
+                value,
+                size: element_count,
+                type_size,
+                word_size,
+            } => {
+                let target = self.lower_operand(target);
+                let value = self.lower_operand(value);
+                let start = self.lower_operand(start);
+
+                let offset = self.new_virtual_data_register();
+                out.push(LirInstruction::Mov {
+                    size: WordSize::Long,
+                    source: start,
+                    destination: offset.clone(),
+                });
+                out.push(LirInstruction::Mul {
+                    size: WordSize::Long,
+                    source: LirOperand::Direct(type_size),
+                    destination: offset.clone(),
+                });
+
+                let destination = self.new_virtual_address_register();
+                out.push(LirInstruction::Mov {
+                    size: WordSize::Long,
+                    source: target,
+                    destination: destination.clone(),
+                });
+                out.push(LirInstruction::Add {
+                    size: WordSize::Long,
+                    source: offset,
+                    destination: destination.clone(),
+                });
+
+                for i in 0..element_count {
+                    out.push(LirInstruction::Mov {
+                        size: word_size.clone(),
+                        source: LirOperand::IndirectOffset {
+                            base: Box::new(value.clone()),
+                            offset: Box::new(LirOperand::Direct(i * type_size)),
+                        },
+                        destination: LirOperand::IndirectOffset {
+                            base: Box::new(destination.clone()),
+                            offset: Box::new(LirOperand::Direct(i * type_size)),
+                        },
+                    });
+                }
+            }
+            HirInstruction::LoadSlice {
+                destination,
+                array,
+                start,
+                type_size,
+                ..
+            } => {
+                let destination = self.get_virtual_register(destination);
+                let array = self.lower_operand(array);
+                let start = self.lower_operand(start);
+                out.push(LirInstruction::Mov {
+                    size: WordSize::Long,
+                    source: array,
+                    destination: destination.clone(),
+                });
+                let temp_register = self.new_virtual_data_register();
+                out.push(LirInstruction::Mov {
+                    size: WordSize::Long,
+                    source: start,
+                    destination: temp_register.clone(),
+                });
+                out.push(LirInstruction::Mul {
+                    size: WordSize::Long,
+                    source: LirOperand::Direct(type_size),
+                    destination: temp_register.clone(),
+                });
+                out.push(LirInstruction::Add {
+                    size: WordSize::Long,
+                    source: temp_register,
+                    destination,
+                })
+            }
         }
     }
 
@@ -1705,7 +1793,7 @@ impl LirContext {
                     post,
                 );
                 if let LirOperand::Register(register, RegisterType::Data) = **offset_register
-                    && register < 4
+                    && register < 5
                 {
                     if *data_restore_register >= self.restore_data_registers.len() {
                         panic!("Not enough restore registers to legalize IndirectOffset index!");

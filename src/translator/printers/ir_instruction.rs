@@ -92,6 +92,14 @@ impl fmt::Display for HirInstruction {
             } => {
                 write!(f, "{} = {}[{}]", destination, array, index)
             }
+            HirInstruction::LoadSlice {
+                destination,
+                array,
+                start,
+                ..
+            } => {
+                write!(f, "{} = {}[{}:]", destination, array, start)
+            }
             HirInstruction::StoreIndex {
                 array,
                 index,
@@ -104,6 +112,14 @@ impl fmt::Display for HirInstruction {
                 destination, size, ..
             } => {
                 write!(f, "{} = new array[{}]", destination, size)
+            }
+            HirInstruction::StoreSlice {
+                target,
+                value,
+                start,
+                ..
+            } => {
+                write!(f, "{}[{}:] = {}", target, start, value)
             }
         }
     }

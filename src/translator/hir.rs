@@ -140,6 +140,20 @@ pub enum HirInstruction {
         index: HirOperand,
         word_size: WordSize,
     },
+    LoadSlice {
+        destination: HirOperand,
+        array: HirOperand,
+        start: HirOperand,
+        type_size: u64,
+    },
+    StoreSlice {
+        target: HirOperand,
+        start: HirOperand,
+        value: HirOperand,
+        size: u64,
+        type_size: u64,
+        word_size: WordSize,
+    },
     StoreIndex {
         array: HirOperand,
         index: HirOperand,
@@ -960,6 +974,59 @@ impl HirContext {
                     index,
                     word_size: self.get_word_size(&typ),
                 });
+                destination
+            }
+            TypedExpression::AssignSlice {
+                expression,
+                start,
+                value,
+                ..
+            } => {
+                let value_type = value.get_type();
+                let size = if let Type::Array(_, size) = value_type {
+                    size
+                } else {
+                    panic!("Slice can be assigned only for sized array")
+                };
+
+                let target = self.generate_expression(*expression);
+                let start = self.generate_expression(*start);
+                let value = self.generate_expression(*value);
+
+                self.emit(HirInstruction::StoreSlice {
+                    target,
+                    start,
+                    value,
+                    size,
+                    type_size: self.get_type_size(&value_type),
+                    word_size: self.get_word_size(&value_type),
+                });
+                HirOperand::Void
+            }
+            TypedExpression::Slice {
+                expression,
+                start,
+                typ,
+                ..
+            } => {
+                let array = self.generate_expression(*expression);
+                let start = self.generate_expression(*start);
+
+                let destination = HirOperand::Link(self.new_register());
+
+                let element_type = if let Type::Array(t, _) = &typ {
+                    t.as_ref().clone()
+                } else {
+                    unreachable!("Slice type must be an array")
+                };
+
+                self.emit(HirInstruction::LoadSlice {
+                    destination: destination.clone(),
+                    array,
+                    start,
+                    type_size: self.get_type_size(&element_type),
+                });
+
                 destination
             }
             TypedExpression::This { .. } => self

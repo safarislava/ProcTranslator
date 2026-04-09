@@ -24,9 +24,11 @@ char Main() {
         a[i] = gen(i);
     }
 
-    for (int i = 0; i < 10; i++) {
-        cout(5, a[i]);
+    char[5] b = a[2:5];
+
+    for (int i = 0; i < 5; i++) {
+        cout(5, b[i]);
     }
 
-    return a[8];
+    return a[0];
 }

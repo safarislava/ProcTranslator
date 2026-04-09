@@ -381,3 +381,15 @@ fn test_double() {
     let output = run_test("double", vec![]);
     assert_golden_yaml!(&output, "double");
 }
+
+#[test]
+fn test_vector_test() {
+    let output = run_test("vector_test", vec![]);
+    assert_golden_yaml!(&output, "vector_test");
+}
+
+#[test]
+fn test_vector_test_simd() {
+    let output = run_test("vector_test_simd", vec![]);
+    assert_golden_yaml!(&output, "vector_test_simd");
+}
