@@ -199,6 +199,44 @@ impl AsmTranslator {
                 LirInstruction::VEnd { destination } => {
                     self.translate_vector_end(&destination);
                 }
+                LirInstruction::VCmpBeq { left, right } => {
+                    self.translate_standard_instruction(
+                        Operator::VCmpBeq,
+                        WordSize::Byte,
+                        &left,
+                        &right,
+                    );
+                }
+                LirInstruction::VCmpBne { left, right } => self.translate_standard_instruction(
+                    Operator::VCmpBne,
+                    WordSize::Byte,
+                    &left,
+                    &right,
+                ),
+                LirInstruction::VCmpBlt { left, right } => self.translate_standard_instruction(
+                    Operator::VCmpBlt,
+                    WordSize::Byte,
+                    &left,
+                    &right,
+                ),
+                LirInstruction::VCmpBle { left, right } => self.translate_standard_instruction(
+                    Operator::VCmpBle,
+                    WordSize::Byte,
+                    &left,
+                    &right,
+                ),
+                LirInstruction::VCmpBgt { left, right } => self.translate_standard_instruction(
+                    Operator::VCmpBgt,
+                    WordSize::Byte,
+                    &left,
+                    &right,
+                ),
+                LirInstruction::VCmpBge { left, right } => self.translate_standard_instruction(
+                    Operator::VCmpBge,
+                    WordSize::Byte,
+                    &left,
+                    &right,
+                ),
                 LirInstruction::Call { label } => {
                     self.translate_branch(Operator::Call, label);
                 }
@@ -514,6 +552,16 @@ impl Default for AsmTranslator {
             (Operator::Out, 0x51),
             (Operator::EI, 0x52),
             (Operator::DI, 0x53),
+            (Operator::VCmpBeq, 0x60),
+            (Operator::VCmpBne, 0x61),
+            (Operator::VCmpBgt, 0x62),
+            (Operator::VCmpBge, 0x63),
+            (Operator::VCmpBlt, 0x64),
+            (Operator::VCmpBle, 0x65),
+            (Operator::VCmpBcs, 0x66),
+            (Operator::VCmpBcc, 0x67),
+            (Operator::VCmpBvs, 0x68),
+            (Operator::VCmpBvc, 0x69),
         ]);
         let modes = HashMap::from([
             (Mode::Direct, 0x0),

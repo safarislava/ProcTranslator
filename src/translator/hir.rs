@@ -1,7 +1,7 @@
 use crate::isa::WordSize;
 use crate::translator::analyzer::{TypedAbstractSyntaxNode, TypedAbstractSyntaxTree};
 use crate::translator::common::{Type, TypedExpression};
-use crate::translator::expression::{ExpressionBinaryOperator, is_arithmetic_binary_op};
+use crate::translator::expression::ExpressionBinaryOperator;
 use std::collections::HashMap;
 use std::iter;
 
@@ -51,6 +51,12 @@ pub enum HirBinaryOperator {
     VectorAnd,
     VectorOr,
     VectorXor,
+    VectorEqual,
+    VectorNotEqual,
+    VectorLess,
+    VectorLessEqual,
+    VectorGreater,
+    VectorGreaterEqual,
 }
 
 fn translate_binary_operator(operator: ExpressionBinaryOperator) -> HirBinaryOperator {
@@ -694,8 +700,7 @@ impl HirContext {
                     _ => HirOperand::Value(destination),
                 };
 
-                if is_arithmetic_binary_op(&operator) && typ == Type::Array(Box::new(Type::Int), 4)
-                {
+                if typ == Type::Array(Box::new(Type::Int), 4) {
                     let operator = match operator {
                         ExpressionBinaryOperator::Add => HirBinaryOperator::VectorAdd,
                         ExpressionBinaryOperator::Sub => HirBinaryOperator::VectorSub,
@@ -705,6 +710,14 @@ impl HirContext {
                         ExpressionBinaryOperator::BitwiseAnd => HirBinaryOperator::VectorAnd,
                         ExpressionBinaryOperator::BitwiseOr => HirBinaryOperator::VectorOr,
                         ExpressionBinaryOperator::BitwiseXor => HirBinaryOperator::VectorXor,
+                        ExpressionBinaryOperator::Equal => HirBinaryOperator::VectorEqual,
+                        ExpressionBinaryOperator::NotEqual => HirBinaryOperator::VectorNotEqual,
+                        ExpressionBinaryOperator::Less => HirBinaryOperator::VectorLess,
+                        ExpressionBinaryOperator::LessEqual => HirBinaryOperator::VectorLessEqual,
+                        ExpressionBinaryOperator::Greater => HirBinaryOperator::VectorGreater,
+                        ExpressionBinaryOperator::GreaterEqual => {
+                            HirBinaryOperator::VectorGreaterEqual
+                        }
                         _ => unreachable!(),
                     };
                     self.emit(HirInstruction::BinaryOperator {

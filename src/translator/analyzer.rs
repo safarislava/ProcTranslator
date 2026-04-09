@@ -488,17 +488,23 @@ impl SemanticTable {
                     );
                 }
 
-                if is_relational_binary_op(operator) && left_type != Type::Int {
+                if is_relational_binary_op(operator)
+                    && left_type != Type::Int && left_type != Type::Array(Box::new(Type::Int), 4)
+                {
                     return Err(
                         "Relational operations (<, >, <=, >=) can only be applied to type int"
                             .into(),
                     );
                 }
 
-                let result_type = if is_compering_binary_op(operator) {
-                    Type::Bool
+                let result_type = if left_type != Type::Array(Box::new(Type::Int), 4) {
+                    if is_compering_binary_op(operator) {
+                        Type::Bool
+                    } else {
+                        left_type
+                    }
                 } else {
-                    left_type
+                    Type::Array(Box::new(Type::Int), 4)
                 };
 
                 Ok(Expression::BinaryOperator {

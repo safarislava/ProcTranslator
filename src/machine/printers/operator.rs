@@ -48,6 +48,16 @@ impl Display for Operator {
             Operator::VOr => "VOR",
             Operator::VXor => "VXOR",
             Operator::VEnd => "VEND",
+            Operator::VCmpBeq => "VCMPBEQ",
+            Operator::VCmpBne => "VCMPBNE",
+            Operator::VCmpBgt => "VCMPBGT",
+            Operator::VCmpBge => "VCMPBGE",
+            Operator::VCmpBlt => "VCMPBLT",
+            Operator::VCmpBle => "VCMPBLE",
+            Operator::VCmpBcs => "VCMPBCS",
+            Operator::VCmpBcc => "VCMPBCC",
+            Operator::VCmpBvs => "VCMPBVS",
+            Operator::VCmpBvc => "VCMPBVC",
         };
         f.write_str(code)
     }

@@ -1,8 +1,9 @@
 use crate::isa::{Mode, Operand, Operator, WordSize};
 use crate::machine::alu::AluOperator;
 use crate::machine::data_path::{
-    AluInputSelector, BufferSelector, DataPath, DataSelector, ExternalSelector,
-    OutputVectorSelector, PostModeSelector, PreModeSelector, WriteDataSelector,
+    AluInputSelector, BranchSelector, BufferSelector, DataPath, DataSelector, ExternalSelector,
+    InputLineSelector, OutputLineSelector, PostModeSelector, PreModeSelector, VectorModeSelector,
+    WriteDataSelector,
 };
 use crate::machine::instruction_parser::InstructionParser;
 use crate::machine::memory::Memory;
@@ -188,6 +189,16 @@ impl ControlUnit {
             | Operator::VOr
             | Operator::VXor
             | Operator::VEnd
+            | Operator::VCmpBeq
+            | Operator::VCmpBne
+            | Operator::VCmpBgt
+            | Operator::VCmpBge
+            | Operator::VCmpBlt
+            | Operator::VCmpBle
+            | Operator::VCmpBcs
+            | Operator::VCmpBcc
+            | Operator::VCmpBvs
+            | Operator::VCmpBvc
             | Operator::In
             | Operator::Out => self.latch_pc(PcSelector::NextWord),
             Operator::Jmp
@@ -264,15 +275,115 @@ impl ControlUnit {
             Operator::Out => self.execute_output(step),
             Operator::EI => self.enable_interrupt(step),
             Operator::DI => self.disable_interrupt(step),
-            Operator::VAdd => self.execute_vector(step, VectorAluOperator::Add),
-            Operator::VSub => self.execute_vector(step, VectorAluOperator::Sub),
-            Operator::VMul => self.execute_vector(step, VectorAluOperator::Mul),
-            Operator::VDiv => self.execute_vector(step, VectorAluOperator::Div),
-            Operator::VRem => self.execute_vector(step, VectorAluOperator::Rem),
-            Operator::VAnd => self.execute_vector(step, VectorAluOperator::And),
-            Operator::VOr => self.execute_vector(step, VectorAluOperator::Or),
-            Operator::VXor => self.execute_vector(step, VectorAluOperator::Xor),
+            Operator::VAdd => self.execute_vector(
+                step,
+                VectorAluOperator::Add,
+                VectorModeSelector::Alu,
+                BranchSelector::Beq,
+            ),
+            Operator::VSub => self.execute_vector(
+                step,
+                VectorAluOperator::Sub,
+                VectorModeSelector::Alu,
+                BranchSelector::Beq,
+            ),
+            Operator::VMul => self.execute_vector(
+                step,
+                VectorAluOperator::Mul,
+                VectorModeSelector::Alu,
+                BranchSelector::Beq,
+            ),
+            Operator::VDiv => self.execute_vector(
+                step,
+                VectorAluOperator::Div,
+                VectorModeSelector::Alu,
+                BranchSelector::Beq,
+            ),
+            Operator::VRem => self.execute_vector(
+                step,
+                VectorAluOperator::Rem,
+                VectorModeSelector::Alu,
+                BranchSelector::Beq,
+            ),
+            Operator::VAnd => self.execute_vector(
+                step,
+                VectorAluOperator::And,
+                VectorModeSelector::Alu,
+                BranchSelector::Beq,
+            ),
+            Operator::VOr => self.execute_vector(
+                step,
+                VectorAluOperator::Or,
+                VectorModeSelector::Alu,
+                BranchSelector::Beq,
+            ),
+            Operator::VXor => self.execute_vector(
+                step,
+                VectorAluOperator::Xor,
+                VectorModeSelector::Alu,
+                BranchSelector::Beq,
+            ),
             Operator::VEnd => self.execute_vector_end(step),
+            Operator::VCmpBeq => self.execute_vector(
+                step,
+                VectorAluOperator::Sub,
+                VectorModeSelector::Decoder,
+                BranchSelector::Beq,
+            ),
+            Operator::VCmpBne => self.execute_vector(
+                step,
+                VectorAluOperator::Sub,
+                VectorModeSelector::Decoder,
+                BranchSelector::Bne,
+            ),
+            Operator::VCmpBgt => self.execute_vector(
+                step,
+                VectorAluOperator::Sub,
+                VectorModeSelector::Decoder,
+                BranchSelector::Bgt,
+            ),
+            Operator::VCmpBge => self.execute_vector(
+                step,
+                VectorAluOperator::Sub,
+                VectorModeSelector::Decoder,
+                BranchSelector::Bge,
+            ),
+            Operator::VCmpBlt => self.execute_vector(
+                step,
+                VectorAluOperator::Sub,
+                VectorModeSelector::Decoder,
+                BranchSelector::Blt,
+            ),
+            Operator::VCmpBle => self.execute_vector(
+                step,
+                VectorAluOperator::Sub,
+                VectorModeSelector::Decoder,
+                BranchSelector::Ble,
+            ),
+            Operator::VCmpBcs => self.execute_vector(
+                step,
+                VectorAluOperator::Sub,
+                VectorModeSelector::Decoder,
+                BranchSelector::Bcs,
+            ),
+            Operator::VCmpBcc => self.execute_vector(
+                step,
+                VectorAluOperator::Sub,
+                VectorModeSelector::Decoder,
+                BranchSelector::Bcc,
+            ),
+            Operator::VCmpBvs => self.execute_vector(
+                step,
+                VectorAluOperator::Sub,
+                VectorModeSelector::Decoder,
+                BranchSelector::Bvs,
+            ),
+            Operator::VCmpBvc => self.execute_vector(
+                step,
+                VectorAluOperator::Sub,
+                VectorModeSelector::Decoder,
+                BranchSelector::Bvc,
+            ),
         }
     }
 
@@ -393,7 +504,13 @@ impl ControlUnit {
         }
     }
 
-    fn execute_vector(&mut self, step: u8, alu_op: VectorAluOperator) {
+    fn execute_vector(
+        &mut self,
+        step: u8,
+        operator: VectorAluOperator,
+        vector_mode_selector: VectorModeSelector,
+        branch_selector: BranchSelector,
+    ) {
         match step {
             0 => {
                 let left = self.parse_data_readable(1);
@@ -413,13 +530,14 @@ impl ControlUnit {
             2..=4 => {
                 let i = step as i64 - 2;
                 self.data_path.latch_read_data();
-                self.data_path.latch_input_vector_registers(i as usize);
+                self.data_path
+                    .latch_vector_input_registers(i as InputLineSelector);
                 self.iterate_vector(i + 1);
                 self.execution_state = ExecutionState::Execute(step + 1);
             }
             5 => {
                 self.data_path.latch_read_data();
-                self.data_path.latch_input_vector_registers(3);
+                self.data_path.latch_vector_input_registers(3);
 
                 let right = self.parse_data_readable(2);
                 self.prepare_operand(Order::Master, &right);
@@ -438,14 +556,17 @@ impl ControlUnit {
             7..=9 => {
                 let i = step as i64 - 7;
                 self.data_path.latch_read_data();
-                self.data_path.latch_input_vector_registers(i as usize + 4);
+                self.data_path
+                    .latch_vector_input_registers((i + 4) as InputLineSelector);
                 self.iterate_vector(i + 1);
                 self.execution_state = ExecutionState::Execute(step + 1);
             }
             10 => {
                 self.data_path.latch_read_data();
-                self.data_path.latch_input_vector_registers(7);
-                self.data_path.execute_vector_alu(alu_op);
+                self.data_path.latch_vector_input_registers(7);
+                self.data_path.execute_vector_alu(operator);
+                self.data_path
+                    .update_vector_alu_output_mux(vector_mode_selector, branch_selector);
                 self.execution_state = ExecutionState::Done;
             }
             _ => {}
@@ -502,7 +623,7 @@ impl ControlUnit {
         self.data_path.execute_alu(AluOperator::Add);
         self.data_path.latch_data_address();
         self.data_path
-            .update_output_vector_mux(i as OutputVectorSelector);
+            .update_vector_output_mux(i as OutputLineSelector);
         self.data_path
             .latch_write_data(WriteDataSelector::VectorAlu);
         self.data_path.write_data_memory(&WordSize::Long);

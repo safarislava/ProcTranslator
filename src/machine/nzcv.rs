@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub struct Nzcv {
     pub negative: bool,
     pub zero: bool,

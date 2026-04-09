@@ -13,7 +13,9 @@ pub type AddressRegisterReadSelector = u8;
 
 pub type AddressRegisterWriteSelector = u8;
 
-pub type OutputVectorSelector = u8;
+pub type InputLineSelector = u8;
+
+pub type OutputLineSelector = u8;
 
 pub enum WriteDataSelector {
     Alu,
@@ -49,10 +51,27 @@ pub enum PostModeSelector {
     IncrementWord,
 }
 
-#[allow(dead_code)]
 pub enum ExternalSelector {
     ControlUnit,
     IO,
+}
+
+pub enum VectorModeSelector {
+    Alu,
+    Decoder,
+}
+
+pub enum BranchSelector {
+    Beq,
+    Bne,
+    Bgt,
+    Bge,
+    Blt,
+    Ble,
+    Bcs,
+    Bcc,
+    Bvs,
+    Bvc,
 }
 
 pub struct DataPath {
@@ -88,9 +107,10 @@ pub struct DataPath {
     pub control_unit_output: i64,
 
     vector_alu: VectorAlu,
-    pub input_vector_registers: [i64; 8],
-    pub vector_alu_output: [i64; 4],
-    pub output_vector_mux: i64,
+    pub input_vector_registers: [u64; 8],
+    pub vector_alu_output: [u64; 4],
+    pub vector_alu_output_mux: [u64; 4],
+    pub output_vector_mux: u64,
 }
 
 impl DataPath {
@@ -237,12 +257,12 @@ impl DataPath {
     pub fn latch_write_data(&mut self, selector: WriteDataSelector) {
         match selector {
             WriteDataSelector::Alu => self.write_data = self.alu_output,
-            WriteDataSelector::VectorAlu => self.write_data = self.output_vector_mux,
+            WriteDataSelector::VectorAlu => self.write_data = self.output_vector_mux as i64,
         }
     }
 
-    pub fn latch_input_vector_registers(&mut self, i: usize) {
-        self.input_vector_registers[i] = self.read_data;
+    pub fn latch_vector_input_registers(&mut self, i: InputLineSelector) {
+        self.input_vector_registers[i as usize] = self.read_data as u64;
     }
 
     pub fn execute_vector_alu(&mut self, operator: VectorAluOperator) {
@@ -251,8 +271,55 @@ impl DataPath {
             .execute_operator(operator, self.input_vector_registers);
     }
 
-    pub fn update_output_vector_mux(&mut self, selector: OutputVectorSelector) {
-        self.output_vector_mux = self.vector_alu_output[selector as usize];
+    pub fn update_vector_alu_output_mux(
+        &mut self,
+        mode_selector: VectorModeSelector,
+        branch_selector: BranchSelector,
+    ) {
+        for i in 0..4 {
+            match mode_selector {
+                VectorModeSelector::Alu => {
+                    self.vector_alu_output_mux[i] = self.vector_alu_output[i];
+                }
+                VectorModeSelector::Decoder => {
+                    self.vector_alu_output_mux[i] = 0xffffffffffffffff
+                        * match branch_selector {
+                            BranchSelector::Beq => self.vector_alu.block[i].nzcv.zero as u64,
+                            BranchSelector::Bne => !self.vector_alu.block[i].nzcv.zero as u64,
+                            BranchSelector::Bgt => {
+                                (!self.vector_alu.block[i].nzcv.zero
+                                    && self.vector_alu.block[i].nzcv.negative
+                                        == self.vector_alu.block[i].nzcv.overflow)
+                                    as u64
+                            }
+                            BranchSelector::Bge => {
+                                (self.vector_alu.block[i].nzcv.negative
+                                    == self.vector_alu.block[i].nzcv.overflow)
+                                    as u64
+                            }
+                            BranchSelector::Blt => {
+                                (self.vector_alu.block[i].nzcv.negative
+                                    != self.vector_alu.block[i].nzcv.overflow)
+                                    as u64
+                            }
+                            BranchSelector::Ble => {
+                                (self.vector_alu.block[i].nzcv.zero
+                                    || self.vector_alu.block[i].nzcv.negative
+                                        != self.vector_alu.block[i].nzcv.overflow)
+                                    as u64
+                            }
+                            BranchSelector::Bcs => self.vector_alu.block[i].nzcv.carry as u64,
+                            BranchSelector::Bcc => !self.vector_alu.block[i].nzcv.carry as u64,
+                            BranchSelector::Bvs => self.vector_alu.block[i].nzcv.overflow as u64,
+                            BranchSelector::Bvc => self.vector_alu.block[i].nzcv.overflow as u64,
+                        }
+                }
+            }
+        }
+    }
+
+    pub fn update_vector_output_mux(&mut self, selector: OutputLineSelector) {
+        self.output_vector_mux = self.vector_alu_output_mux[selector as usize];
     }
 
     pub fn transmit_nzcv(&self) -> &Nzcv {
@@ -298,9 +365,10 @@ impl Default for DataPath {
             write_data: 0,
             io: IO::new(),
             control_unit_output: 0,
-            vector_alu: VectorAlu {},
+            vector_alu: VectorAlu::new(),
             input_vector_registers: [0; 8],
             vector_alu_output: [0; 4],
+            vector_alu_output_mux: [0; 4],
             output_vector_mux: 0,
         }
     }

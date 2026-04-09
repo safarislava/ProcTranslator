@@ -188,3 +188,23 @@ Operator code:
 
 0x53 - DI
 - Disable interrupts
+
+0x60 - VCMPBEQ label
+
+0x61 - VCMPBNE label
+
+0x62 - VCMPBGT label
+
+0x63 - VCMPBGE label
+
+0x64 - VCMPBLT label
+
+0x65 - VCMPBLE label
+
+0x66 - VCMPBCS label
+
+0x67 - VCMPBCC label
+
+0x68 - VCMPBVS label
+
+0x69 - VCMPBVC label

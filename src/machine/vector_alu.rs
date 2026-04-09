@@ -1,3 +1,5 @@
+use crate::machine::alu::{Alu, AluOperator};
+
 pub enum VectorAluOperator {
     Add,
     Sub,
@@ -9,21 +11,36 @@ pub enum VectorAluOperator {
     Xor,
 }
 
-pub struct VectorAlu {}
+pub struct VectorAlu {
+    pub block: [Alu; 4],
+}
 impl VectorAlu {
-    pub fn execute_operator(&mut self, operator: VectorAluOperator, input: [i64; 8]) -> [i64; 4] {
+    pub fn new() -> Self {
+        Self {
+            block: [
+                Alu::default(),
+                Alu::default(),
+                Alu::default(),
+                Alu::default(),
+            ],
+        }
+    }
+
+    pub fn execute_operator(&mut self, operator: VectorAluOperator, input: [u64; 8]) -> [u64; 4] {
+        let operator = match operator {
+            VectorAluOperator::Add => AluOperator::Add,
+            VectorAluOperator::Sub => AluOperator::Sub,
+            VectorAluOperator::Mul => AluOperator::Mul,
+            VectorAluOperator::Div => AluOperator::Div,
+            VectorAluOperator::Rem => AluOperator::Rem,
+            VectorAluOperator::And => AluOperator::And,
+            VectorAluOperator::Or => AluOperator::Or,
+            VectorAluOperator::Xor => AluOperator::Xor,
+        };
+
         let mut output = [0; 4];
         for i in 0..4 {
-            match operator {
-                VectorAluOperator::Add => output[i] = input[i] + input[i + 4],
-                VectorAluOperator::Sub => output[i] = input[i] - input[i + 4],
-                VectorAluOperator::Mul => output[i] = input[i] * input[i + 4],
-                VectorAluOperator::Div => output[i] = input[i] / input[i + 4],
-                VectorAluOperator::Rem => output[i] = input[i] % input[i + 4],
-                VectorAluOperator::And => output[i] = input[i] & input[i + 4],
-                VectorAluOperator::Or => output[i] = input[i] | input[i + 4],
-                VectorAluOperator::Xor => output[i] = input[i] ^ input[i + 4],
-            }
+            output[i] = self.block[i].execute_operator(operator.clone(), input[i], input[i + 4]);
         }
         output
     }

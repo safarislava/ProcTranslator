@@ -1,5 +1,6 @@
 use crate::machine::nzcv::Nzcv;
 
+#[derive(Clone)]
 pub enum AluOperator {
     Add,
     Adc,

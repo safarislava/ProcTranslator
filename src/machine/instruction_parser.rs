@@ -54,6 +54,16 @@ impl InstructionParser {
             (0x51, Operator::Out),
             (0x52, Operator::EI),
             (0x53, Operator::DI),
+            (0x60, Operator::VCmpBeq),
+            (0x61, Operator::VCmpBne),
+            (0x62, Operator::VCmpBgt),
+            (0x63, Operator::VCmpBge),
+            (0x64, Operator::VCmpBlt),
+            (0x65, Operator::VCmpBle),
+            (0x66, Operator::VCmpBcs),
+            (0x67, Operator::VCmpBcc),
+            (0x68, Operator::VCmpBvs),
+            (0x69, Operator::VCmpBvc),
         ]);
         let modes = HashMap::from([
             (0x0, Mode::Direct),

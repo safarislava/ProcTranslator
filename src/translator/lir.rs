@@ -153,6 +153,30 @@ pub enum LirInstruction {
     VEnd {
         destination: LirOperand,
     },
+    VCmpBeq {
+        left: LirOperand,
+        right: LirOperand,
+    },
+    VCmpBne {
+        left: LirOperand,
+        right: LirOperand,
+    },
+    VCmpBgt {
+        left: LirOperand,
+        right: LirOperand,
+    },
+    VCmpBge {
+        left: LirOperand,
+        right: LirOperand,
+    },
+    VCmpBlt {
+        left: LirOperand,
+        right: LirOperand,
+    },
+    VCmpBle {
+        left: LirOperand,
+        right: LirOperand,
+    },
     Call {
         label: BlockId,
     },
@@ -583,7 +607,13 @@ impl LirContext {
                     | HirBinaryOperator::VectorRemainder
                     | HirBinaryOperator::VectorAnd
                     | HirBinaryOperator::VectorOr
-                    | HirBinaryOperator::VectorXor => {
+                    | HirBinaryOperator::VectorXor
+                    | HirBinaryOperator::VectorEqual
+                    | HirBinaryOperator::VectorNotEqual
+                    | HirBinaryOperator::VectorLess
+                    | HirBinaryOperator::VectorLessEqual
+                    | HirBinaryOperator::VectorGreater
+                    | HirBinaryOperator::VectorGreaterEqual => {
                         out.push(LirInstruction::Mov {
                             size: WordSize::Long,
                             source: self.heap_pointer.clone(),
@@ -618,6 +648,24 @@ impl LirContext {
                             }
                             HirBinaryOperator::VectorXor => {
                                 out.push(LirInstruction::VXor { left, right })
+                            }
+                            HirBinaryOperator::VectorEqual => {
+                                out.push(LirInstruction::VCmpBeq { left, right })
+                            }
+                            HirBinaryOperator::VectorNotEqual => {
+                                out.push(LirInstruction::VCmpBne { left, right })
+                            }
+                            HirBinaryOperator::VectorLess => {
+                                out.push(LirInstruction::VCmpBlt { left, right })
+                            }
+                            HirBinaryOperator::VectorLessEqual => {
+                                out.push(LirInstruction::VCmpBle { left, right })
+                            }
+                            HirBinaryOperator::VectorGreater => {
+                                out.push(LirInstruction::VCmpBgt { left, right })
+                            }
+                            HirBinaryOperator::VectorGreaterEqual => {
+                                out.push(LirInstruction::VCmpBge { left, right })
                             }
                             _ => unreachable!(),
                         }
@@ -1356,7 +1404,13 @@ impl LirContext {
             | LirInstruction::VRem { left, right, .. }
             | LirInstruction::VAnd { left, right, .. }
             | LirInstruction::VOr { left, right, .. }
-            | LirInstruction::VXor { left, right, .. } => {
+            | LirInstruction::VXor { left, right, .. }
+            | LirInstruction::VCmpBeq { left, right, .. }
+            | LirInstruction::VCmpBne { left, right, .. }
+            | LirInstruction::VCmpBlt { left, right, .. }
+            | LirInstruction::VCmpBle { left, right, .. }
+            | LirInstruction::VCmpBgt { left, right, .. }
+            | LirInstruction::VCmpBge { left, right, .. } => {
                 add_interval(left);
                 add_interval(right);
             }
@@ -1694,7 +1748,13 @@ impl LirContext {
             | LirInstruction::VRem { left, right, .. }
             | LirInstruction::VAnd { left, right, .. }
             | LirInstruction::VOr { left, right, .. }
-            | LirInstruction::VXor { left, right, .. } => {
+            | LirInstruction::VXor { left, right, .. }
+            | LirInstruction::VCmpBeq { left, right, .. }
+            | LirInstruction::VCmpBne { left, right, .. }
+            | LirInstruction::VCmpBlt { left, right, .. }
+            | LirInstruction::VCmpBle { left, right, .. }
+            | LirInstruction::VCmpBgt { left, right, .. }
+            | LirInstruction::VCmpBge { left, right, .. } => {
                 allocate_operand(left, MemorySignal::Read);
                 allocate_operand(right, MemorySignal::Read);
             }
