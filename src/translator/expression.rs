@@ -33,6 +33,50 @@ pub enum ExpressionBinaryOperator {
     Multiply,
     Divide,
     Remainder,
+    LeftShift,
+    RightShift,
+}
+
+pub fn is_arithmetic_binary_op(operator: &ExpressionBinaryOperator) -> bool {
+    matches!(
+        operator,
+        ExpressionBinaryOperator::Add
+            | ExpressionBinaryOperator::Sub
+            | ExpressionBinaryOperator::Multiply
+            | ExpressionBinaryOperator::Divide
+            | ExpressionBinaryOperator::Remainder
+            | ExpressionBinaryOperator::LeftShift
+            | ExpressionBinaryOperator::RightShift
+    )
+}
+
+pub fn is_logical_binary_op(operator: &ExpressionBinaryOperator) -> bool {
+    matches!(
+        operator,
+        ExpressionBinaryOperator::And | ExpressionBinaryOperator::Or
+    )
+}
+
+pub fn is_relational_binary_op(operator: &ExpressionBinaryOperator) -> bool {
+    matches!(
+        operator,
+        ExpressionBinaryOperator::Less
+            | ExpressionBinaryOperator::LessEqual
+            | ExpressionBinaryOperator::Greater
+            | ExpressionBinaryOperator::GreaterEqual
+    )
+}
+
+pub fn is_compering_binary_op(operator: &ExpressionBinaryOperator) -> bool {
+    matches!(
+        operator,
+        ExpressionBinaryOperator::Equal
+            | ExpressionBinaryOperator::NotEqual
+            | ExpressionBinaryOperator::Less
+            | ExpressionBinaryOperator::LessEqual
+            | ExpressionBinaryOperator::Greater
+            | ExpressionBinaryOperator::GreaterEqual
+    )
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -258,6 +302,8 @@ impl<'a> Tokenizer<'a> {
                                     | ('!', '=')
                                     | ('<', '=')
                                     | ('>', '=')
+                                    | ('<', '<')
+                                    | ('>', '>')
                             );
                             if is_double {
                                 op.push(self.chars.next().unwrap());
@@ -297,6 +343,8 @@ impl Parser {
             "*" => Ok(ExpressionBinaryOperator::Multiply),
             "/" => Ok(ExpressionBinaryOperator::Divide),
             "%" => Ok(ExpressionBinaryOperator::Remainder),
+            "<<" => Ok(ExpressionBinaryOperator::LeftShift),
+            ">>" => Ok(ExpressionBinaryOperator::RightShift),
             _ => Err(format!("Unknown operator: {operator}").into()),
         }
     }
@@ -315,17 +363,18 @@ impl Parser {
             | ExpressionBinaryOperator::LessEqual
             | ExpressionBinaryOperator::Greater
             | ExpressionBinaryOperator::GreaterEqual => (9, 10),
-            ExpressionBinaryOperator::Add | ExpressionBinaryOperator::Sub => (11, 12),
+            ExpressionBinaryOperator::LeftShift | ExpressionBinaryOperator::RightShift => (11, 12),
+            ExpressionBinaryOperator::Add | ExpressionBinaryOperator::Sub => (13, 14),
             ExpressionBinaryOperator::Multiply
             | ExpressionBinaryOperator::Divide
-            | ExpressionBinaryOperator::Remainder => (13, 14),
+            | ExpressionBinaryOperator::Remainder => (15, 16),
         }
     }
 
     fn postfix_order(token: &Token) -> Option<(u8, ())> {
         match token {
-            Token::LeftBracket | Token::LeftSquareBracket | Token::Dot => Some((16, ())),
-            Token::Operator(operator) if operator == "++" || operator == "--" => Some((16, ())),
+            Token::LeftBracket | Token::LeftSquareBracket | Token::Dot => Some((18, ())),
+            Token::Operator(operator) if operator == "++" || operator == "--" => Some((18, ())),
             _ => None,
         }
     }
@@ -470,7 +519,7 @@ impl Parser {
                 Ok(expr)
             }
             Token::Operator(operator) => {
-                let right_order = 15;
+                let right_order = 17;
                 if operator == "-" {
                     if let Some(Token::Number(n)) = self.tokens.peek() {
                         let value = format!("-{}", n);

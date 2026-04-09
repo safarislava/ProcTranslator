@@ -79,6 +79,18 @@ pub enum LirInstruction {
         source: LirOperand,
         destination: LirOperand,
     },
+
+    Lsl {
+        size: WordSize,
+        count: LirOperand,
+        destination: LirOperand,
+    },
+    Lsr {
+        size: WordSize,
+        count: LirOperand,
+        destination: LirOperand,
+    },
+
     And {
         size: WordSize,
         source: LirOperand,
@@ -483,6 +495,30 @@ impl LirContext {
                         out.push(LirInstruction::Rem {
                             size: word_size,
                             source: right,
+                            destination: destination.clone(),
+                        });
+                    }
+                    HirBinaryOperator::LeftShift => {
+                        out.push(LirInstruction::Mov {
+                            size: word_size.clone(),
+                            source: right,
+                            destination: destination.clone(),
+                        });
+                        out.push(LirInstruction::Lsl {
+                            size: word_size,
+                            count: left,
+                            destination: destination.clone(),
+                        });
+                    }
+                    HirBinaryOperator::RightShift => {
+                        out.push(LirInstruction::Mov {
+                            size: word_size.clone(),
+                            source: right,
+                            destination: destination.clone(),
+                        });
+                        out.push(LirInstruction::Lsr {
+                            size: word_size,
+                            count: left,
                             destination: destination.clone(),
                         });
                     }
@@ -1200,7 +1236,15 @@ impl LirContext {
             LirInstruction::Out { value, .. } => {
                 add_interval(value);
             }
-
+            LirInstruction::Lsl {
+                count, destination, ..
+            }
+            | LirInstruction::Lsr {
+                count, destination, ..
+            } => {
+                add_interval(count);
+                add_interval(destination);
+            }
             LirInstruction::Jmp { .. }
             | LirInstruction::Branch { .. }
             | LirInstruction::Call { .. }
@@ -1531,7 +1575,15 @@ impl LirContext {
             LirInstruction::Out { value, .. } => {
                 allocate_operand(value, MemorySignal::Read);
             }
-
+            LirInstruction::Lsl {
+                count, destination, ..
+            }
+            | LirInstruction::Lsr {
+                count, destination, ..
+            } => {
+                allocate_operand(count, MemorySignal::Read);
+                allocate_operand(destination, MemorySignal::ReadWrite);
+            }
             LirInstruction::Jmp { .. }
             | LirInstruction::Branch { .. }
             | LirInstruction::Call { .. }

@@ -5,30 +5,30 @@ impl ControlFlowGraph {
         let mut dot = String::new();
         dot.push_str("digraph CFG {\n");
         dot.push_str("  rankdir=TB;\n");
-        dot.push_str("  node [shape=box, fontname=\"Courier\"];\n");
+        dot.push_str("  node [shape=box, fontname=\"Courier\", style=filled, fillcolor=white, margin=\"0.2,0.1\"];\n");
         dot.push_str("  edge [fontname=\"Courier\"];\n\n");
 
         for block in &self.blocks {
-            dot.push_str(&format!("  B{} [label=\"B{}|", block.id, block.id));
+            let mut label = format!("B{}\\l---\\l", block.id);
 
             for instr in &block.instructions {
-                let instr_str = escape_dot(&instr.to_string());
-                dot.push_str(&format!("{}\\l", instr_str));
+                label.push_str(&escape_dot(&instr.to_string()));
+                label.push_str("\\l");
             }
 
             if let Some(term) = &block.terminator {
-                let term_str = escape_dot(&term.to_string());
-                dot.push_str(&format!("{}\\l", term_str));
+                label.push_str(&escape_dot(&term.to_string()));
+                label.push_str("\\l");
             }
 
-            dot.push_str("\"];\n");
+            dot.push_str(&format!("  \"B{}\" [label=\"{} \"];\n", block.id, label));
         }
 
         for block in &self.blocks {
             if let Some(term) = &block.terminator {
                 match term {
                     HirTerminator::Jump(target) => {
-                        dot.push_str(&format!("  B{} -> B{};\n", block.id, target));
+                        dot.push_str(&format!("  \"B{}\" -> \"B{}\";\n", block.id, target));
                     }
                     HirTerminator::Branch {
                         true_block,
@@ -36,23 +36,22 @@ impl ControlFlowGraph {
                         ..
                     } => {
                         dot.push_str(&format!(
-                            "  B{} -> B{} [label=\"true\"];\n",
+                            "  \"B{}\" -> \"B{}\" [label=\"true\"];\n",
                             block.id, true_block
                         ));
                         dot.push_str(&format!(
-                            "  B{} -> B{} [label=\"false\"];\n",
+                            "  \"B{}\" -> \"B{}\" [label=\"false\"];\n",
                             block.id, false_block
                         ));
                     }
-                    HirTerminator::Return(_, _) => {}
-                    HirTerminator::IntReturn => {}
+                    _ => {}
                 }
             }
         }
 
         if !self.blocks.is_empty() {
             dot.push_str(&format!(
-                "  B{} [style=filled, fillcolor=lightgreen];\n",
+                "  \"B{}\" [fillcolor=lightgreen];\n",
                 self.entry_block
             ));
         }
@@ -64,8 +63,6 @@ impl ControlFlowGraph {
 
 fn escape_dot(s: &str) -> String {
     s.replace('\\', "\\\\")
-        .replace('"', "\\\"")
+        .replace('"', "'")
         .replace('\n', "\\l")
-        .replace('<', "\\<")
-        .replace('>', "\\>")
 }

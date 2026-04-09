@@ -86,6 +86,20 @@ impl AsmTranslator {
                 } => {
                     self.translate_standard_instruction(Operator::Rem, size, &source, &destination);
                 }
+                LirInstruction::Lsl {
+                    size,
+                    count,
+                    destination,
+                } => {
+                    self.translate_standard_instruction(Operator::Lsl, size, &count, &destination);
+                }
+                LirInstruction::Lsr {
+                    size,
+                    count,
+                    destination,
+                } => {
+                    self.translate_standard_instruction(Operator::Lsr, size, &count, &destination);
+                }
                 LirInstruction::And {
                     size,
                     source,

@@ -1,5 +1,5 @@
 use crate::isa::{Mode, Operand, Operator, WordSize};
-use crate::machine::alu::{AluOperator, VectorAluOperator};
+use crate::machine::alu::{AluOperator};
 use crate::machine::data_path::{
     AluInputSelector, BufferSelector, DataPath, DataSelector, ExternalSelector,
     OutputVectorSelector, PostModeSelector, PreModeSelector, WriteDataSelector,
@@ -10,6 +10,7 @@ use crate::machine::stack::Stack;
 use crate::translator::common::Address;
 use std::collections::HashMap;
 use tracing::{debug, info};
+use crate::machine::vector_alu::VectorAluOperator;
 
 pub enum Order {
     Master,
@@ -260,11 +261,11 @@ impl ControlUnit {
             Operator::Out => self.execute_output(step),
             Operator::EI => self.enable_interrupt(step),
             Operator::DI => self.disable_interrupt(step),
-            Operator::VAdd => self.execute_vector(step, VectorAluOperator::VAdd),
-            Operator::VSub => self.execute_vector(step, VectorAluOperator::VSub),
-            Operator::VMul => self.execute_vector(step, VectorAluOperator::VMul),
-            Operator::VDiv => self.execute_vector(step, VectorAluOperator::VDiv),
-            Operator::VRem => self.execute_vector(step, VectorAluOperator::VRem),
+            Operator::VAdd => self.execute_vector(step, VectorAluOperator::Add),
+            Operator::VSub => self.execute_vector(step, VectorAluOperator::Sub),
+            Operator::VMul => self.execute_vector(step, VectorAluOperator::Mul),
+            Operator::VDiv => self.execute_vector(step, VectorAluOperator::Div),
+            Operator::VRem => self.execute_vector(step, VectorAluOperator::Rem),
             Operator::VEnd => self.execute_vector_end(step),
         }
     }
@@ -464,10 +465,9 @@ impl ControlUnit {
                 self.prepare_operand(Order::Master, &destination);
                 if Self::is_operand_needed_second_step(&destination) {
                     self.execution_state = ExecutionState::Execute(step + 1);
-                }
-                else {
+                } else {
                     self.iterate_vector_end(0);
-                    self.execution_state = ExecutionState:: Execute(step + 2);
+                    self.execution_state = ExecutionState::Execute(step + 2);
                 }
             }
             1 => {
@@ -482,7 +482,7 @@ impl ControlUnit {
                 self.iterate_vector_end(step as i64 - 1);
                 self.execution_state = ExecutionState::Done;
             }
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 

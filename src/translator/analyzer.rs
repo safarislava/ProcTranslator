@@ -1,8 +1,8 @@
 use crate::translator::ast::{RawAbstractSyntaxNode, RawAbstractSyntaxTree};
 use crate::translator::common::{RawExpression, ResBox, Type, TypedExpression, Variable};
 use crate::translator::expression::{
-    Expression, is_arithmetic_binary_op, is_compering_binary_op,
-    is_logical_binary_op, is_relational_binary_op,
+    Expression, is_arithmetic_binary_op, is_compering_binary_op, is_logical_binary_op,
+    is_relational_binary_op,
 };
 use std::collections::HashMap;
 

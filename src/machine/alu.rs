@@ -1,13 +1,5 @@
 use crate::machine::nzcv::Nzcv;
 
-pub enum VectorAluOperator {
-    VAdd,
-    VSub,
-    VMul,
-    VDiv,
-    VRem,
-}
-
 pub enum AluOperator {
     Add,
     Adc,

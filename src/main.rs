@@ -1,5 +1,5 @@
 use proc_translator::logger::setup_logger;
-use proc_translator::machine::simulation::{simulate_machine};
+use proc_translator::machine::simulation::simulate_machine;
 use proc_translator::translator::asm::translate;
 use proc_translator::translator::common::{ResBox, compile_to_hir, dump_to_file};
 use proc_translator::translator::lir::compile_lir;
@@ -8,7 +8,7 @@ use std::fs;
 fn main() -> ResBox<()> {
     setup_logger();
 
-    let name = "vector";
+    let name = "double";
     let content = fs::read_to_string(format!("examples/correct/{name}.java"))?;
 
     let control_flow_graph = compile_to_hir(&content)?;
@@ -21,15 +21,22 @@ fn main() -> ResBox<()> {
 
 #[allow(dead_code)]
 fn create_cfg_schemes() {
+    create_cfg_scheme("array").unwrap();
     create_cfg_scheme("bool").unwrap();
     create_cfg_scheme("calc").unwrap();
+    create_cfg_scheme("cat").unwrap();
     create_cfg_scheme("classes").unwrap();
+    create_cfg_scheme("double").unwrap();
     create_cfg_scheme("for").unwrap();
     create_cfg_scheme("global").unwrap();
+    create_cfg_scheme("hello_user").unwrap();
+    create_cfg_scheme("hello_world").unwrap();
+    create_cfg_scheme("params").unwrap();
     create_cfg_scheme("prob1").unwrap();
     create_cfg_scheme("return").unwrap();
+    create_cfg_scheme("sort").unwrap();
+    create_cfg_scheme("vector").unwrap();
     create_cfg_scheme("while").unwrap();
-    create_cfg_scheme("params").unwrap();
 }
 
 fn create_cfg_scheme(name: &str) -> ResBox<()> {

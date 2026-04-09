@@ -1,0 +1,33 @@
+digraph CFG {
+  rankdir=TB;
+  node [shape=box, fontname="Courier", style=filled, fillcolor=white, margin="0.2,0.1"];
+  edge [fontname="Courier"];
+
+  "B0" [label="B0\l---\lcall prologue\lalloc s0\ls0 = '-1'\lalloc s1\ls1 = '0'\lalloc s2\ls2 = '1'\lalloc s3\ls3 = '0'\lalloc s4\lr0 = load s0\lr1 = load s2\lr2 = r0 Add r1\ls4 = r2\lalloc s5\lr3 = load s0\lr4 = r3 RightShift '63'\ls5 = r4\lalloc s6\lr5 = load s2\lr6 = r5 RightShift '63'\ls6 = r6\lalloc s7\lr7 = load s4\lr8 = r7 RightShift '63'\ls7 = r8\lalloc s8\ls8 = '0'\lr9 = load s5\lr10 = r9 Equal '1'\lr11 = load s6\lr12 = r11 Equal '1'\lr13 = r10 And r12\lbranch r13 ? B5 : B6\l "];
+  "B1" [label="B1\l---\lcall prologue\lalloc s10\lr30 = param[0]\ls10 = r30\lreturn '0'\l "];
+  "B2" [label="B2\l---\lcall prologue\lalloc s11\lr31 = param[0]\ls11 = r31\lreturn ''0''\l "];
+  "B3" [label="B3\l---\lcall prologue\lalloc s12\lr32 = param[0]\ls12 = r32\lalloc s13\lr33 = param[8]\ls13 = r33\lreturn\l "];
+  "B4" [label="B4\l---\lcall prologue\lalloc s14\lr34 = param[0]\ls14 = r34\lalloc s15\lr35 = param[8]\ls15 = r35\lreturn\l "];
+  "B5" [label="B5\l---\ls8 = '1'\ljump B7\l "];
+  "B6" [label="B6\l---\lr14 = load s5\lr15 = r14 Equal '1'\lr16 = load s6\lr17 = r16 Equal '1'\lr18 = r15 Or r17\lbranch r18 ? B8 : B9\l "];
+  "B7" [label="B7\l---\lalloc s9\lr21 = load s1\lr22 = load s3\lr23 = r21 Add r22\lr24 = load s8\lr25 = r23 Add r24\ls9 = r25\lr26 = load s4\loutput '4' = r26\lr28 = load s9\loutput '4' = r28\lreturn\l "];
+  "B8" [label="B8\l---\lr19 = load s7\lr20 = r19 Equal '0'\lbranch r20 ? B10 : B11\l "];
+  "B9" [label="B9\l---\ljump B13\l "];
+  "B10" [label="B10\l---\ls8 = '1'\ljump B12\l "];
+  "B11" [label="B11\l---\ljump B12\l "];
+  "B12" [label="B12\l---\ljump B13\l "];
+  "B13" [label="B13\l---\ljump B7\l "];
+  "B0" -> "B5" [label="true"];
+  "B0" -> "B6" [label="false"];
+  "B5" -> "B7";
+  "B6" -> "B8" [label="true"];
+  "B6" -> "B9" [label="false"];
+  "B8" -> "B10" [label="true"];
+  "B8" -> "B11" [label="false"];
+  "B9" -> "B13";
+  "B10" -> "B12";
+  "B11" -> "B12";
+  "B12" -> "B13";
+  "B13" -> "B7";
+  "B0" [fillcolor=lightgreen];
+}

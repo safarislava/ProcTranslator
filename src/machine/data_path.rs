@@ -1,8 +1,9 @@
 use crate::isa::WordSize;
-use crate::machine::alu::{Alu, AluOperator, VectorAluOperator};
+use crate::machine::alu::{Alu, AluOperator};
 use crate::machine::io::IO;
 use crate::machine::memory::Memory;
 use crate::machine::nzcv::Nzcv;
+use crate::machine::vector_alu::{VectorAlu, VectorAluOperator};
 
 pub type DataRegisterReadSelector = u8;
 
@@ -86,6 +87,7 @@ pub struct DataPath {
     pub io: IO,
     pub control_unit_output: i64,
 
+    vector_alu: VectorAlu,
     pub input_vector_registers: [i64; 8],
     pub vector_alu_output: [i64; 4],
     pub output_vector_mux: i64,
@@ -244,30 +246,7 @@ impl DataPath {
     }
 
     pub fn execute_vector_alu(&mut self, operator: VectorAluOperator) {
-        for i in 0..4 {
-            match operator {
-                VectorAluOperator::VAdd => {
-                    self.vector_alu_output[i] =
-                        self.input_vector_registers[i] + self.input_vector_registers[i + 4]
-                }
-                VectorAluOperator::VSub => {
-                    self.vector_alu_output[i] =
-                        self.input_vector_registers[i] - self.input_vector_registers[i + 4]
-                }
-                VectorAluOperator::VMul => {
-                    self.vector_alu_output[i] =
-                        self.input_vector_registers[i] * self.input_vector_registers[i + 4]
-                }
-                VectorAluOperator::VDiv => {
-                    self.vector_alu_output[i] =
-                        self.input_vector_registers[i] / self.input_vector_registers[i + 4]
-                }
-                VectorAluOperator::VRem => {
-                    self.vector_alu_output[i] =
-                        self.input_vector_registers[i] % self.input_vector_registers[i + 4]
-                }
-            }
-        }
+        self.vector_alu_output = self.vector_alu.execute_operator(operator, self.input_vector_registers);
     }
 
     pub fn update_output_vector_mux(&mut self, selector: OutputVectorSelector) {
@@ -317,6 +296,7 @@ impl Default for DataPath {
             write_data: 0,
             io: IO::new(),
             control_unit_output: 0,
+            vector_alu: VectorAlu {},
             input_vector_registers: [0; 8],
             vector_alu_output: [0; 4],
             output_vector_mux: 0,

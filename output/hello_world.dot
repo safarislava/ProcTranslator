@@ -1,0 +1,12 @@
+digraph CFG {
+  rankdir=TB;
+  node [shape=box, fontname="Courier", style=filled, fillcolor=white, margin="0.2,0.1"];
+  edge [fontname="Courier"];
+
+  "B0" [label="B0\l---\lcall prologue\loutput '5' = ''H''\loutput '5' = ''e''\loutput '5' = ''l''\loutput '5' = ''l''\loutput '5' = ''o''\loutput '5' = '',''\loutput '5' = '' ''\loutput '5' = ''W''\loutput '5' = ''o''\loutput '5' = ''r''\loutput '5' = ''l''\loutput '5' = ''d''\loutput '5' = ''!''\loutput '5' = ''\\0''\lreturn\l "];
+  "B1" [label="B1\l---\lcall prologue\lalloc s0\lr14 = param[0]\ls0 = r14\lreturn '0'\l "];
+  "B2" [label="B2\l---\lcall prologue\lalloc s1\lr15 = param[0]\ls1 = r15\lreturn ''0''\l "];
+  "B3" [label="B3\l---\lcall prologue\lalloc s2\lr16 = param[0]\ls2 = r16\lalloc s3\lr17 = param[8]\ls3 = r17\lreturn\l "];
+  "B4" [label="B4\l---\lcall prologue\lalloc s4\lr18 = param[0]\ls4 = r18\lalloc s5\lr19 = param[8]\ls5 = r19\lreturn\l "];
+  "B0" [fillcolor=lightgreen];
+}

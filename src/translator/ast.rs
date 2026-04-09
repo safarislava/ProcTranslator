@@ -322,7 +322,7 @@ pub fn build_ast(tree: SyntaxTree) -> ResBox<RawAbstractSyntaxTree> {
                 vec![RawAbstractSyntaxTree::new(RawAbstractSyntaxNode::Return {
                     value: Some(RawExpression::Literal {
                         typ: (),
-                        value: "'\0'".to_string(),
+                        value: "'0'".to_string(),
                     }),
                 })],
             );

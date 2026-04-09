@@ -1,4 +1,4 @@
-use crate::isa::{WordSize};
+use crate::isa::WordSize;
 use crate::translator::analyzer::{TypedAbstractSyntaxNode, TypedAbstractSyntaxTree};
 use crate::translator::common::{Type, TypedExpression};
 use crate::translator::expression::{ExpressionBinaryOperator, is_arithmetic_binary_op};
@@ -38,6 +38,8 @@ pub enum HirBinaryOperator {
     Multiply,
     Divide,
     Remainder,
+    LeftShift,
+    RightShift,
     VectorAdd,
     VectorSub,
     VectorMultiply,
@@ -65,6 +67,8 @@ fn translate_binary_operator(operator: ExpressionBinaryOperator) -> HirBinaryOpe
         ExpressionBinaryOperator::Multiply => HirBinaryOperator::Multiply,
         ExpressionBinaryOperator::Divide => HirBinaryOperator::Divide,
         ExpressionBinaryOperator::Remainder => HirBinaryOperator::Remainder,
+        ExpressionBinaryOperator::LeftShift => HirBinaryOperator::LeftShift,
+        ExpressionBinaryOperator::RightShift => HirBinaryOperator::RightShift,
     }
 }
 
@@ -353,68 +357,65 @@ impl HirContext {
                 let condition = self.generate_expression(condition);
                 let true_block = self.create_block();
                 let false_block = self.create_block();
+
                 self.emit_terminator(HirTerminator::Branch {
                     condition,
                     true_block,
                     false_block,
                 });
 
+                let else_node = ast
+                    .children
+                    .iter()
+                    .find(|child| matches!(child.node, TypedAbstractSyntaxNode::Else));
+
                 self.set_current_block(true_block);
                 self.enter_scope();
-
-                let mut has_else = false;
-                let mut else_if_node: Option<TypedAbstractSyntaxTree> = None;
-
                 for child in &ast.children {
-                    if let TypedAbstractSyntaxNode::Else = child.node {
-                        has_else = true;
-                        if child.children.len() == 1
-                            && let TypedAbstractSyntaxNode::If { .. } = child.children[0].node
-                        {
-                            else_if_node = Some(child.children[0].clone());
-                        }
-                    } else {
+                    if !matches!(child.node, TypedAbstractSyntaxNode::Else) {
                         self.generate_statement(child.clone());
                     }
                 }
                 self.exit_scope();
 
-                let true_terminated = self.is_current_terminated();
-                if !true_terminated {
-                    if else_if_node.is_some() || has_else {
-                        self.emit_terminator(HirTerminator::Jump(false_block));
-                    } else {
-                        let merge_block = self.create_block();
-                        self.emit_terminator(HirTerminator::Jump(merge_block));
-                        self.set_current_block(merge_block);
-                        return;
-                    }
-                }
+                let mut optional_merge_block = if !self.is_current_terminated() {
+                    let merge_block = self.create_block();
+                    self.emit_terminator(HirTerminator::Jump(merge_block));
+                    Some(merge_block)
+                } else {
+                    None
+                };
 
                 self.set_current_block(false_block);
-                if let Some(else_if) = else_if_node {
-                    self.generate_statement(else_if);
-                } else if has_else {
-                    self.enter_scope();
-                    for child in &ast.children {
-                        if let TypedAbstractSyntaxNode::Else = child.node {
-                            for grandchild in &child.children {
-                                self.generate_statement(grandchild.clone());
-                            }
+
+                if let Some(else_branch) = else_node {
+                    let is_else_if = else_branch.children.len() == 1
+                        && matches!(
+                            else_branch.children[0].node,
+                            TypedAbstractSyntaxNode::If { .. }
+                        );
+
+                    if is_else_if {
+                        self.generate_statement(else_branch.children[0].clone());
+                    } else {
+                        self.enter_scope();
+                        for statement in &else_branch.children {
+                            self.generate_statement(statement.clone());
                         }
+                        self.exit_scope();
                     }
-                    self.exit_scope();
-                } else if !true_terminated {
-                    let merge_block = self.create_block();
-                    self.emit_terminator(HirTerminator::Jump(merge_block));
-                    self.set_current_block(merge_block);
-                    return;
                 }
 
-                let false_terminated = self.is_current_terminated();
-                if !false_terminated {
-                    let merge_block = self.create_block();
-                    self.emit_terminator(HirTerminator::Jump(merge_block));
+                if !self.is_current_terminated() {
+                    let final_merge_block = match optional_merge_block {
+                        Some(block_id) => block_id,
+                        None => self.create_block(),
+                    };
+                    self.emit_terminator(HirTerminator::Jump(final_merge_block));
+                    optional_merge_block = Some(final_merge_block);
+                }
+
+                if let Some(merge_block) = optional_merge_block {
                     self.set_current_block(merge_block);
                 }
             }

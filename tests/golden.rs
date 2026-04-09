@@ -46,14 +46,12 @@ impl<'a> fmt::MakeWriter<'a> for TestWriter {
     fn make_writer(&'a self) -> Self::Writer {
         TestWriterGuard {
             inner: self.0.lock().unwrap(),
-            needs_newline: false,
         }
     }
 }
 
 struct TestWriterGuard<'a> {
     inner: std::sync::MutexGuard<'a, Vec<u8>>,
-    needs_newline: bool,
 }
 
 impl<'a> Write for TestWriterGuard<'a> {
@@ -376,4 +374,10 @@ fn test_sort() {
 fn test_vector() {
     let output = run_test("vector", vec![]);
     assert_golden_yaml!(&output, "vector");
+}
+
+#[test]
+fn test_double() {
+    let output = run_test("double", vec![]);
+    assert_golden_yaml!(&output, "double");
 }

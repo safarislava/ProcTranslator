@@ -8,3 +8,4 @@ mod nzcv;
 mod printers;
 pub mod simulation;
 mod stack;
+mod vector_alu;

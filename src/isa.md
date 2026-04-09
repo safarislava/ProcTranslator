@@ -98,23 +98,21 @@ Operator code:
 - from = {#* | D* | A* | MEMORY}
 - to = {D* | A* | MEMORY}
 ---
-0x30 - LSL.size count, source
+0x30 - LSL.size count, dest
 - count = {#* | D* | A* | MEMORY}
-- source = {#* | D* | A* | MEMORY}
-- use C-flag
+- dest = {#* | D* | A* | MEMORY}
 
-0x31 - LSR.size count, source
+0x31 - LSR.size count, dest
 - count = {#* | D* | A* | MEMORY}
-- source = {#* | D* | A* | MEMORY}
-- use C-flag
+- dest = {#* | D* | A* | MEMORY}
 
-0x32 - ASL.size count, source
+0x32 - ASL.size count, dest
 - count = {#* | D* | A* | MEMORY}
-- source = {#* | D* | A* | MEMORY}
+- dest = {#* | D* | A* | MEMORY}
 
-0x33 - ASR.size count, source
+0x33 - ASR.size count, dest
 - count = {#* | D* | A* | MEMORY}
-- source = {#* | D* | A* | MEMORY}
+- dest = {#* | D* | A* | MEMORY}
 - sign saving
 ---
 0x40 - JMP label

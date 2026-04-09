@@ -103,8 +103,8 @@ log: |2-
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
    INFO TICK 39 | PC=1182 | CMP.w
-   INFO TICK 40 | (#54)
-   INFO TICK 41 | Load (#54) = 9
+   INFO TICK 40 | (#55)
+   INFO TICK 41 | Load (#55) = 9
    INFO TICK 42 | D1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
@@ -405,8 +405,8 @@ log: |2-
   DEBUG D [97, 1, 1, 0, 0, 0, 0, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
    INFO TICK 231 | PC=1182 | CMP.w
-   INFO TICK 232 | (#54)
-   INFO TICK 233 | Load (#54) = 9
+   INFO TICK 232 | (#55)
+   INFO TICK 233 | Load (#55) = 9
    INFO TICK 234 | D1
   DEBUG D [97, 1, 1, 0, 0, 0, 0, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
@@ -756,8 +756,8 @@ log: |2-
   DEBUG D [98, 2, 2, 1, 0, 0, 1, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
    INFO TICK 452 | PC=1182 | CMP.w
-   INFO TICK 453 | (#54)
-   INFO TICK 454 | Load (#54) = 9
+   INFO TICK 453 | (#55)
+   INFO TICK 454 | Load (#55) = 9
    INFO TICK 455 | D1
   DEBUG D [98, 2, 2, 1, 0, 0, 1, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
@@ -1156,8 +1156,8 @@ log: |2-
   DEBUG D [99, 3, 3, 2, 0, 0, 2, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
    INFO TICK 702 | PC=1182 | CMP.w
-   INFO TICK 703 | (#54)
-   INFO TICK 704 | Load (#54) = 9
+   INFO TICK 703 | (#55)
+   INFO TICK 704 | Load (#55) = 9
    INFO TICK 705 | D1
   DEBUG D [99, 3, 3, 2, 0, 0, 2, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
@@ -1605,8 +1605,8 @@ log: |2-
   DEBUG D [100, 4, 4, 3, 0, 0, 3, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
    INFO TICK 981 | PC=1182 | CMP.w
-   INFO TICK 982 | (#54)
-   INFO TICK 983 | Load (#54) = 9
+   INFO TICK 982 | (#55)
+   INFO TICK 983 | Load (#55) = 9
    INFO TICK 984 | D1
   DEBUG D [100, 4, 4, 3, 0, 0, 3, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
@@ -2103,8 +2103,8 @@ log: |2-
   DEBUG D [101, 5, 5, 4, 0, 0, 4, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
    INFO TICK 1289 | PC=1182 | CMP.w
-   INFO TICK 1290 | (#54)
-   INFO TICK 1291 | Load (#54) = 9
+   INFO TICK 1290 | (#55)
+   INFO TICK 1291 | Load (#55) = 9
    INFO TICK 1292 | D1
   DEBUG D [101, 5, 5, 4, 0, 0, 4, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
@@ -2405,8 +2405,8 @@ log: |2-
   DEBUG D [97, 6, 6, 5, 0, 0, 5, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
    INFO TICK 1481 | PC=1182 | CMP.w
-   INFO TICK 1482 | (#54)
-   INFO TICK 1483 | Load (#54) = 9
+   INFO TICK 1482 | (#55)
+   INFO TICK 1483 | Load (#55) = 9
    INFO TICK 1484 | D1
   DEBUG D [97, 6, 6, 5, 0, 0, 5, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
@@ -2756,8 +2756,8 @@ log: |2-
   DEBUG D [98, 7, 7, 6, 0, 0, 6, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
    INFO TICK 1702 | PC=1182 | CMP.w
-   INFO TICK 1703 | (#54)
-   INFO TICK 1704 | Load (#54) = 9
+   INFO TICK 1703 | (#55)
+   INFO TICK 1704 | Load (#55) = 9
    INFO TICK 1705 | D1
   DEBUG D [98, 7, 7, 6, 0, 0, 6, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
@@ -3156,8 +3156,8 @@ log: |2-
   DEBUG D [99, 8, 8, 7, 0, 0, 7, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
    INFO TICK 1952 | PC=1182 | CMP.w
-   INFO TICK 1953 | (#54)
-   INFO TICK 1954 | Load (#54) = 9
+   INFO TICK 1953 | (#55)
+   INFO TICK 1954 | Load (#55) = 9
    INFO TICK 1955 | D1
   DEBUG D [99, 8, 8, 7, 0, 0, 7, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
@@ -3605,8 +3605,8 @@ log: |2-
   DEBUG D [100, 9, 9, 8, 0, 0, 8, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
    INFO TICK 2231 | PC=1182 | CMP.w
-   INFO TICK 2232 | (#54)
-   INFO TICK 2233 | Load (#54) = 9
+   INFO TICK 2232 | (#55)
+   INFO TICK 2233 | Load (#55) = 9
    INFO TICK 2234 | D1
   DEBUG D [100, 9, 9, 8, 0, 0, 8, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
@@ -3654,8 +3654,8 @@ log: |2-
   DEBUG D [100, 0, 9, 8, 0, 0, 8, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
    INFO TICK 2260 | PC=1509 | CMP.w
-   INFO TICK 2261 | (#62)
-   INFO TICK 2262 | Load (#62) = 10
+   INFO TICK 2261 | (#63)
+   INFO TICK 2262 | Load (#63) = 10
    INFO TICK 2263 | D1
   DEBUG D [100, 0, 9, 8, 0, 0, 8, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
@@ -3748,8 +3748,8 @@ log: |2-
   DEBUG D [100, 1, 1, 8, 0, 0, 0, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
    INFO TICK 2318 | PC=1509 | CMP.w
-   INFO TICK 2319 | (#62)
-   INFO TICK 2320 | Load (#62) = 10
+   INFO TICK 2319 | (#63)
+   INFO TICK 2320 | Load (#63) = 10
    INFO TICK 2321 | D1
   DEBUG D [100, 1, 1, 8, 0, 0, 0, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
@@ -3842,8 +3842,8 @@ log: |2-
   DEBUG D [100, 2, 2, 8, 0, 0, 1, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
    INFO TICK 2376 | PC=1509 | CMP.w
-   INFO TICK 2377 | (#62)
-   INFO TICK 2378 | Load (#62) = 10
+   INFO TICK 2377 | (#63)
+   INFO TICK 2378 | Load (#63) = 10
    INFO TICK 2379 | D1
   DEBUG D [100, 2, 2, 8, 0, 0, 1, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
@@ -3936,8 +3936,8 @@ log: |2-
   DEBUG D [100, 3, 3, 8, 0, 0, 2, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
    INFO TICK 2434 | PC=1509 | CMP.w
-   INFO TICK 2435 | (#62)
-   INFO TICK 2436 | Load (#62) = 10
+   INFO TICK 2435 | (#63)
+   INFO TICK 2436 | Load (#63) = 10
    INFO TICK 2437 | D1
   DEBUG D [100, 3, 3, 8, 0, 0, 2, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
@@ -4030,8 +4030,8 @@ log: |2-
   DEBUG D [100, 4, 4, 8, 0, 0, 3, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
    INFO TICK 2492 | PC=1509 | CMP.w
-   INFO TICK 2493 | (#62)
-   INFO TICK 2494 | Load (#62) = 10
+   INFO TICK 2493 | (#63)
+   INFO TICK 2494 | Load (#63) = 10
    INFO TICK 2495 | D1
   DEBUG D [100, 4, 4, 8, 0, 0, 3, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
@@ -4124,8 +4124,8 @@ log: |2-
   DEBUG D [100, 5, 5, 8, 0, 0, 4, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
    INFO TICK 2550 | PC=1509 | CMP.w
-   INFO TICK 2551 | (#62)
-   INFO TICK 2552 | Load (#62) = 10
+   INFO TICK 2551 | (#63)
+   INFO TICK 2552 | Load (#63) = 10
    INFO TICK 2553 | D1
   DEBUG D [100, 5, 5, 8, 0, 0, 4, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
@@ -4218,8 +4218,8 @@ log: |2-
   DEBUG D [100, 6, 6, 8, 0, 0, 5, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
    INFO TICK 2608 | PC=1509 | CMP.w
-   INFO TICK 2609 | (#62)
-   INFO TICK 2610 | Load (#62) = 10
+   INFO TICK 2609 | (#63)
+   INFO TICK 2610 | Load (#63) = 10
    INFO TICK 2611 | D1
   DEBUG D [100, 6, 6, 8, 0, 0, 5, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
@@ -4312,8 +4312,8 @@ log: |2-
   DEBUG D [100, 7, 7, 8, 0, 0, 6, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
    INFO TICK 2666 | PC=1509 | CMP.w
-   INFO TICK 2667 | (#62)
-   INFO TICK 2668 | Load (#62) = 10
+   INFO TICK 2667 | (#63)
+   INFO TICK 2668 | Load (#63) = 10
    INFO TICK 2669 | D1
   DEBUG D [100, 7, 7, 8, 0, 0, 6, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
@@ -4406,8 +4406,8 @@ log: |2-
   DEBUG D [100, 8, 8, 8, 0, 0, 7, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
    INFO TICK 2724 | PC=1509 | CMP.w
-   INFO TICK 2725 | (#62)
-   INFO TICK 2726 | Load (#62) = 10
+   INFO TICK 2725 | (#63)
+   INFO TICK 2726 | Load (#63) = 10
    INFO TICK 2727 | D1
   DEBUG D [100, 8, 8, 8, 0, 0, 7, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
@@ -4500,8 +4500,8 @@ log: |2-
   DEBUG D [100, 9, 9, 8, 0, 0, 8, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
    INFO TICK 2782 | PC=1509 | CMP.w
-   INFO TICK 2783 | (#62)
-   INFO TICK 2784 | Load (#62) = 10
+   INFO TICK 2783 | (#63)
+   INFO TICK 2784 | Load (#63) = 10
    INFO TICK 2785 | D1
   DEBUG D [100, 9, 9, 8, 0, 0, 8, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
@@ -4594,8 +4594,8 @@ log: |2-
   DEBUG D [100, 10, 10, 8, 0, 0, 9, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
    INFO TICK 2840 | PC=1509 | CMP.w
-   INFO TICK 2841 | (#62)
-   INFO TICK 2842 | Load (#62) = 10
+   INFO TICK 2841 | (#63)
+   INFO TICK 2842 | Load (#63) = 10
    INFO TICK 2843 | D1
   DEBUG D [100, 10, 10, 8, 0, 0, 9, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
@@ -4632,8 +4632,8 @@ log: |2-
   DEBUG D [100, 0, 10, 8, 0, 0, 9, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
    INFO TICK 2862 | PC=1706 | MOV.w
-   INFO TICK 2863 | (#70)
-   INFO TICK 2864 | Load (#70) = 8
+   INFO TICK 2863 | (#71)
+   INFO TICK 2864 | Load (#71) = 8
    INFO TICK 2865 | D1
   DEBUG D [100, 8, 10, 8, 0, 0, 9, 0]
   DEBUG A [40000, 0, 0, 0, 0, 40010, 99991, 99967]
