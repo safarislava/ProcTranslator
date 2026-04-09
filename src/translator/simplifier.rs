@@ -93,12 +93,18 @@ fn simplify_expression(expression: RawExpression) -> RawExpression {
             ExpressionBinaryOperator::AssignAdd
             | ExpressionBinaryOperator::AssignSub
             | ExpressionBinaryOperator::AssignMul
-            | ExpressionBinaryOperator::AssignDiv => {
+            | ExpressionBinaryOperator::AssignDiv
+            | ExpressionBinaryOperator::AssignAnd
+            | ExpressionBinaryOperator::AssignOr
+            | ExpressionBinaryOperator::AssignXor => {
                 let operator = match operator {
                     ExpressionBinaryOperator::AssignAdd => ExpressionBinaryOperator::Add,
                     ExpressionBinaryOperator::AssignSub => ExpressionBinaryOperator::Sub,
                     ExpressionBinaryOperator::AssignMul => ExpressionBinaryOperator::Multiply,
                     ExpressionBinaryOperator::AssignDiv => ExpressionBinaryOperator::Divide,
+                    ExpressionBinaryOperator::AssignAnd => ExpressionBinaryOperator::BitwiseAnd,
+                    ExpressionBinaryOperator::AssignOr => ExpressionBinaryOperator::BitwiseOr,
+                    ExpressionBinaryOperator::AssignXor => ExpressionBinaryOperator::BitwiseXor,
                     _ => unreachable!(),
                 };
 

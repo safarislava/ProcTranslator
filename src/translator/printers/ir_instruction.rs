@@ -121,6 +121,13 @@ impl fmt::Display for HirInstruction {
             } => {
                 write!(f, "{}[{}:] = {}", target, start, value)
             }
+            HirInstruction::Not {
+                destination,
+                operand,
+                ..
+            } => {
+                write!(f, "{} = ~{}", destination, operand)
+            }
         }
     }
 }

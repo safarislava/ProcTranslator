@@ -81,101 +81,110 @@ Operator code:
 - to = {D* | A* | MEMORY}
 - Set NZCV flags
 - set C-flag if zero-dived
----
-0x20 - AND.size from, to
+
+0x16 - AND.size from, to
 - from = {#* | D* | MEMORY}
 - to = {D* | MEMORY}
 
-0x21 - OR.size from, to
+0x17 - OR.size from, to
 - from = {#* | D* | A* | MEMORY}
 - to = {D* | A* | MEMORY}
 
-0x22 - XOR.size from, to
+0x18 - XOR.size from, to
 - from = {#* | D* | A* | MEMORY}
 - to = {D* | A* | MEMORY}
 
-0x23 - NOT.size from, to
+0x19 - NOT.size from, to
 - from = {#* | D* | A* | MEMORY}
 - to = {D* | A* | MEMORY}
----
-0x30 - LSL.size count, dest
+
+0x1A - LSL.size count, dest
 - count = {#* | D* | A* | MEMORY}
 - dest = {#* | D* | A* | MEMORY}
 
-0x31 - LSR.size count, dest
+0x1B - LSR.size count, dest
 - count = {#* | D* | A* | MEMORY}
 - dest = {#* | D* | A* | MEMORY}
 
-0x32 - ASL.size count, dest
+0x1C - ASL.size count, dest
 - count = {#* | D* | A* | MEMORY}
 - dest = {#* | D* | A* | MEMORY}
 
-0x33 - ASR.size count, dest
+0x1D - ASR.size count, dest
 - count = {#* | D* | A* | MEMORY}
 - dest = {#* | D* | A* | MEMORY}
 - sign saving
 ---
-0x40 - JMP label
+0x20 - JMP label
 - PC <- label
 
-0x41 - CALL label
+0x21 - CALL label
 - PC <- label
 
-0x42 - RET 
+0x22 - RET 
 - PC <- (A7)
 - A7 <- A7 + 8
 
-0x43 - RET
+0x23 - RET
 - PC <- (A7)
 - NZCV <- (A7)+
 ---
-0x50 - BEQ label 
+0x30 - BEQ label 
 
-0x51 - BNE label
+0x31 - BNE label
 
-0x52 - BGT label
+0x32 - BGT label
 
-0x53 - BGE label
+0x33 - BGE label
 
-0x54 - BLT label
+0x34 - BLT label
 
-0x55 - BLE label
+0x35 - BLE label
 
-0x56 - BCS label
+0x36 - BCS label
 
-0x57 - BCC label
+0x37 - BCC label
 
-0x58 - BVS label
+0x38 - BVS label
 
-0x59 - BVC label
+0x39 - BVC label
 
 --- 
-0x60 - VADD a, b
+0x40 - VADD a, b
 - a, b = {A*}
 
-0x62 - VSUB a, b
+0x42 - VSUB a, b
 - a, b = {A*}
 
-0x63 - VMUL a, b
+0x43 - VMUL a, b
 - a, b = {A*}
 
-0x64 - VDIV a, b
+0x44 - VDIV a, b
 - a, b = {A*}
 
-0x65 - VREM a, b
+0x45 - VREM a, b
 - a, b = {A*}
 
-0x66 - VEND c
+0x46 - VAND a, b
+- a, b = {A*}
+
+0x47 - VOR a, b
+- a, b = {A*}
+
+0x48 - VXOR a, b
+- a, b = {A*}
+
+0x49 - VEND c
 - c, = {A*}
 ---
-0x70 - IN port, to
+0x50 - IN port, to
 - to = {D* | A* | MEMORY}
 
-0x71 - OUT port, from
+0x51 - OUT port, from
 - from = {#* | D* | A* | MEMORY}
 
-0x72 - EI 
+0x52 - EI 
 - Enable interrupts
 
-0x73 - DI
+0x53 - DI
 - Disable interrupts

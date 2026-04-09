@@ -44,6 +44,9 @@ impl Display for Operator {
             Operator::VMul => "VMUL",
             Operator::VDiv => "VDIV",
             Operator::VRem => "VREM",
+            Operator::VAnd => "VAND",
+            Operator::VOr => "VOR",
+            Operator::VXor => "VXOR",
             Operator::VEnd => "VEND",
         };
         f.write_str(code)

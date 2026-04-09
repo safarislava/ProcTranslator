@@ -184,6 +184,9 @@ impl ControlUnit {
             | Operator::VMul
             | Operator::VDiv
             | Operator::VRem
+            | Operator::VAnd
+            | Operator::VOr
+            | Operator::VXor
             | Operator::VEnd
             | Operator::In
             | Operator::Out => self.latch_pc(PcSelector::NextWord),
@@ -266,6 +269,9 @@ impl ControlUnit {
             Operator::VMul => self.execute_vector(step, VectorAluOperator::Mul),
             Operator::VDiv => self.execute_vector(step, VectorAluOperator::Div),
             Operator::VRem => self.execute_vector(step, VectorAluOperator::Rem),
+            Operator::VAnd => self.execute_vector(step, VectorAluOperator::And),
+            Operator::VOr => self.execute_vector(step, VectorAluOperator::Or),
+            Operator::VXor => self.execute_vector(step, VectorAluOperator::Xor),
             Operator::VEnd => self.execute_vector_end(step),
         }
     }

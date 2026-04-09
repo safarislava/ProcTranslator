@@ -27,6 +27,9 @@ pub enum HirBinaryOperator {
     Assign,
     Or,
     And,
+    BitwiseOr,
+    BitwiseXor,
+    BitwiseAnd,
     Equal,
     NotEqual,
     Less,
@@ -45,6 +48,9 @@ pub enum HirBinaryOperator {
     VectorMultiply,
     VectorDivide,
     VectorRemainder,
+    VectorAnd,
+    VectorOr,
+    VectorXor,
 }
 
 fn translate_binary_operator(operator: ExpressionBinaryOperator) -> HirBinaryOperator {
@@ -53,7 +59,10 @@ fn translate_binary_operator(operator: ExpressionBinaryOperator) -> HirBinaryOpe
         ExpressionBinaryOperator::AssignAdd
         | ExpressionBinaryOperator::AssignSub
         | ExpressionBinaryOperator::AssignMul
-        | ExpressionBinaryOperator::AssignDiv => unreachable!(),
+        | ExpressionBinaryOperator::AssignDiv
+        | ExpressionBinaryOperator::AssignAnd
+        | ExpressionBinaryOperator::AssignOr
+        | ExpressionBinaryOperator::AssignXor => unreachable!(),
         ExpressionBinaryOperator::Or => HirBinaryOperator::Or,
         ExpressionBinaryOperator::And => HirBinaryOperator::And,
         ExpressionBinaryOperator::Equal => HirBinaryOperator::Equal,
@@ -69,6 +78,9 @@ fn translate_binary_operator(operator: ExpressionBinaryOperator) -> HirBinaryOpe
         ExpressionBinaryOperator::Remainder => HirBinaryOperator::Remainder,
         ExpressionBinaryOperator::LeftShift => HirBinaryOperator::LeftShift,
         ExpressionBinaryOperator::RightShift => HirBinaryOperator::RightShift,
+        ExpressionBinaryOperator::BitwiseOr => HirBinaryOperator::BitwiseOr,
+        ExpressionBinaryOperator::BitwiseXor => HirBinaryOperator::BitwiseXor,
+        ExpressionBinaryOperator::BitwiseAnd => HirBinaryOperator::BitwiseAnd,
     }
 }
 
@@ -79,6 +91,11 @@ pub enum HirInstruction {
         left: HirOperand,
         operator: HirBinaryOperator,
         right: HirOperand,
+        word_size: WordSize,
+    },
+    Not {
+        destination: HirOperand,
+        operand: HirOperand,
         word_size: WordSize,
     },
     Call {
@@ -685,6 +702,9 @@ impl HirContext {
                         ExpressionBinaryOperator::Multiply => HirBinaryOperator::VectorMultiply,
                         ExpressionBinaryOperator::Divide => HirBinaryOperator::VectorDivide,
                         ExpressionBinaryOperator::Remainder => HirBinaryOperator::VectorRemainder,
+                        ExpressionBinaryOperator::BitwiseAnd => HirBinaryOperator::VectorAnd,
+                        ExpressionBinaryOperator::BitwiseOr => HirBinaryOperator::VectorOr,
+                        ExpressionBinaryOperator::BitwiseXor => HirBinaryOperator::VectorXor,
                         _ => unreachable!(),
                     };
                     self.emit(HirInstruction::BinaryOperator {
@@ -821,6 +841,21 @@ impl HirContext {
                     left: operand,
                     operator: HirBinaryOperator::Equal,
                     right: false_const,
+                    word_size,
+                });
+                destination
+            }
+            TypedExpression::BitwiseNot { expression, typ } => {
+                let word_size = self.get_word_size(&typ);
+                let operand = self.generate_expression(*expression);
+                let destination = self.new_register();
+                let destination = match expression_type {
+                    Type::Class(_) | Type::Array(_, _) => HirOperand::Link(destination),
+                    _ => HirOperand::Value(destination),
+                };
+                self.emit(HirInstruction::Not {
+                    destination: destination.clone(),
+                    operand,
                     word_size,
                 });
                 destination

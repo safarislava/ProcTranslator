@@ -1,0 +1,19 @@
+digraph CFG {
+  rankdir=TB;
+  node [shape=box, fontname="Courier", style=filled, fillcolor=white, margin="0.2,0.1"];
+  edge [fontname="Courier"];
+
+  "B0" [label="B0\l---\lcall prologue\lalloc s0\llink r0 = new array[4]\ls0 = link r0\llink r1 = load s0\llink r1['0'] = '52'\llink r2 = load s0\llink r2['1'] = '5'\llink r3 = load s0\llink r3['2'] = '1023'\llink r4 = load s0\llink r4['3'] = '746'\lalloc s1\llink r5 = new array[4]\ls1 = link r5\llink r6 = load s1\llink r6['0'] = '7'\llink r7 = load s1\llink r7['1'] = '4'\llink r8 = load s1\llink r8['2'] = '-2'\llink r9 = load s1\llink r9['3'] = '-1'\lalloc s2\llink r10 = load s0\llink r11 = load s1\llink r12 = link r10 VectorAnd link r11\ls2 = link r12\lalloc s3\ls3 = '0'\ljump B5\l "];
+  "B1" [label="B1\l---\lcall prologue\lalloc s4\lr21 = param[0]\ls4 = r21\lreturn '0'\l "];
+  "B2" [label="B2\l---\lcall prologue\lalloc s5\lr22 = param[0]\ls5 = r22\lreturn ''0''\l "];
+  "B3" [label="B3\l---\lcall prologue\lalloc s6\lr23 = param[0]\ls6 = r23\lalloc s7\lr24 = param[8]\ls7 = r24\lreturn\l "];
+  "B4" [label="B4\l---\lcall prologue\lalloc s8\lr25 = param[0]\ls8 = r25\lalloc s9\lr26 = param[8]\ls9 = r26\lreturn\l "];
+  "B5" [label="B5\l---\lr13 = load s3\lr14 = r13 Less '4'\lbranch r14 ? B6 : B7\l "];
+  "B6" [label="B6\l---\llink r15 = load s2\lr16 = load s3\lr17 = link r15[r16]\loutput '4' = r17\lr19 = load s3\lr20 = r19 Add '1'\ls3 = r20\ljump B5\l "];
+  "B7" [label="B7\l---\lreturn\l "];
+  "B0" -> "B5";
+  "B5" -> "B6" [label="true"];
+  "B5" -> "B7" [label="false"];
+  "B6" -> "B5";
+  "B0" [fillcolor=lightgreen];
+}

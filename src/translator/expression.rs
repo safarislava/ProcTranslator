@@ -20,8 +20,14 @@ pub enum ExpressionBinaryOperator {
     AssignSub,
     AssignMul,
     AssignDiv,
+    AssignAnd,
+    AssignOr,
+    AssignXor,
     Or,
     And,
+    BitwiseOr,
+    BitwiseXor,
+    BitwiseAnd,
     Equal,
     NotEqual,
     Less,
@@ -47,6 +53,9 @@ pub fn is_arithmetic_binary_op(operator: &ExpressionBinaryOperator) -> bool {
             | ExpressionBinaryOperator::Remainder
             | ExpressionBinaryOperator::LeftShift
             | ExpressionBinaryOperator::RightShift
+            | ExpressionBinaryOperator::BitwiseAnd
+            | ExpressionBinaryOperator::BitwiseOr
+            | ExpressionBinaryOperator::BitwiseXor
     )
 }
 
@@ -141,6 +150,10 @@ pub enum Expression<T> {
         typ: T,
         expression: Box<Expression<T>>,
     },
+    BitwiseNot {
+        typ: T,
+        expression: Box<Expression<T>>,
+    },
     New {
         typ: T,
         class_name: String,
@@ -200,6 +213,7 @@ impl<T: Clone> Expression<T> {
             Expression::AssignSlice { typ, .. } => typ.clone(),
             Expression::Slice { typ, .. } => typ.clone(),
             Expression::This { typ } => typ.clone(),
+            Expression::BitwiseNot { typ, .. } => typ.clone(),
         }
     }
 }
@@ -321,6 +335,9 @@ impl<'a> Tokenizer<'a> {
                                     | ('>', '=')
                                     | ('<', '<')
                                     | ('>', '>')
+                                    | ('&', '=')
+                                    | ('|', '=')
+                                    | ('^', '=')
                             );
                             if is_double {
                                 op.push(self.chars.next().unwrap());
@@ -362,6 +379,12 @@ impl Parser {
             "%" => Ok(ExpressionBinaryOperator::Remainder),
             "<<" => Ok(ExpressionBinaryOperator::LeftShift),
             ">>" => Ok(ExpressionBinaryOperator::RightShift),
+            "&" => Ok(ExpressionBinaryOperator::BitwiseAnd),
+            "|" => Ok(ExpressionBinaryOperator::BitwiseOr),
+            "^" => Ok(ExpressionBinaryOperator::BitwiseXor),
+            "&=" => Ok(ExpressionBinaryOperator::AssignAnd),
+            "|=" => Ok(ExpressionBinaryOperator::AssignOr),
+            "^=" => Ok(ExpressionBinaryOperator::AssignXor),
             _ => Err(format!("Unknown operator: {operator}").into()),
         }
     }
@@ -372,26 +395,32 @@ impl Parser {
             | ExpressionBinaryOperator::AssignAdd
             | ExpressionBinaryOperator::AssignSub
             | ExpressionBinaryOperator::AssignMul
-            | ExpressionBinaryOperator::AssignDiv => (1, 2),
+            | ExpressionBinaryOperator::AssignDiv
+            | ExpressionBinaryOperator::AssignAnd
+            | ExpressionBinaryOperator::AssignOr
+            | ExpressionBinaryOperator::AssignXor => (1, 2),
             ExpressionBinaryOperator::Or => (3, 4),
             ExpressionBinaryOperator::And => (5, 6),
-            ExpressionBinaryOperator::Equal | ExpressionBinaryOperator::NotEqual => (7, 8),
+            ExpressionBinaryOperator::BitwiseOr => (7, 8),
+            ExpressionBinaryOperator::BitwiseXor => (9, 10),
+            ExpressionBinaryOperator::BitwiseAnd => (11, 12),
+            ExpressionBinaryOperator::Equal | ExpressionBinaryOperator::NotEqual => (13, 14),
             ExpressionBinaryOperator::Less
             | ExpressionBinaryOperator::LessEqual
             | ExpressionBinaryOperator::Greater
-            | ExpressionBinaryOperator::GreaterEqual => (9, 10),
-            ExpressionBinaryOperator::LeftShift | ExpressionBinaryOperator::RightShift => (11, 12),
-            ExpressionBinaryOperator::Add | ExpressionBinaryOperator::Sub => (13, 14),
+            | ExpressionBinaryOperator::GreaterEqual => (15, 16),
+            ExpressionBinaryOperator::LeftShift | ExpressionBinaryOperator::RightShift => (17, 18),
+            ExpressionBinaryOperator::Add | ExpressionBinaryOperator::Sub => (19, 20),
             ExpressionBinaryOperator::Multiply
             | ExpressionBinaryOperator::Divide
-            | ExpressionBinaryOperator::Remainder => (15, 16),
+            | ExpressionBinaryOperator::Remainder => (21, 22),
         }
     }
 
     fn postfix_order(token: &Token) -> Option<(u8, ())> {
         match token {
-            Token::LeftBracket | Token::LeftSquareBracket | Token::Dot => Some((18, ())),
-            Token::Operator(operator) if operator == "++" || operator == "--" => Some((18, ())),
+            Token::LeftBracket | Token::LeftSquareBracket | Token::Dot => Some((25, ())),
+            Token::Operator(operator) if operator == "++" || operator == "--" => Some((25, ())),
             _ => None,
         }
     }
@@ -446,7 +475,10 @@ impl Parser {
                             value: Box::new(right),
                         },
                         RawExpression::Slice {
-                            expression, start, size, ..
+                            expression,
+                            start,
+                            size,
+                            ..
                         } => RawExpression::AssignSlice {
                             typ: Default::default(),
                             expression,
@@ -545,8 +577,13 @@ impl Parser {
                 Ok(expr)
             }
             Token::Operator(operator) => {
-                let right_order = 17;
-                if operator == "-" {
+                let right_order = 23;
+                if operator == "~" {
+                    Ok(RawExpression::BitwiseNot {
+                        typ: Default::default(),
+                        expression: Box::new(self.parse_expression(right_order)?),
+                    })
+                } else if operator == "-" {
                     if let Some(Token::Number(n)) = self.tokens.peek() {
                         let value = format!("-{}", n);
                         self.tokens.next();

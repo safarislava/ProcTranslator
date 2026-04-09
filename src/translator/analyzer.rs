@@ -604,7 +604,7 @@ impl SemanticTable {
                 expression,
                 start,
                 value,
-                size, 
+                size,
                 ..
             } => {
                 let typed_expression = self.analyze_expression(expression)?;
@@ -632,7 +632,10 @@ impl SemanticTable {
                 })
             }
             RawExpression::Slice {
-                expression, start, size, ..
+                expression,
+                start,
+                size,
+                ..
             } => {
                 let typed_expression = self.analyze_expression(expression)?;
                 let array_type = typed_expression.get_type();
@@ -815,6 +818,17 @@ impl SemanticTable {
                 Ok(Expression::Not {
                     typ: Type::Bool,
                     expression: Box::new(typed_expression),
+                })
+            }
+            Expression::BitwiseNot { expression, .. } => {
+                let typed_expr = self.analyze_expression(expression)?;
+                let typ = typed_expr.get_type();
+                if typ != Type::Int {
+                    return Err("Bitwise NOT (~) can only be applied to type int".into());
+                }
+                Ok(Expression::BitwiseNot {
+                    typ,
+                    expression: Box::new(typed_expr),
                 })
             }
             Expression::New { class_name, .. } => {

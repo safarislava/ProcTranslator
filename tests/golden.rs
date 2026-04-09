@@ -383,6 +383,12 @@ fn test_double() {
 }
 
 #[test]
+fn test_bitwise() {
+    let output = run_test("bitwise", vec![]);
+    assert_golden_yaml!(&output, "bitwise");
+}
+
+#[test]
 fn test_vector_test() {
     let output = run_test("vector_test", vec![]);
     assert_golden_yaml!(&output, "vector_test");

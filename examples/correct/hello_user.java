@@ -21,7 +21,7 @@ class String {
 void Main() {
     print_question();
 
-    while (!name.end()) {}
+    while (!(name.end())) {}
 
     print_hello();
 

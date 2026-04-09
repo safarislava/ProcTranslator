@@ -4,6 +4,9 @@ pub enum VectorAluOperator {
     Mul,
     Div,
     Rem,
+    And,
+    Or,
+    Xor,
 }
 
 pub struct VectorAlu {}
@@ -17,6 +20,9 @@ impl VectorAlu {
                 VectorAluOperator::Mul => output[i] = input[i] * input[i + 4],
                 VectorAluOperator::Div => output[i] = input[i] / input[i + 4],
                 VectorAluOperator::Rem => output[i] = input[i] % input[i + 4],
+                VectorAluOperator::And => output[i] = input[i] & input[i + 4],
+                VectorAluOperator::Or => output[i] = input[i] | input[i + 4],
+                VectorAluOperator::Xor => output[i] = input[i] ^ input[i + 4],
             }
         }
         output
