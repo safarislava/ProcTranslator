@@ -7,6 +7,13 @@ use crate::translator::hir::{
 use std::collections::{HashMap, hash_map};
 use std::vec;
 
+#[derive(Debug, Clone)]
+pub struct ArrayConstant {
+    pub values: Vec<String>,
+    pub element_type: Type,
+    pub base_address: Address,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RegisterType {
     Data,
@@ -223,6 +230,8 @@ pub struct LirContext {
 
     pub globals: HashMap<GlobalId, Address>,
 
+    pub array_constants: Vec<ArrayConstant>,
+
     return_registers: LirOperand,
 
     restore_data_registers: Vec<LirOperand>,
@@ -252,6 +261,7 @@ impl LirContext {
             data_size: 0,
             constants: HashMap::new(),
             globals: HashMap::new(),
+            array_constants: vec![],
             return_registers: LirOperand::Register(0, RegisterType::Data),
             restore_data_registers: vec![
                 LirOperand::Register(6, RegisterType::Data),
@@ -344,24 +354,7 @@ impl LirContext {
             HirOperand::Value(register) => self.get_virtual_data_register(register),
             HirOperand::Link(register) => self.get_virtual_address_register(register),
             HirOperand::Constant(value_str, typ) => {
-                let normalized_value = match value_str.as_str() {
-                    "true" => "1".to_string(),
-                    "false" => "0".to_string(),
-                    s if s.starts_with('\'') && s.ends_with('\'') && s.len() >= 3 => {
-                        let inner = &s[1..s.len() - 1];
-                        let char_value = match inner {
-                            "\\n" => '\n' as u64,
-                            "\\r" => '\r' as u64,
-                            "\\t" => '\t' as u64,
-                            "\\\\" => '\\' as u64,
-                            "\\'" => '\'' as u64,
-                            "\\0" => 0_u64,
-                            _ => inner.chars().next().unwrap_or('\0') as u64,
-                        };
-                        char_value.to_string()
-                    }
-                    _ => value_str,
-                };
+                let normalized_value = normalize_constant(value_str);
                 let address = self.get_constant_address(normalized_value, typ);
                 LirOperand::IndirectDirect(address)
             }
@@ -1118,6 +1111,27 @@ impl LirContext {
                     destination,
                 });
             }
+            HirInstruction::CopyConstantArray {
+                destination,
+                id,
+                word_size,
+            } => {
+                let destination = self.get_virtual_register(destination);
+                let array_const = &self.array_constants[id];
+                let base = array_const.base_address;
+                let size = array_const.values.len() as u64;
+
+                for i in 0..size {
+                    out.push(LirInstruction::Mov {
+                        size: word_size.clone(),
+                        source: LirOperand::IndirectDirect(base + i),
+                        destination: LirOperand::IndirectOffset {
+                            base: Box::new(destination.clone()),
+                            offset: Box::new(LirOperand::Direct(i)),
+                        },
+                    });
+                }
+            }
         }
     }
 
@@ -1241,6 +1255,27 @@ impl LirContext {
         };
 
         self.blocks.insert(0, entry_block);
+    }
+}
+
+fn normalize_constant(value_str: String) -> String {
+    match value_str.as_str() {
+        "true" => "1".to_string(),
+        "false" => "0".to_string(),
+        s if s.starts_with('\'') && s.ends_with('\'') && s.len() >= 3 => {
+            let inner = &s[1..s.len() - 1];
+            let char_value = match inner {
+                "\\n" => '\n' as u64,
+                "\\r" => '\r' as u64,
+                "\\t" => '\t' as u64,
+                "\\\\" => '\\' as u64,
+                "\\'" => '\'' as u64,
+                "\\0" => 0_u64,
+                _ => inner.chars().next().unwrap_or('\0') as u64,
+            };
+            char_value.to_string()
+        }
+        _ => value_str,
     }
 }
 
@@ -1889,6 +1924,17 @@ pub struct LirPackage {
 pub fn compile_lir(control_flow_graph: ControlFlowGraph) -> LirPackage {
     let mut context = LirContext::new(control_flow_graph.register_counter);
 
+    for (values, element_type) in control_flow_graph.array_constants {
+        let length = values.len() as u64;
+        context.array_constants.push(ArrayConstant {
+            values,
+            element_type,
+            base_address: context.data_size,
+        });
+        context.data_size += length;
+    }
+
+
     let entry_point = control_flow_graph.entry_block;
     context.lower(control_flow_graph.blocks);
     context.create_entry_point(entry_point);
@@ -1899,6 +1945,18 @@ pub fn compile_lir(control_flow_graph: ControlFlowGraph) -> LirPackage {
     for ((name, _), (address, word_size)) in context.constants {
         let value = name.parse::<i64>().unwrap() as u64;
         data_section.insert(address, (value, word_size));
+    }
+
+    for array in &context.array_constants {
+        let word_size = match array.element_type {
+            Type::Bool | Type::Char => WordSize::Byte,
+            _ => WordSize::Long,
+        };
+        for (j, value_str) in array.values.iter().enumerate() {
+            let normalized = normalize_constant(value_str.clone());
+            let value = normalized.parse::<i64>().unwrap_or(0) as u64;
+            data_section.insert(array.base_address + j as u64, (value, word_size.clone()));
+        }
     }
 
     LirPackage {

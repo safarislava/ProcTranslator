@@ -128,6 +128,9 @@ impl fmt::Display for HirInstruction {
             } => {
                 write!(f, "{} = ~{}", destination, operand)
             }
+            HirInstruction::CopyConstantArray { destination, id, .. } => {
+                write!(f, "{} = copy array [{}]", destination, id)
+            }
         }
     }
 }

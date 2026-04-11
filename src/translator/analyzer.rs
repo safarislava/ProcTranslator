@@ -865,6 +865,34 @@ impl SemanticTable {
                     typ: Type::Class(class_name),
                 })
             }
+            RawExpression::ArrayLiteral { elements, .. } => {
+                if elements.is_empty() {
+                    return Err("Empty array literals are not supported".into());
+                }
+
+                let mut typed_elements = Vec::new();
+                let first = self.analyze_expression(&elements[0])?;
+                let inner_type = first.get_type();
+
+                typed_elements.push(first);
+
+                for elem in &elements[1..] {
+                    let typed_elem = self.analyze_expression(elem)?;
+                    if !self.types_compatible(&inner_type, &typed_elem.get_type()) {
+                        return Err(
+                            "All elements in an array literal must have the same type".into()
+                        );
+                    }
+                    typed_elements.push(typed_elem);
+                }
+
+                let array_type = Type::Array(Box::new(inner_type), elements.len() as u64);
+
+                Ok(Expression::ArrayLiteral {
+                    typ: array_type,
+                    elements: typed_elements,
+                })
+            }
         }
     }
 

@@ -1,17 +1,7 @@
 void Main() {
-    cout(5, 'H');
-    cout(5, 'e');
-    cout(5, 'l');
-    cout(5, 'l');
-    cout(5, 'o');
-    cout(5, ',');
-    cout(5, ' ');
-    cout(5, 'W');
-    cout(5, 'o');
-    cout(5, 'r');
-    cout(5, 'l');
-    cout(5, 'd');
-    cout(5, '!');
-    cout(5, '\0');
+    char[14] str = ['H', 'e', 'l', 'l', 'o', ',', ' ', 'W', 'o', 'r', 'l', 'd', '!', '\0'];
+    for (int i = 0; i < 14; i++) {
+        cout(5, str[i]);
+    }
     return;
 }

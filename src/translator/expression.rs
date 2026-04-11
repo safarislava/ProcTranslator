@@ -189,6 +189,10 @@ pub enum Expression<T> {
     This {
         typ: T,
     },
+    ArrayLiteral {
+        typ: T,
+        elements: Vec<Expression<T>>,
+    },
 }
 
 impl<T: Clone> Expression<T> {
@@ -214,6 +218,7 @@ impl<T: Clone> Expression<T> {
             Expression::Slice { typ, .. } => typ.clone(),
             Expression::This { typ } => typ.clone(),
             Expression::BitwiseNot { typ, .. } => typ.clone(),
+            Expression::ArrayLiteral { typ, .. } => typ.clone(),
         }
     }
 }
@@ -617,6 +622,31 @@ impl Parser {
                 } else {
                     Err(format!("Invalid prefix operator: {}", operator).into())
                 }
+            }
+            Token::LeftSquareBracket => {
+                let mut elements = Vec::new();
+                loop {
+                    if let Some(Token::RightSquareBracket) = self.tokens.peek() {
+                        self.tokens.next();
+                        break;
+                    }
+                    let elem = self.parse_expression(0)?;
+                    if !matches!(elem, RawExpression::Literal { .. }) {
+                        return Err(
+                            "Array literal can only contain literals of the inner type".into()
+                        );
+                    }
+                    elements.push(elem);
+                    match self.tokens.next() {
+                        Some(Token::Comma) => continue,
+                        Some(Token::RightSquareBracket) => break,
+                        _ => return Err("Expected ',' or ']' in array literal".into()),
+                    }
+                }
+                Ok(RawExpression::ArrayLiteral {
+                    typ: Default::default(),
+                    elements,
+                })
             }
             _ => Err(format!("Unexpected token in prefix position: {:?}", token).into()),
         }

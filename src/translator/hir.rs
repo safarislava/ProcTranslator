@@ -198,6 +198,11 @@ pub enum HirInstruction {
         value: HirOperand,
         word_size: WordSize,
     },
+    CopyConstantArray {
+        destination: HirOperand,
+        id: usize,
+        word_size: WordSize,
+    },
 }
 
 #[derive(Debug, Clone)]
@@ -266,6 +271,11 @@ struct HirContext {
     main_block: Option<BlockId>,
     interrupt_block: [BlockId; 8],
     globals: HashMap<String, GlobalId>,
+
+    // Новое поле: хранилище констант-массивов (литералы []).
+    // Каждый элемент — (список строковых значений литералов, тип элемента).
+    // Индекс в векторе = constant_id.
+    array_constants: Vec<(Vec<String>, Type)>,
 }
 
 impl HirContext {
@@ -286,6 +296,7 @@ impl HirContext {
             main_block: None,
             interrupt_block: [0; 8],
             globals: HashMap::new(),
+            array_constants: vec![],
         }
     }
 
@@ -375,6 +386,12 @@ impl HirContext {
         } else {
             unreachable!("Type is not a class")
         }
+    }
+
+    fn new_constant_array(&mut self, values: Vec<String>, elem_type: Type) -> usize {
+        let id = self.array_constants.len();
+        self.array_constants.push((values, elem_type));
+        id
     }
 }
 
@@ -1056,6 +1073,38 @@ impl HirContext {
                 .this_register
                 .clone()
                 .expect("Usage of 'this' outside of method"),
+            TypedExpression::ArrayLiteral { elements, typ } => {
+                let inner_type = if let Type::Array(inner, _) = &typ {
+                    inner.as_ref().clone()
+                } else {
+                    unreachable!()
+                };
+
+                let mut values = Vec::with_capacity(elements.len());
+                for element in elements {
+                    if let TypedExpression::Literal { value, .. } = element {
+                        values.push(value);
+                    } else {
+                        unreachable!();
+                    }
+                }
+
+                let size = values.len() as u64;
+                let const_id = self.new_constant_array(values, inner_type.clone());
+                let destination = HirOperand::Link(self.new_register());
+                let word_size = self.get_word_size(&inner_type);
+
+                self.emit(HirInstruction::AllocateArray {
+                    destination: destination.clone(),
+                    size,
+                });
+                self.emit(HirInstruction::CopyConstantArray {
+                    destination: destination.clone(),
+                    id: const_id,
+                    word_size,
+                });
+                destination
+            }
         }
     }
 
@@ -1242,6 +1291,7 @@ pub struct ControlFlowGraph {
     pub interrupt_blocks: [BlockId; 8],
     pub classes: HashMap<String, ClassInfo>,
     pub register_counter: u64,
+    pub array_constants: Vec<(Vec<String>, Type)>,
 }
 
 pub fn compile_hir(ast: TypedAbstractSyntaxTree) -> ControlFlowGraph {
@@ -1256,5 +1306,6 @@ pub fn compile_hir(ast: TypedAbstractSyntaxTree) -> ControlFlowGraph {
         interrupt_blocks: context.interrupt_block,
         classes: context.classes,
         register_counter: context.register_counter,
+        array_constants: context.array_constants,
     }
 }
