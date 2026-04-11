@@ -5,7 +5,7 @@ use crate::machine::data_path::{
     PostModeSelector, PreModeSelector, VectorModeSelector, WriteDataSelector, WriteSelector,
 };
 use crate::machine::instruction_parser::InstructionParser;
-use crate::machine::memory::Memory;
+use crate::machine::program_memory::ProgramMemory;
 use crate::machine::stack::Stack;
 use crate::machine::vector_alu::VectorAluOperator;
 use crate::translator::common::Address;
@@ -18,9 +18,7 @@ pub enum Order {
 }
 
 pub enum PcSelector {
-    NextByte,
     NextWord,
-    NextTwoWords,
     ByDecoder,
     ByStack,
     ByInterrupt,
@@ -37,11 +35,11 @@ enum ExecutionState {
 pub struct ControlUnit {
     instruction_parser: InstructionParser,
     pub data_path: DataPath,
-    program_memory: Memory,
+    program_memory: ProgramMemory,
     stack: Stack,
     decoder_output: u64,
     pc: Address,
-    read_data: u64,
+    read_data: u32,
     ir: u32,
     word_size: WordSize,
     operator: Operator,
@@ -60,9 +58,7 @@ impl ControlUnit {
 
     fn latch_pc(&mut self, signal: PcSelector) {
         self.pc = match signal {
-            PcSelector::NextByte => self.pc + 1,
-            PcSelector::NextWord => self.pc + 4,
-            PcSelector::NextTwoWords => self.pc + 8,
+            PcSelector::NextWord => self.pc + 1,
             PcSelector::ByDecoder => self.decoder_output,
             PcSelector::ByStack => self.stack.pop(),
             PcSelector::ByInterrupt => self.vector_table[&self.data_path.io.interrupt_vector],
@@ -70,11 +66,11 @@ impl ControlUnit {
     }
 
     fn latch_read_data(&mut self) {
-        self.read_data = self.program_memory.read_u64(self.pc);
+        self.read_data = self.program_memory.read(self.pc);
     }
 
     fn latch_ir(&mut self) {
-        self.ir = self.program_memory.read_u32(self.pc);
+        self.ir = self.program_memory.read(self.pc);
     }
 
     fn update_control_unit_output(&mut self) {
@@ -184,63 +180,7 @@ impl ControlUnit {
                 WordSize::Long => "w",
             }
         );
-
-        match self.operator {
-            Operator::Hlt => {}
-            Operator::Mov
-            | Operator::Add
-            | Operator::Adc
-            | Operator::Sub
-            | Operator::Mul
-            | Operator::Div
-            | Operator::Rem
-            | Operator::And
-            | Operator::Or
-            | Operator::Xor
-            | Operator::Not
-            | Operator::Lsl
-            | Operator::Lsr
-            | Operator::Asl
-            | Operator::Asr
-            | Operator::Cmp
-            | Operator::VAdd
-            | Operator::VSub
-            | Operator::VMul
-            | Operator::VDiv
-            | Operator::VRem
-            | Operator::VAnd
-            | Operator::VOr
-            | Operator::VXor
-            | Operator::VEnd
-            | Operator::VCmpBeq
-            | Operator::VCmpBne
-            | Operator::VCmpBgt
-            | Operator::VCmpBge
-            | Operator::VCmpBlt
-            | Operator::VCmpBle
-            | Operator::VCmpBcs
-            | Operator::VCmpBcc
-            | Operator::VCmpBvs
-            | Operator::VCmpBvc
-            | Operator::In
-            | Operator::Out => self.latch_pc(PcSelector::NextWord),
-            Operator::Jmp
-            | Operator::Call
-            | Operator::Ret
-            | Operator::IntRet
-            | Operator::Beq
-            | Operator::Bne
-            | Operator::Bgt
-            | Operator::Bge
-            | Operator::Blt
-            | Operator::Ble
-            | Operator::Bcs
-            | Operator::Bcc
-            | Operator::Bvs
-            | Operator::Bvc
-            | Operator::EI
-            | Operator::DI => self.latch_pc(PcSelector::NextByte),
-        }
+        self.latch_pc(PcSelector::NextWord);
 
         self.execution_state = ExecutionState::Execute(0);
     }
@@ -620,7 +560,7 @@ impl ControlUnit {
         match step {
             0 => {
                 self.latch_read_data();
-                self.decoder_output = self.read_data;
+                self.decoder_output = self.assemble_branch_address();
                 self.latch_pc(PcSelector::ByDecoder);
                 self.execution_state = ExecutionState::Done;
             }
@@ -632,8 +572,8 @@ impl ControlUnit {
         match step {
             0 => {
                 self.latch_read_data();
-                self.decoder_output = self.read_data;
-                self.stack.push(self.pc + 8);
+                self.decoder_output = self.assemble_branch_address();
+                self.stack.push(self.pc + 1);
                 self.latch_pc(PcSelector::ByDecoder);
                 self.execution_state = ExecutionState::Done;
             }
@@ -685,15 +625,21 @@ impl ControlUnit {
         }
     }
 
+    fn assemble_branch_address(&self) -> u64 {
+        let high = ((self.ir & 0x00ffffff) as u64) << 32;
+        let low = self.read_data as u64;
+        high | low
+    }
+
     fn execute_branch(&mut self, step: u8, condition: bool) {
         match step {
             0 => {
                 self.latch_read_data();
-                self.decoder_output = self.read_data;
+                self.decoder_output = self.assemble_branch_address();
                 if condition {
                     self.latch_pc(PcSelector::ByDecoder);
                 } else {
-                    self.latch_pc(PcSelector::NextTwoWords)
+                    self.latch_pc(PcSelector::NextWord)
                 }
                 self.execution_state = ExecutionState::Done;
             }
@@ -779,8 +725,8 @@ impl ControlUnit {
         match operand.mode {
             Mode::Direct => {
                 self.latch_read_data();
-                self.latch_pc(PcSelector::NextTwoWords);
-                self.decoder_output = self.read_data;
+                self.latch_pc(PcSelector::NextWord);
+                self.decoder_output = (self.read_data as i32) as u64;
                 self.update_control_unit_output();
                 match order {
                     Order::Master => self.data_path.update_left_data(DataSelector::External),
@@ -867,8 +813,8 @@ impl ControlUnit {
 
                 if operand.offset == 0 {
                     self.latch_read_data();
-                    self.latch_pc(PcSelector::NextTwoWords);
-                    self.decoder_output = self.read_data;
+                    self.latch_pc(PcSelector::NextWord);
+                    self.decoder_output = (self.read_data as i32) as u64;
                     self.update_control_unit_output();
                     self.data_path.external_selector = ExternalSelector::ControlUnit;
                     match order {
@@ -918,8 +864,8 @@ impl ControlUnit {
             }
             Mode::IndirectDirect => {
                 self.latch_read_data();
-                self.latch_pc(PcSelector::NextTwoWords);
-                self.decoder_output = self.read_data;
+                self.latch_pc(PcSelector::NextWord);
+                self.decoder_output = (self.read_data as i32) as u64;
                 self.update_control_unit_output();
                 match order {
                     Order::Master => {
@@ -1004,9 +950,9 @@ impl ControlUnit {
 }
 
 impl ControlUnit {
-    pub fn load_program(&mut self, program: &[u8]) {
+    pub fn load_program(&mut self, program: &[u32]) {
         program.iter().enumerate().for_each(|(i, word)| {
-            self.program_memory.write_u8(i as Address, *word);
+            self.program_memory.write(i as Address, *word);
         })
     }
 
@@ -1042,7 +988,7 @@ impl Default for ControlUnit {
         Self {
             instruction_parser: InstructionParser::new(),
             data_path: DataPath::default(),
-            program_memory: Memory::new(100000),
+            program_memory: ProgramMemory::new(100000),
             stack: Stack::new(),
             read_data: 0,
             ir: 0,

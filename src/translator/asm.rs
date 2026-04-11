@@ -243,10 +243,12 @@ impl AsmTranslator {
                 LirInstruction::Ret => {
                     let operator_code = self.operators[&Operator::Ret];
                     self.data.push(operator_code << 1);
+                    self.data.extend(vec![0; 3]);
                 }
                 LirInstruction::IntRet => {
                     let operator_code = self.operators[&Operator::IntRet];
                     self.data.push(operator_code << 1);
+                    self.data.extend(vec![0; 3]);
                 }
                 LirInstruction::SetBool {
                     condition,
@@ -257,7 +259,7 @@ impl AsmTranslator {
                     let branch_opcode = self.operators[&condition];
                     self.data.push(branch_opcode << 1);
                     let true_address = self.data.len();
-                    self.data.extend(vec![0; 8]);
+                    self.data.extend(vec![0; 7]);
 
                     self.translate_standard_instruction(
                         Operator::Mov,
@@ -269,11 +271,11 @@ impl AsmTranslator {
                     let operator_code = self.operators[&Operator::Jmp];
                     self.data.push(operator_code << 1);
                     let jump_address = self.data.len();
-                    self.data.extend(vec![0; 8]);
+                    self.data.extend(vec![0; 7]);
 
-                    let current_address = self.data.len() as u64;
-                    self.data[true_address..true_address + 8]
-                        .copy_from_slice(&current_address.to_be_bytes());
+                    let current_address = self.data.len() as u64 / 4;
+                    self.data[true_address..true_address + 7]
+                        .copy_from_slice(&current_address.to_be_bytes()[1..8]);
 
                     self.translate_standard_instruction(
                         Operator::Mov,
@@ -282,9 +284,9 @@ impl AsmTranslator {
                         &destination,
                     );
 
-                    let current_address = self.data.len() as u64;
-                    self.data[jump_address..jump_address + 8]
-                        .copy_from_slice(&current_address.to_be_bytes());
+                    let current_address = self.data.len() as u64 / 4;
+                    self.data[jump_address..jump_address + 7]
+                        .copy_from_slice(&current_address.to_be_bytes()[1..8]);
                 }
                 LirInstruction::In {
                     port,
@@ -303,6 +305,7 @@ impl AsmTranslator {
                 LirInstruction::Halt => {
                     let operator_code = self.operators[&Operator::Hlt];
                     self.data.push(operator_code << 1);
+                    self.data.extend([0u8; 3]);
                 }
                 LirInstruction::AllocateStackFrame => {
                     panic!("AllocateStackFrame should be lowered");
@@ -315,7 +318,10 @@ impl AsmTranslator {
         match operand {
             LirOperand::Direct(value) => {
                 let mode_code = self.modes[&Mode::Direct];
-                (mode_code << 5, value.to_be_bytes().to_vec())
+                (
+                    mode_code << 5,
+                    ((*value as i32) as u32).to_be_bytes().to_vec(),
+                )
             }
             LirOperand::Register(register, RegisterType::Data) => {
                 let mode_code = self.modes[&Mode::DataRegister];
@@ -355,7 +361,7 @@ impl AsmTranslator {
                         let mode_code = self.modes[&Mode::IndirectOffset];
                         (
                             (mode_code << 5) | (base << 2),
-                            offset.to_be_bytes().to_vec(),
+                            ((offset as i32) as u32).to_be_bytes().to_vec(),
                         )
                     } else {
                         panic!("Wrong offset register");
@@ -366,7 +372,7 @@ impl AsmTranslator {
             }
             LirOperand::IndirectDirect(address) => {
                 let mode_code = self.modes[&Mode::IndirectDirect];
-                ((mode_code << 5), address.to_be_bytes().to_vec())
+                (mode_code << 5, (*address as u32).to_be_bytes().to_vec())
             }
             LirOperand::VirtualRegister(_, _) => unreachable!(),
         }
@@ -412,7 +418,7 @@ impl AsmTranslator {
         let patch_offset = self.data.len();
         self.jumps.push((patch_offset, label));
 
-        self.data.extend(vec![0; 8]);
+        self.data.extend(vec![0; 7]);
     }
 
     fn condition_to_operator(&self, condition: Condition) -> Operator {
@@ -443,7 +449,7 @@ impl AsmTranslator {
         if let LirOperand::Direct(port) = port
             && *port <= u8::MAX as u64
         {
-            let port_code = port.to_le_bytes()[0];
+            let port_code = *port as u8;
             let (value_code, value_postcode) = self.translate_operand(operand);
 
             self.data.push((operator_code << 1) | size_code);
@@ -459,8 +465,8 @@ impl AsmTranslator {
     fn patch_jumps(&mut self) {
         for (offset, block_id) in &self.jumps {
             if let Some(&target_address) = self.block_address.get(block_id) {
-                let address_bytes = target_address.to_be_bytes();
-                self.data[*offset..*offset + 8].copy_from_slice(&address_bytes);
+                let address_bytes = (target_address / 4).to_be_bytes();
+                self.data[*offset..*offset + 7].copy_from_slice(&address_bytes[1..8]);
             } else {
                 panic!(
                     "Label/BlockId {:?} not found during jump patching",
@@ -472,21 +478,21 @@ impl AsmTranslator {
 
     fn get_interrupt_vectors(&self, interrupt_blocks: [BlockId; 8]) -> [Address; 8] {
         *interrupt_blocks
-            .map(|block_id| self.block_address[&block_id] as Address)
+            .map(|block_id| (self.block_address[&block_id] / 4) as Address)
             .as_array::<8>()
             .expect("Interrupt vectors aren't valid")
     }
 }
 
 pub struct ControlUnitPackage {
-    pub program: Vec<u8>,
+    pub program: Vec<u32>,
     pub data: HashMap<Address, (u64, WordSize)>,
     pub interrupt_vectors: [Address; 8],
 }
 
 impl ControlUnitPackage {
     fn new(
-        program: Vec<u8>,
+        program: Vec<u32>,
         data: HashMap<Address, (u64, WordSize)>,
         interrupt_vectors: [Address; 8],
     ) -> Self {
@@ -502,7 +508,12 @@ pub fn translate(lir_package: LirPackage) -> ControlUnitPackage {
     let mut translator = AsmTranslator::default();
     translator.add_blocks(lir_package.text_section);
     let interrupt_vectors = translator.get_interrupt_vectors(lir_package.interrupt_blocks);
-    ControlUnitPackage::new(translator.data, lir_package.data_section, interrupt_vectors)
+    let program = translator
+        .data
+        .chunks_exact(4)
+        .map(|chunk| u32::from_be_bytes(chunk.try_into().unwrap()))
+        .collect();
+    ControlUnitPackage::new(program, lir_package.data_section, interrupt_vectors)
 }
 
 impl Default for AsmTranslator {

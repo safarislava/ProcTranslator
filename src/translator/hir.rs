@@ -271,10 +271,6 @@ struct HirContext {
     main_block: Option<BlockId>,
     interrupt_block: [BlockId; 8],
     globals: HashMap<String, GlobalId>,
-
-    // Новое поле: хранилище констант-массивов (литералы []).
-    // Каждый элемент — (список строковых значений литералов, тип элемента).
-    // Индекс в векторе = constant_id.
     array_constants: Vec<(Vec<String>, Type)>,
 }
 

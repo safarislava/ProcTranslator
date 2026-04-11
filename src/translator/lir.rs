@@ -1934,7 +1934,6 @@ pub fn compile_lir(control_flow_graph: ControlFlowGraph) -> LirPackage {
         context.data_size += length;
     }
 
-
     let entry_point = control_flow_graph.entry_block;
     context.lower(control_flow_graph.blocks);
     context.create_entry_point(entry_point);
