@@ -323,24 +323,18 @@ impl LirContext {
 
             self.constants
                 .insert((value, typ), (address, word_size.clone()));
-            self.data_size += match word_size {
-                WordSize::Byte => 1,
-                WordSize::Long => 8,
-            };
+            self.data_size += 1;
             address
         }
     }
 
-    fn get_global_address(&mut self, id: GlobalId, word_size: WordSize) -> Address {
+    fn get_global_address(&mut self, id: GlobalId) -> Address {
         if let Some(address) = self.globals.get(&id) {
             *address
         } else {
             let address = self.data_size;
             self.globals.insert(id, address);
-            self.data_size += match word_size {
-                WordSize::Byte => 1,
-                WordSize::Long => 8,
-            };
+            self.data_size += 1;
             address
         }
     }
@@ -445,7 +439,7 @@ impl LirContext {
                 id,
                 word_size,
             } => {
-                let address = self.get_global_address(id, word_size.clone());
+                let address = self.get_global_address(id);
                 let destination = self.get_virtual_register(destination);
                 out.push(LirInstruction::Mov {
                     size: word_size,
@@ -460,7 +454,7 @@ impl LirContext {
                 word_size,
             } => {
                 let value_operand = self.lower_operand(value);
-                let address = self.get_global_address(id, word_size.clone());
+                let address = self.get_global_address(id);
                 out.push(LirInstruction::Mov {
                     size: word_size,
                     source: value_operand,
@@ -621,7 +615,7 @@ impl LirContext {
                         });
                         out.push(LirInstruction::Add {
                             size: WordSize::Long,
-                            source: LirOperand::Direct(4 * 8),
+                            source: LirOperand::Direct(4),
                             destination: self.heap_pointer.clone(),
                         });
                         match &operator {
@@ -754,10 +748,7 @@ impl LirContext {
                 let mut arguments_size = 0;
                 for (argument, word_size) in arguments.into_iter().rev() {
                     let operand = self.lower_operand(argument);
-                    match &word_size {
-                        WordSize::Byte => arguments_size += 1,
-                        WordSize::Long => arguments_size += 8,
-                    }
+                    arguments_size += 1;
                     out.push(LirInstruction::Mov {
                         size: word_size,
                         source: operand,
@@ -865,17 +856,17 @@ impl LirContext {
                     size: word_size,
                     source: LirOperand::IndirectOffset {
                         base: Box::new(self.frame_pointer.clone()),
-                        offset: Box::new(LirOperand::Direct(offset + 8)),
+                        offset: Box::new(LirOperand::Direct(offset + 1)),
                     },
                     destination: self.get_virtual_register(destination),
                 });
             }
-            HirInstruction::AllocateStack { slot, slot_size } => {
+            HirInstruction::AllocateStack { slot } => {
                 let entry = self
                     .current_function
                     .expect("Stack allocation outside of function context");
                 let size = self.frame_sizes.get_mut(&entry).unwrap();
-                *size += slot_size as i64;
+                *size += 1;
                 self.stack_offsets.insert(slot, -*size);
             }
             HirInstruction::StoreStack {
@@ -984,7 +975,6 @@ impl LirContext {
             HirInstruction::LoadIndex {
                 destination,
                 array,
-                type_size,
                 index,
                 word_size,
             } => {
@@ -996,11 +986,6 @@ impl LirContext {
                 out.push(LirInstruction::Mov {
                     size: WordSize::Long,
                     source: index,
-                    destination: temp_register.clone(),
-                });
-                out.push(LirInstruction::Mul {
-                    size: WordSize::Long,
-                    source: LirOperand::Direct(type_size),
                     destination: temp_register.clone(),
                 });
                 out.push(LirInstruction::Mov {
@@ -1015,7 +1000,6 @@ impl LirContext {
             HirInstruction::StoreIndex {
                 array,
                 index,
-                type_size,
                 value,
                 word_size,
             } => {
@@ -1029,11 +1013,6 @@ impl LirContext {
                     source: index,
                     destination: temp_register.clone(),
                 });
-                out.push(LirInstruction::Mul {
-                    size: WordSize::Long,
-                    source: LirOperand::Direct(type_size),
-                    destination: temp_register.clone(),
-                });
                 out.push(LirInstruction::Mov {
                     size: word_size,
                     source: value,
@@ -1043,12 +1022,19 @@ impl LirContext {
                     },
                 })
             }
-            HirInstruction::AllocateArray {
-                destination,
-                size,
-                type_size,
-            } => {
+            HirInstruction::AllocateArray { destination, size } => {
                 let destination = self.get_virtual_register(destination);
+
+                out.push(LirInstruction::Add {
+                    size: WordSize::Long,
+                    source: LirOperand::Direct(3),
+                    destination: self.heap_pointer.clone(),
+                });
+                out.push(LirInstruction::And {
+                    size: WordSize::Long,
+                    source: LirOperand::Direct(0xFFFFFFFFFFFFFFFC),
+                    destination: self.heap_pointer.clone(),
+                });
 
                 out.push(LirInstruction::Mov {
                     size: WordSize::Long,
@@ -1057,7 +1043,7 @@ impl LirContext {
                 });
                 out.push(LirInstruction::Add {
                     size: WordSize::Long,
-                    source: LirOperand::Direct(type_size * size),
+                    source: LirOperand::Direct(size),
                     destination: self.heap_pointer.clone(),
                 });
             }
@@ -1065,25 +1051,12 @@ impl LirContext {
                 target,
                 start,
                 value,
-                size: element_count,
-                type_size,
+                size,
                 word_size,
             } => {
                 let target = self.lower_operand(target);
                 let value = self.lower_operand(value);
                 let start = self.lower_operand(start);
-
-                let offset = self.new_virtual_data_register();
-                out.push(LirInstruction::Mov {
-                    size: WordSize::Long,
-                    source: start,
-                    destination: offset.clone(),
-                });
-                out.push(LirInstruction::Mul {
-                    size: WordSize::Long,
-                    source: LirOperand::Direct(type_size),
-                    destination: offset.clone(),
-                });
 
                 let destination = self.new_virtual_address_register();
                 out.push(LirInstruction::Mov {
@@ -1093,20 +1066,20 @@ impl LirContext {
                 });
                 out.push(LirInstruction::Add {
                     size: WordSize::Long,
-                    source: offset,
+                    source: start,
                     destination: destination.clone(),
                 });
 
-                for i in 0..element_count {
+                for i in 0..size {
                     out.push(LirInstruction::Mov {
                         size: word_size.clone(),
                         source: LirOperand::IndirectOffset {
                             base: Box::new(value.clone()),
-                            offset: Box::new(LirOperand::Direct(i * type_size)),
+                            offset: Box::new(LirOperand::Direct(i)),
                         },
                         destination: LirOperand::IndirectOffset {
                             base: Box::new(destination.clone()),
-                            offset: Box::new(LirOperand::Direct(i * type_size)),
+                            offset: Box::new(LirOperand::Direct(i)),
                         },
                     });
                 }
@@ -1115,7 +1088,6 @@ impl LirContext {
                 destination,
                 array,
                 start,
-                type_size,
                 ..
             } => {
                 let destination = self.get_virtual_register(destination);
@@ -1126,20 +1098,9 @@ impl LirContext {
                     source: array,
                     destination: destination.clone(),
                 });
-                let temp_register = self.new_virtual_data_register();
-                out.push(LirInstruction::Mov {
-                    size: WordSize::Long,
-                    source: start,
-                    destination: temp_register.clone(),
-                });
-                out.push(LirInstruction::Mul {
-                    size: WordSize::Long,
-                    source: LirOperand::Direct(type_size),
-                    destination: temp_register.clone(),
-                });
                 out.push(LirInstruction::Add {
                     size: WordSize::Long,
-                    source: temp_register,
+                    source: start,
                     destination,
                 })
             }
@@ -1569,7 +1530,7 @@ impl LirContext {
             .get(&virtual_register)
             .expect("Unknown register function origin");
         let frame_size = self.frame_sizes.get_mut(&entry_id).unwrap();
-        *frame_size += 8;
+        *frame_size += 1;
         let offset = -(*frame_size);
 
         match register_type {

@@ -11,8 +11,8 @@ pub struct CharInputDevice {
 }
 
 pub struct IO {
-    pub input: i64,
-    pub output: i64,
+    pub input: u64,
+    pub output: u64,
 
     pub int_input_device: IntInputDevice,
     pub char_input_device: CharInputDevice,
@@ -46,18 +46,18 @@ impl IO {
     pub fn read(&mut self, port: u8) {
         match port {
             0 => {
-                self.output = self.int_input_device.data;
+                self.output = self.int_input_device.data as u64;
                 self.int_input_device.interrupt = false;
             }
             1 => {
-                self.output = self.int_input_device.vector as i64;
+                self.output = self.int_input_device.vector as u64;
             }
             2 => {
-                self.output = self.char_input_device.data as i64;
+                self.output = self.char_input_device.data as u64;
                 self.char_input_device.interrupt = false;
             }
             3 => {
-                self.output = self.char_input_device.vector as i64;
+                self.output = self.char_input_device.vector as u64;
             }
             _ => {}
         }
@@ -72,7 +72,7 @@ impl IO {
                 self.char_input_device.vector = self.input as u8;
             }
             4 => {
-                self.int_output_log.push(self.input);
+                self.int_output_log.push(self.input as i64);
             }
             5 => {
                 self.char_output_log.push((self.input as u8) as char);
@@ -96,7 +96,7 @@ impl IO {
                 self.char_input_device.vector = value as u8;
             }
             4 => {
-                self.int_output_log.push(self.input);
+                self.int_output_log.push(self.input as i64);
             }
             5 => {
                 self.char_output_log.push((self.input as u8) as char);

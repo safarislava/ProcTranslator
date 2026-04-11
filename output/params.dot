@@ -3,11 +3,11 @@ digraph CFG {
   node [shape=box, fontname="Courier", style=filled, fillcolor=white, margin="0.2,0.1"];
   edge [fontname="Courier"];
 
-  "B0" [label="B0\l---\lcall prologue\lalloc s0\lr0 = param[0]\ls0 = r0\lalloc s1\lr1 = param[8]\ls1 = r1\lalloc s2\lr2 = param[16]\ls2 = r2\lr3 = load s0\lr4 = load s1\lr5 = r3 Add r4\lr6 = load s2\lr7 = r5 Multiply r6\lreturn r7\l "];
+  "B0" [label="B0\l---\lcall prologue\lalloc s0\lr0 = param[0]\ls0 = r0\lalloc s1\lr1 = param[1]\ls1 = r1\lalloc s2\lr2 = param[2]\ls2 = r2\lr3 = load s0\lr4 = load s1\lr5 = r3 Add r4\lr6 = load s2\lr7 = r5 Multiply r6\lreturn r7\l "];
   "B1" [label="B1\l---\lcall prologue\lalloc s3\ls3 = '9'\lalloc s4\ls4 = '-1'\lalloc s5\lr8 = load s3\lr9 = load s4\lr10 = call B0(r8, r9, '4')\ls5 = r10\lr11 = load s5\loutput '4' = r11\lreturn\l "];
   "B2" [label="B2\l---\lcall prologue\lalloc s6\lr13 = param[0]\ls6 = r13\lreturn '0'\l "];
   "B3" [label="B3\l---\lcall prologue\lalloc s7\lr14 = param[0]\ls7 = r14\lreturn ''0''\l "];
-  "B4" [label="B4\l---\lcall prologue\lalloc s8\lr15 = param[0]\ls8 = r15\lalloc s9\lr16 = param[8]\ls9 = r16\lreturn\l "];
-  "B5" [label="B5\l---\lcall prologue\lalloc s10\lr17 = param[0]\ls10 = r17\lalloc s11\lr18 = param[8]\ls11 = r18\lreturn\l "];
+  "B4" [label="B4\l---\lcall prologue\lalloc s8\lr15 = param[0]\ls8 = r15\lalloc s9\lr16 = param[1]\ls9 = r16\lreturn\l "];
+  "B5" [label="B5\l---\lcall prologue\lalloc s10\lr17 = param[0]\ls10 = r17\lalloc s11\lr18 = param[1]\ls11 = r18\lreturn\l "];
   "B1" [fillcolor=lightgreen];
 }

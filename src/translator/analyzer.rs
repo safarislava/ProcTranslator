@@ -489,7 +489,8 @@ impl SemanticTable {
                 }
 
                 if is_relational_binary_op(operator)
-                    && left_type != Type::Int && left_type != Type::Array(Box::new(Type::Int), 4)
+                    && left_type != Type::Int
+                    && left_type != Type::Array(Box::new(Type::Int), 4)
                 {
                     return Err(
                         "Relational operations (<, >, <=, >=) can only be applied to type int"

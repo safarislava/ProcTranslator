@@ -3,13 +3,13 @@ digraph CFG {
   node [shape=box, fontname="Courier", style=filled, fillcolor=white, margin="0.2,0.1"];
   edge [fontname="Courier"];
 
-  "B0" [label="B0\l---\lcall prologue\lalloc s0\llink r0 = new array[4]\ls0 = link r0\lalloc s1\llink r1 = new array[4]\ls1 = link r1\llink r2 = load s0\llink r2['0'] = '1'\llink r3 = load s0\llink r3['1'] = '2'\llink r4 = load s0\llink r4['2'] = '3'\llink r5 = load s0\llink r5['3'] = '4'\llink r6 = load s1\llink r6['0'] = '-1001'\llink r7 = load s1\llink r7['1'] = '1002'\llink r8 = load s1\llink r8['2'] = '-1003'\llink r9 = load s1\llink r9['3'] = '1004'\lalloc s2\llink r10 = load s0\llink r11 = load s1\llink r12 = link r10 VectorAdd link r11\ls2 = link r12\lalloc s3\ls3 = '0'\ljump B5\l "];
-  "B1" [label="B1\l---\lcall prologue\lalloc s4\lr21 = param[0]\ls4 = r21\lreturn '0'\l "];
-  "B2" [label="B2\l---\lcall prologue\lalloc s5\lr22 = param[0]\ls5 = r22\lreturn ''0''\l "];
-  "B3" [label="B3\l---\lcall prologue\lalloc s6\lr23 = param[0]\ls6 = r23\lalloc s7\lr24 = param[8]\ls7 = r24\lreturn\l "];
-  "B4" [label="B4\l---\lcall prologue\lalloc s8\lr25 = param[0]\ls8 = r25\lalloc s9\lr26 = param[8]\ls9 = r26\lreturn\l "];
-  "B5" [label="B5\l---\lr13 = load s3\lr14 = r13 Less '4'\lbranch r14 ? B6 : B7\l "];
-  "B6" [label="B6\l---\llink r15 = load s2\lr16 = load s3\lr17 = link r15[r16]\loutput '4' = r17\lr19 = load s3\lr20 = r19 Add '1'\ls3 = r20\ljump B5\l "];
+  "B0" [label="B0\l---\lcall prologue\lalloc s0\llink r0 = new array[4]\ls0 = link r0\lalloc s1\llink r1 = new array[4]\ls1 = link r1\lalloc s2\llink r2 = new array[4]\ls2 = link r2\llink r3 = load s0\llink r3['0'] = '1'\llink r4 = load s0\llink r4['1'] = '2'\llink r5 = load s0\llink r5['2'] = '3'\llink r6 = load s0\llink r6['3'] = '4'\llink r7 = load s1\llink r7['0'] = '-1001'\llink r8 = load s1\llink r8['1'] = '1002'\llink r9 = load s1\llink r9['2'] = '-1003'\llink r10 = load s1\llink r10['3'] = '1004'\llink r11 = load s2\llink r11['0'] = '0'\llink r12 = load s2\llink r12['1'] = '500'\llink r13 = load s2\llink r13['2'] = '-1000'\llink r14 = load s2\llink r14['3'] = '1005'\lalloc s3\llink r15 = load s0\llink r16 = load s1\llink r17 = link r15 VectorAdd link r16\ls3 = link r17\lalloc s4\llink r18 = load s3\llink r19 = load s2\llink r20 = link r18 VectorGreaterEqual link r19\llink r21 = load s3\llink r22 = link r20 VectorAnd link r21\llink r23 = load s0\llink r24 = link r22 VectorMultiply link r23\ls4 = link r24\lalloc s5\ls5 = '0'\ljump B5\l "];
+  "B1" [label="B1\l---\lcall prologue\lalloc s6\lr33 = param[0]\ls6 = r33\lreturn '0'\l "];
+  "B2" [label="B2\l---\lcall prologue\lalloc s7\lr34 = param[0]\ls7 = r34\lreturn ''0''\l "];
+  "B3" [label="B3\l---\lcall prologue\lalloc s8\lr35 = param[0]\ls8 = r35\lalloc s9\lr36 = param[8]\ls9 = r36\lreturn\l "];
+  "B4" [label="B4\l---\lcall prologue\lalloc s10\lr37 = param[0]\ls10 = r37\lalloc s11\lr38 = param[8]\ls11 = r38\lreturn\l "];
+  "B5" [label="B5\l---\lr25 = load s5\lr26 = r25 Less '4'\lbranch r26 ? B6 : B7\l "];
+  "B6" [label="B6\l---\llink r27 = load s4\lr28 = load s5\lr29 = link r27[r28]\loutput '4' = r29\lr31 = load s5\lr32 = r31 Add '1'\ls5 = r32\ljump B5\l "];
   "B7" [label="B7\l---\lreturn\l "];
   "B0" -> "B5";
   "B5" -> "B6" [label="true"];

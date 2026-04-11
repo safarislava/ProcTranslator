@@ -1,4 +1,5 @@
 use crate::machine::alu::{Alu, AluOperator};
+use crate::machine::data_memory::VectorWord;
 
 pub enum VectorAluOperator {
     Add,
@@ -26,7 +27,12 @@ impl VectorAlu {
         }
     }
 
-    pub fn execute_operator(&mut self, operator: VectorAluOperator, input: [u64; 8]) -> [u64; 4] {
+    pub fn execute_operator(
+        &mut self,
+        operator: VectorAluOperator,
+        left: VectorWord,
+        right: VectorWord,
+    ) -> VectorWord {
         let operator = match operator {
             VectorAluOperator::Add => AluOperator::Add,
             VectorAluOperator::Sub => AluOperator::Sub,
@@ -40,7 +46,7 @@ impl VectorAlu {
 
         let mut output = [0; 4];
         for i in 0..4 {
-            output[i] = self.block[i].execute_operator(operator.clone(), input[i], input[i + 4]);
+            output[i] = self.block[i].execute_operator(operator.clone(), left[i], right[i]);
         }
         output
     }

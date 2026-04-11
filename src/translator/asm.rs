@@ -141,7 +141,7 @@ impl AsmTranslator {
                 LirInstruction::VAdd { left, right } => {
                     self.translate_standard_instruction(
                         Operator::VAdd,
-                        WordSize::Byte,
+                        WordSize::Long,
                         &left,
                         &right,
                     );
@@ -149,7 +149,7 @@ impl AsmTranslator {
                 LirInstruction::VSub { left, right } => {
                     self.translate_standard_instruction(
                         Operator::VSub,
-                        WordSize::Byte,
+                        WordSize::Long,
                         &left,
                         &right,
                     );
@@ -157,7 +157,7 @@ impl AsmTranslator {
                 LirInstruction::VMul { left, right } => {
                     self.translate_standard_instruction(
                         Operator::VMul,
-                        WordSize::Byte,
+                        WordSize::Long,
                         &left,
                         &right,
                     );
@@ -165,7 +165,7 @@ impl AsmTranslator {
                 LirInstruction::VDiv { left, right } => {
                     self.translate_standard_instruction(
                         Operator::VDiv,
-                        WordSize::Byte,
+                        WordSize::Long,
                         &left,
                         &right,
                     );
@@ -173,26 +173,26 @@ impl AsmTranslator {
                 LirInstruction::VRem { left, right } => {
                     self.translate_standard_instruction(
                         Operator::VRem,
-                        WordSize::Byte,
+                        WordSize::Long,
                         &left,
                         &right,
                     );
                 }
                 LirInstruction::VAnd { left, right } => self.translate_standard_instruction(
                     Operator::VAnd,
-                    WordSize::Byte,
+                    WordSize::Long,
                     &left,
                     &right,
                 ),
                 LirInstruction::VOr { left, right } => self.translate_standard_instruction(
                     Operator::VOr,
-                    WordSize::Byte,
+                    WordSize::Long,
                     &left,
                     &right,
                 ),
                 LirInstruction::VXor { left, right } => self.translate_standard_instruction(
                     Operator::VXor,
-                    WordSize::Byte,
+                    WordSize::Long,
                     &left,
                     &right,
                 ),
@@ -202,38 +202,38 @@ impl AsmTranslator {
                 LirInstruction::VCmpBeq { left, right } => {
                     self.translate_standard_instruction(
                         Operator::VCmpBeq,
-                        WordSize::Byte,
+                        WordSize::Long,
                         &left,
                         &right,
                     );
                 }
                 LirInstruction::VCmpBne { left, right } => self.translate_standard_instruction(
                     Operator::VCmpBne,
-                    WordSize::Byte,
+                    WordSize::Long,
                     &left,
                     &right,
                 ),
                 LirInstruction::VCmpBlt { left, right } => self.translate_standard_instruction(
                     Operator::VCmpBlt,
-                    WordSize::Byte,
+                    WordSize::Long,
                     &left,
                     &right,
                 ),
                 LirInstruction::VCmpBle { left, right } => self.translate_standard_instruction(
                     Operator::VCmpBle,
-                    WordSize::Byte,
+                    WordSize::Long,
                     &left,
                     &right,
                 ),
                 LirInstruction::VCmpBgt { left, right } => self.translate_standard_instruction(
                     Operator::VCmpBgt,
-                    WordSize::Byte,
+                    WordSize::Long,
                     &left,
                     &right,
                 ),
                 LirInstruction::VCmpBge { left, right } => self.translate_standard_instruction(
                     Operator::VCmpBge,
-                    WordSize::Byte,
+                    WordSize::Long,
                     &left,
                     &right,
                 ),
@@ -398,7 +398,7 @@ impl AsmTranslator {
 
         let (source_code, source_postcode) = self.translate_operand(destination);
 
-        self.data.push(operator_code << 1);
+        self.data.push(operator_code << 1 | 1);
         self.data.push(source_code);
         self.data.push(0);
         self.data.push(0);

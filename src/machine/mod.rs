@@ -1,5 +1,6 @@
 mod alu;
 pub mod control_unit;
+mod data_memory;
 mod data_path;
 mod instruction_parser;
 mod io;
