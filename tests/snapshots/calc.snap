@@ -75,79 +75,54 @@ log: |2-
    INFO TICK 36 | D1
   DEBUG D [0, 1, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99998, 99994]
-   INFO TICK 37 | PC=22 | MOV.w
+   INFO TICK 37 | PC=22 | SUB.w
    INFO TICK 38 | (A6:#-2)
    INFO TICK 39 | Load (#99996) = 2
-   INFO TICK 40 | D2
-  DEBUG D [0, 1, 2, 0, 0, 0, 0, 0]
+   INFO TICK 40 | D1
+  DEBUG D [0, -1, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99998, 99994]
    INFO TICK 41 | PC=24 | MOV.w
    INFO TICK 42 | D1
-   INFO TICK 43 | D3
-  DEBUG D [0, 1, 2, 1, 0, 0, 0, 0]
+   INFO TICK 43 | D2
+  DEBUG D [0, -1, -1, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99998, 99994]
-   INFO TICK 44 | PC=25 | SUB.w
-   INFO TICK 45 | D2
-   INFO TICK 46 | D3
-  DEBUG D [0, 1, 2, -1, 0, 0, 0, 0]
+   INFO TICK 44 | PC=25 | MUL.w
+   INFO TICK 45 | (A6:#-3)
+   INFO TICK 46 | Load (#99995) = 3
+   INFO TICK 47 | D2
+  DEBUG D [0, -1, -3, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99998, 99994]
-   INFO TICK 47 | PC=26 | MOV.w
-   INFO TICK 48 | (A6:#-3)
-   INFO TICK 49 | Load (#99995) = 3
-   INFO TICK 50 | D1
-  DEBUG D [0, 3, 2, -1, 0, 0, 0, 0]
+   INFO TICK 48 | PC=27 | MOV.w
+   INFO TICK 49 | D2
+   INFO TICK 50 | (A6:#-4)
+   INFO TICK 51 | Load (#99994) = 0 | Store (#99994) = -3
+  DEBUG D [0, -1, -3, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99998, 99994]
-   INFO TICK 51 | PC=28 | MOV.w
-   INFO TICK 52 | D3
-   INFO TICK 53 | D2
-  DEBUG D [0, 3, -1, -1, 0, 0, 0, 0]
+   INFO TICK 52 | PC=29 | OUT.w
+   INFO TICK 53 | (A6:#-4)
+   INFO TICK 54 | Load (#99994) = -3
+  DEBUG D [0, -1, -3, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99998, 99994]
-   INFO TICK 54 | PC=29 | MUL.w
-   INFO TICK 55 | D1
-   INFO TICK 56 | D2
-  DEBUG D [0, 3, -3, -1, 0, 0, 0, 0]
+   INFO TICK 55 | PC=31 | MOV.w
+   INFO TICK 56 | (A6:#-4)
+   INFO TICK 57 | Load (#99994) = -3
+   INFO TICK 58 | D0
+  DEBUG D [-3, -1, -3, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99998, 99994]
-   INFO TICK 57 | PC=30 | MOV.w
-   INFO TICK 58 | D2
-   INFO TICK 59 | (A6:#-4)
-   INFO TICK 60 | Load (#99994) = 0 | Store (#99994) = -3
-  DEBUG D [0, 3, -3, -1, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 40000, 99998, 99994]
-   INFO TICK 61 | PC=32 | MOV.w
-   INFO TICK 62 | (A6:#-4)
-   INFO TICK 63 | Load (#99994) = -3
-   INFO TICK 64 | D1
-  DEBUG D [0, -3, -3, -1, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 40000, 99998, 99994]
-   INFO TICK 65 | PC=34 | OUT.w
-   INFO TICK 66 | D1
-  DEBUG D [0, -3, -3, -1, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 40000, 99998, 99994]
-   INFO TICK 67 | PC=35 | MOV.w
-   INFO TICK 68 | (A6:#-4)
-   INFO TICK 69 | Load (#99994) = -3
-   INFO TICK 70 | D1
-  DEBUG D [0, -3, -3, -1, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 40000, 99998, 99994]
-   INFO TICK 71 | PC=37 | MOV.w
-   INFO TICK 72 | D1
-   INFO TICK 73 | D0
-  DEBUG D [-3, -3, -3, -1, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 40000, 99998, 99994]
-   INFO TICK 74 | PC=38 | MOV.w
-   INFO TICK 75 | A6
-   INFO TICK 76 | A7
-  DEBUG D [-3, -3, -3, -1, 0, 0, 0, 0]
+   INFO TICK 59 | PC=33 | MOV.w
+   INFO TICK 60 | A6
+   INFO TICK 61 | A7
+  DEBUG D [-3, -1, -3, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 99998, 99998]
-   INFO TICK 77 | PC=39 | MOV.w
-   INFO TICK 78 | (A7)+
-   INFO TICK 79 | Load (#99998) = 0
-   INFO TICK 80 | A6
-  DEBUG D [-3, -3, -3, -1, 0, 0, 0, 0]
+   INFO TICK 62 | PC=34 | MOV.w
+   INFO TICK 63 | (A7)+
+   INFO TICK 64 | Load (#99998) = 0
+   INFO TICK 65 | A6
+  DEBUG D [-3, -1, -3, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 0, 99999]
-   INFO TICK 81 | PC=40 | RET.b
-   INFO TICK 82
-  DEBUG D [-3, -3, -3, -1, 0, 0, 0, 0]
+   INFO TICK 66 | PC=35 | RET.b
+   INFO TICK 67
+  DEBUG D [-3, -1, -3, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 40000, 0, 99999]
-   INFO TICK 83 | PC=6 | HLT.b
-   INFO TICK 84 | Result : -3
+   INFO TICK 68 | PC=6 | HLT.b
+   INFO TICK 69 | Result : -3

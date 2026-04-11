@@ -7,6 +7,8 @@ impl fmt::Display for HirOperand {
             HirOperand::Value(register) => write!(f, "{}", register),
             HirOperand::Link(register) => write!(f, "link {}", register),
             HirOperand::Constant(value, _) => write!(f, "\"{}\"", value),
+            HirOperand::LocalVariable(slot) => write!(f, "local {}", slot),
+            HirOperand::GlobalVariable(id) => write!(f, "global {}", id),
             HirOperand::Void => write!(f, "void"),
         }
     }

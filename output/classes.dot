@@ -4,10 +4,10 @@ digraph CFG {
   edge [fontname="Courier"];
 
   "B0" [label="B0\l---\lcall prologue\llink r0 = param[0]\lr1 = load field link r0[0]\lr2 = r1 Add '2'\llink r0[0] = r2\lr3 = load field link r0[0]\lreturn r3\l "];
-  "B1" [label="B1\l---\lcall prologue\lalloc s0\llink r4 = new object 8\llink r4[0] = '5'\ls0 = link r4\llink r5 = load s0\lr6 = call B0(link r5)\llink r7 = load s0\lr8 = call B0(link r7)\llink r9 = load s0\lr10 = load field link r9[0]\loutput '4' = r10\lreturn\l "];
-  "B2" [label="B2\l---\lcall prologue\lalloc s1\lr12 = param[0]\ls1 = r12\lreturn '0'\l "];
-  "B3" [label="B3\l---\lcall prologue\lalloc s2\lr13 = param[0]\ls2 = r13\lreturn ''0''\l "];
-  "B4" [label="B4\l---\lcall prologue\lalloc s3\lr14 = param[0]\ls3 = r14\lalloc s4\lr15 = param[8]\ls4 = r15\lreturn\l "];
-  "B5" [label="B5\l---\lcall prologue\lalloc s5\lr16 = param[0]\ls5 = r16\lalloc s6\lr17 = param[8]\ls6 = r17\lreturn\l "];
+  "B1" [label="B1\l---\lcall prologue\lalloc s0\llink r4 = new object 1\llink r4[0] = '5'\ls0 = link r4\lr5 = call B0(local s0)\lr6 = call B0(local s0)\lr7 = load field local s0[0]\loutput '4' = r7\lreturn\l "];
+  "B2" [label="B2\l---\lcall prologue\lalloc s1\lr9 = param[0]\ls1 = r9\lreturn '0'\l "];
+  "B3" [label="B3\l---\lcall prologue\lalloc s2\lr10 = param[0]\ls2 = r10\lreturn ''0''\l "];
+  "B4" [label="B4\l---\lcall prologue\lalloc s3\lr11 = param[0]\ls3 = r11\lalloc s4\lr12 = param[1]\ls4 = r12\lreturn\l "];
+  "B5" [label="B5\l---\lcall prologue\lalloc s5\lr13 = param[0]\ls5 = r13\lalloc s6\lr14 = param[1]\ls6 = r14\lreturn\l "];
   "B1" [fillcolor=lightgreen];
 }

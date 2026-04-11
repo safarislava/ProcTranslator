@@ -3,10 +3,10 @@ digraph CFG {
   node [shape=box, fontname="Courier", style=filled, fillcolor=white, margin="0.2,0.1"];
   edge [fontname="Courier"];
 
-  "B0" [label="B0\l---\lcall prologue\lalloc s0\ls0 = '1'\lalloc s1\ls1 = '2'\lalloc s2\ls2 = '3'\lalloc s3\lr0 = load s0\lr1 = load s1\lr2 = r0 Sub r1\lr3 = load s2\lr4 = r2 Multiply r3\ls3 = r4\lr5 = load s3\loutput '4' = r5\lr7 = load s3\lreturn r7\l "];
-  "B1" [label="B1\l---\lcall prologue\lalloc s4\lr8 = param[0]\ls4 = r8\lreturn '0'\l "];
-  "B2" [label="B2\l---\lcall prologue\lalloc s5\lr9 = param[0]\ls5 = r9\lreturn ''0''\l "];
-  "B3" [label="B3\l---\lcall prologue\lalloc s6\lr10 = param[0]\ls6 = r10\lalloc s7\lr11 = param[1]\ls7 = r11\lreturn\l "];
-  "B4" [label="B4\l---\lcall prologue\lalloc s8\lr12 = param[0]\ls8 = r12\lalloc s9\lr13 = param[1]\ls9 = r13\lreturn\l "];
+  "B0" [label="B0\l---\lcall prologue\lalloc s0\ls0 = '1'\lalloc s1\ls1 = '2'\lalloc s2\ls2 = '3'\lalloc s3\lr0 = local s0 Sub local s1\lr1 = r0 Multiply local s2\ls3 = r1\loutput '4' = local s3\lreturn local s3\l "];
+  "B1" [label="B1\l---\lcall prologue\lalloc s4\lr3 = param[0]\ls4 = r3\lreturn '0'\l "];
+  "B2" [label="B2\l---\lcall prologue\lalloc s5\lr4 = param[0]\ls5 = r4\lreturn ''0''\l "];
+  "B3" [label="B3\l---\lcall prologue\lalloc s6\lr5 = param[0]\ls6 = r5\lalloc s7\lr6 = param[1]\ls7 = r6\lreturn\l "];
+  "B4" [label="B4\l---\lcall prologue\lalloc s8\lr7 = param[0]\ls8 = r7\lalloc s9\lr8 = param[1]\ls9 = r8\lreturn\l "];
   "B0" [fillcolor=lightgreen];
 }

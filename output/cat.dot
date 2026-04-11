@@ -3,16 +3,16 @@ digraph CFG {
   node [shape=box, fontname="Courier", style=filled, fillcolor=white, margin="0.2,0.1"];
   edge [fontname="Courier"];
 
-  "B0" [label="B0\l---\linterrupt prologue\lalloc s0\lr0 = input '2'\ls0 = r0\lr1 = load s0\lr2 = r1 Equal ''\\0''\lbranch r2 ? B6 : B7\l "];
+  "B0" [label="B0\l---\linterrupt prologue\lalloc s0\lr0 = input '2'\ls0 = r0\lr1 = local s0 Equal ''\\0''\lbranch r1 ? B6 : B7\l "];
   "B1" [label="B1\l---\l0 = store global 'true'\lcall prologue\ljump B9\l "];
-  "B2" [label="B2\l---\lcall prologue\lalloc s1\lr6 = param[0]\ls1 = r6\lreturn '0'\l "];
-  "B3" [label="B3\l---\lcall prologue\lalloc s2\lr7 = param[0]\ls2 = r7\lreturn ''0''\l "];
-  "B4" [label="B4\l---\lcall prologue\lalloc s3\lr8 = param[0]\ls3 = r8\lalloc s4\lr9 = param[8]\ls4 = r9\lreturn\l "];
-  "B5" [label="B5\l---\lcall prologue\lalloc s5\lr10 = param[0]\ls5 = r10\lalloc s6\lr11 = param[8]\ls6 = r11\lreturn\l "];
+  "B2" [label="B2\l---\lcall prologue\lalloc s1\lr3 = param[0]\ls1 = r3\lreturn '0'\l "];
+  "B3" [label="B3\l---\lcall prologue\lalloc s2\lr4 = param[0]\ls2 = r4\lreturn ''0''\l "];
+  "B4" [label="B4\l---\lcall prologue\lalloc s3\lr5 = param[0]\ls3 = r5\lalloc s4\lr6 = param[1]\ls4 = r6\lreturn\l "];
+  "B5" [label="B5\l---\lcall prologue\lalloc s5\lr7 = param[0]\ls5 = r7\lalloc s6\lr8 = param[1]\ls6 = r8\lreturn\l "];
   "B6" [label="B6\l---\l0 = store global 'false'\ljump B8\l "];
   "B7" [label="B7\l---\ljump B8\l "];
-  "B8" [label="B8\l---\lr3 = load s0\loutput '5' = r3\lint_return\l "];
-  "B9" [label="B9\l---\lr5 = load global 0\lbranch r5 ? B10 : B11\l "];
+  "B8" [label="B8\l---\loutput '5' = local s0\lint_return\l "];
+  "B9" [label="B9\l---\lbranch global 0 ? B10 : B11\l "];
   "B10" [label="B10\l---\ljump B9\l "];
   "B11" [label="B11\l---\lreturn\l "];
   "B0" -> "B6" [label="true"];

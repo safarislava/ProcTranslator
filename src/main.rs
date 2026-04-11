@@ -7,6 +7,7 @@ use std::fs;
 
 fn main() -> ResBox<()> {
     setup_logger();
+    create_cfg_schemes();
 
     let name = "calc";
     let content = fs::read_to_string(format!("examples/correct/{name}.java"))?;
@@ -22,6 +23,7 @@ fn main() -> ResBox<()> {
 #[allow(dead_code)]
 fn create_cfg_schemes() {
     create_cfg_scheme("array").unwrap();
+    create_cfg_scheme("bitwise").unwrap();
     create_cfg_scheme("bool").unwrap();
     create_cfg_scheme("calc").unwrap();
     create_cfg_scheme("cat").unwrap();
@@ -36,6 +38,8 @@ fn create_cfg_schemes() {
     create_cfg_scheme("return").unwrap();
     create_cfg_scheme("sort").unwrap();
     create_cfg_scheme("vector").unwrap();
+    create_cfg_scheme("vector_test").unwrap();
+    create_cfg_scheme("vector_test_simd").unwrap();
     create_cfg_scheme("while").unwrap();
 }
 

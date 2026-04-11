@@ -246,6 +246,8 @@ pub struct LirContext {
 
     spilled_data_registers: HashMap<usize, i64>,
     spilled_address_registers: HashMap<usize, i64>,
+
+    saved_registers: Vec<LirOperand>,
 }
 
 impl LirContext {
@@ -278,6 +280,16 @@ impl LirContext {
             allocated_address_registers: HashMap::new(),
             spilled_data_registers: HashMap::new(),
             spilled_address_registers: HashMap::new(),
+            saved_registers: vec![
+                LirOperand::Register(1, RegisterType::Data),
+                LirOperand::Register(2, RegisterType::Data),
+                LirOperand::Register(3, RegisterType::Data),
+                LirOperand::Register(4, RegisterType::Data),
+                LirOperand::Register(5, RegisterType::Data),
+                LirOperand::Register(0, RegisterType::Address),
+                LirOperand::Register(1, RegisterType::Address),
+                LirOperand::Register(2, RegisterType::Address),
+            ],
         }
     }
 
@@ -349,6 +361,48 @@ impl LirContext {
         }
     }
 
+    fn save_registers(&mut self, out: &mut Vec<LirInstruction>) {
+        for register in &self.saved_registers {
+            out.push(LirInstruction::Mov {
+                size: WordSize::Long,
+                source: register.clone(),
+                destination: LirOperand::IndirectPreDecrement(Box::new(self.stack_pointer.clone())),
+            });
+        }
+    }
+
+    fn restore_registers(&mut self, out: &mut Vec<LirInstruction>) {
+        for register in self.saved_registers.iter().rev() {
+            out.push(LirInstruction::Mov {
+                size: WordSize::Long,
+                source: LirOperand::IndirectPostIncrement(Box::new(self.stack_pointer.clone())),
+                destination: register.clone(),
+            });
+        }
+    }
+
+    fn operand_to_register(
+        &mut self,
+        operand: LirOperand,
+        register_type: RegisterType,
+        out: &mut Vec<LirInstruction>,
+    ) -> LirOperand {
+        if let LirOperand::VirtualRegister(_, _) = &operand {
+            return operand;
+        }
+
+        let temp = match register_type {
+            RegisterType::Address => self.new_virtual_address_register(),
+            RegisterType::Data => self.new_virtual_data_register(),
+        };
+        out.push(LirInstruction::Mov {
+            size: WordSize::Long,
+            source: operand,
+            destination: temp.clone(),
+        });
+        temp
+    }
+
     fn lower_operand(&mut self, operand: HirOperand) -> LirOperand {
         match operand {
             HirOperand::Value(register) => self.get_virtual_data_register(register),
@@ -356,6 +410,17 @@ impl LirContext {
             HirOperand::Constant(value_str, typ) => {
                 let normalized_value = normalize_constant(value_str);
                 let address = self.get_constant_address(normalized_value, typ);
+                LirOperand::IndirectDirect(address)
+            }
+            HirOperand::LocalVariable(slot) => {
+                let offset = *self.stack_offsets.get(&slot).unwrap() as u64;
+                LirOperand::IndirectOffset {
+                    base: Box::new(self.frame_pointer.clone()),
+                    offset: Box::new(LirOperand::Direct(offset)),
+                }
+            }
+            HirOperand::GlobalVariable(id) => {
+                let address = self.get_global_address(id);
                 LirOperand::IndirectDirect(address)
             }
             HirOperand::Void => panic!("Cannot lower void operand"),
@@ -716,26 +781,7 @@ impl LirContext {
                 block,
                 arguments,
             } => {
-                let registers_to_save = vec![
-                    LirOperand::Register(1, RegisterType::Data),
-                    LirOperand::Register(2, RegisterType::Data),
-                    LirOperand::Register(3, RegisterType::Data),
-                    LirOperand::Register(4, RegisterType::Data),
-                    LirOperand::Register(5, RegisterType::Data),
-                    LirOperand::Register(0, RegisterType::Address),
-                    LirOperand::Register(1, RegisterType::Address),
-                    LirOperand::Register(2, RegisterType::Address),
-                ];
-
-                for register in &registers_to_save {
-                    out.push(LirInstruction::Mov {
-                        size: WordSize::Long,
-                        source: register.clone(),
-                        destination: LirOperand::IndirectPreDecrement(Box::new(
-                            self.stack_pointer.clone(),
-                        )),
-                    });
-                }
+                self.save_registers(out);
 
                 let arguments_count = arguments.len();
                 let mut arguments_size = 0;
@@ -761,15 +807,7 @@ impl LirContext {
                     });
                 }
 
-                for register in registers_to_save.iter().rev() {
-                    out.push(LirInstruction::Mov {
-                        size: WordSize::Long,
-                        source: LirOperand::IndirectPostIncrement(Box::new(
-                            self.stack_pointer.clone(),
-                        )),
-                        destination: register.clone(),
-                    });
-                }
+                self.restore_registers(out);
 
                 out.push(LirInstruction::Mov {
                     size: WordSize::Long,
@@ -803,26 +841,7 @@ impl LirContext {
                     self.frame_sizes.entry(entry).or_insert(0);
                 }
 
-                let registers_to_save = vec![
-                    LirOperand::Register(1, RegisterType::Data),
-                    LirOperand::Register(2, RegisterType::Data),
-                    LirOperand::Register(3, RegisterType::Data),
-                    LirOperand::Register(4, RegisterType::Data),
-                    LirOperand::Register(5, RegisterType::Data),
-                    LirOperand::Register(0, RegisterType::Address),
-                    LirOperand::Register(1, RegisterType::Address),
-                    LirOperand::Register(2, RegisterType::Address),
-                ];
-
-                for register in &registers_to_save {
-                    out.push(LirInstruction::Mov {
-                        size: WordSize::Long,
-                        source: register.clone(),
-                        destination: LirOperand::IndirectPreDecrement(Box::new(
-                            self.stack_pointer.clone(),
-                        )),
-                    });
-                }
+                self.save_registers(out);
 
                 out.push(LirInstruction::Mov {
                     size: WordSize::Long,
@@ -900,10 +919,11 @@ impl LirContext {
                 word_size,
             } => {
                 let object = self.lower_operand(object);
+                let base = self.operand_to_register(object, RegisterType::Address, out);
                 out.push(LirInstruction::Mov {
                     size: word_size,
                     source: LirOperand::IndirectOffset {
-                        base: Box::new(object),
+                        base: Box::new(base),
                         offset: Box::new(LirOperand::Direct(offset)),
                     },
                     destination: self.get_virtual_register(destination),
@@ -917,11 +937,12 @@ impl LirContext {
             } => {
                 let object = self.lower_operand(object);
                 let value = self.lower_operand(value);
+                let base = self.operand_to_register(object, RegisterType::Address, out);
                 out.push(LirInstruction::Mov {
                     size: word_size,
                     source: value,
                     destination: LirOperand::IndirectOffset {
-                        base: Box::new(object),
+                        base: Box::new(base),
                         offset: Box::new(LirOperand::Direct(offset)),
                     },
                 });
@@ -975,17 +996,13 @@ impl LirContext {
                 let array = self.lower_operand(array);
                 let index = self.lower_operand(index);
 
-                let temp_register = self.new_virtual_data_register();
-                out.push(LirInstruction::Mov {
-                    size: WordSize::Long,
-                    source: index,
-                    destination: temp_register.clone(),
-                });
+                let base = self.operand_to_register(array, RegisterType::Address, out);
+                let offset = self.operand_to_register(index, RegisterType::Data, out);
                 out.push(LirInstruction::Mov {
                     size: word_size,
                     source: LirOperand::IndirectOffset {
-                        base: Box::new(array),
-                        offset: Box::new(temp_register),
+                        base: Box::new(base),
+                        offset: Box::new(offset),
                     },
                     destination,
                 })
@@ -1000,18 +1017,14 @@ impl LirContext {
                 let index = self.lower_operand(index);
                 let value = self.lower_operand(value);
 
-                let temp_register = self.new_virtual_data_register();
-                out.push(LirInstruction::Mov {
-                    size: WordSize::Long,
-                    source: index,
-                    destination: temp_register.clone(),
-                });
+                let base = self.operand_to_register(array, RegisterType::Address, out);
+                let offset = self.operand_to_register(index, RegisterType::Data, out);
                 out.push(LirInstruction::Mov {
                     size: word_size,
                     source: value,
                     destination: LirOperand::IndirectOffset {
-                        base: Box::new(array),
-                        offset: Box::new(temp_register),
+                        base: Box::new(base),
+                        offset: Box::new(offset),
                     },
                 })
             }
@@ -1063,11 +1076,12 @@ impl LirContext {
                     destination: destination.clone(),
                 });
 
+                let base = self.operand_to_register(value, RegisterType::Address, out);
                 for i in 0..size {
                     out.push(LirInstruction::Mov {
                         size: word_size.clone(),
                         source: LirOperand::IndirectOffset {
-                            base: Box::new(value.clone()),
+                            base: Box::new(base.clone()),
                             offset: Box::new(LirOperand::Direct(i)),
                         },
                         destination: LirOperand::IndirectOffset {
@@ -1205,26 +1219,7 @@ impl LirContext {
                     destination: self.frame_pointer.clone(),
                 });
 
-                let registers_to_save = vec![
-                    LirOperand::Register(1, RegisterType::Data),
-                    LirOperand::Register(2, RegisterType::Data),
-                    LirOperand::Register(3, RegisterType::Data),
-                    LirOperand::Register(4, RegisterType::Data),
-                    LirOperand::Register(5, RegisterType::Data),
-                    LirOperand::Register(0, RegisterType::Address),
-                    LirOperand::Register(1, RegisterType::Address),
-                    LirOperand::Register(2, RegisterType::Address),
-                ];
-
-                for register in registers_to_save.into_iter().rev() {
-                    out.push(LirInstruction::Mov {
-                        size: WordSize::Long,
-                        source: LirOperand::IndirectPostIncrement(Box::new(
-                            self.stack_pointer.clone(),
-                        )),
-                        destination: register,
-                    });
-                }
+                self.restore_registers(out);
 
                 out.push(LirInstruction::IntRet);
             }
@@ -1296,6 +1291,13 @@ struct RegisterBatch {
     active_count: usize,
     max_count: usize,
     offset: usize,
+}
+
+pub struct AllocateContext<'a> {
+    pub data_restore: usize,
+    pub address_restore: usize,
+    pub pre: &'a mut Vec<LirInstruction>,
+    pub post: &'a mut Vec<LirInstruction>,
 }
 
 impl RegisterBatch {
@@ -1659,18 +1661,15 @@ impl LirContext {
         pre: &mut Vec<LirInstruction>,
         post: &mut Vec<LirInstruction>,
     ) {
-        let mut next_data_restore = 0;
-        let mut next_address_restore = 0;
+        let mut context = AllocateContext {
+            data_restore: 0,
+            address_restore: 0,
+            pre,
+            post,
+        };
 
         let mut allocate_operand = |operand: &mut LirOperand, signal: MemorySignal| {
-            self.allocate_operand(
-                operand,
-                signal,
-                &mut next_data_restore,
-                &mut next_address_restore,
-                pre,
-                post,
-            );
+            self.allocate_operand(operand, signal, &mut context, true);
         };
 
         match instruction {
@@ -1787,122 +1786,103 @@ impl LirContext {
         &self,
         operand: &mut LirOperand,
         signal: MemorySignal,
-        data_restore_register: &mut usize,
-        address_restore_register: &mut usize,
-        pre: &mut Vec<LirInstruction>,
-        post: &mut Vec<LirInstruction>,
+        context: &mut AllocateContext,
+        allow_memory: bool,
     ) {
         match operand {
             LirOperand::VirtualRegister(virtual_register, register_type) => {
-                let (register_map, spilled_map, restore_registers, next_restore_register) =
-                    match register_type {
-                        RegisterType::Data => (
-                            &self.allocated_data_registers,
-                            &self.spilled_data_registers,
-                            &self.restore_data_registers,
-                            data_restore_register,
-                        ),
-                        RegisterType::Address => (
-                            &self.allocated_address_registers,
-                            &self.spilled_address_registers,
-                            &self.restore_address_registers,
-                            address_restore_register,
-                        ),
-                    };
+                let (register_map, spilled_map, restore_registers) = match register_type {
+                    RegisterType::Data => (
+                        &self.allocated_data_registers,
+                        &self.spilled_data_registers,
+                        &self.restore_data_registers,
+                    ),
+                    RegisterType::Address => (
+                        &self.allocated_address_registers,
+                        &self.spilled_address_registers,
+                        &self.restore_address_registers,
+                    ),
+                };
 
                 if let Some(&register) = register_map.get(virtual_register) {
                     *operand = LirOperand::Register(register, *register_type);
                 } else if let Some(&offset) = spilled_map.get(virtual_register) {
-                    if *next_restore_register >= restore_registers.len() {
-                        panic!("Not enough restore registers for this instruction!");
-                    }
-                    let restore_register = restore_registers[*next_restore_register].clone();
-                    *next_restore_register += 1;
-
-                    let load_spilled = vec![LirInstruction::Mov {
-                        size: WordSize::Long,
-                        source: LirOperand::IndirectOffset {
+                    if allow_memory {
+                        *operand = LirOperand::IndirectOffset {
                             base: Box::new(self.frame_pointer.clone()),
                             offset: Box::new(LirOperand::Direct(offset as u64)),
-                        },
-                        destination: restore_register.clone(),
-                    }];
+                        };
+                    } else {
+                        let next_restore_register = match register_type {
+                            RegisterType::Data => context.data_restore,
+                            RegisterType::Address => context.address_restore,
+                        };
 
-                    let store_spilled = vec![LirInstruction::Mov {
-                        size: WordSize::Long,
-                        source: restore_register.clone(),
-                        destination: LirOperand::IndirectOffset {
-                            base: Box::new(self.frame_pointer.clone()),
-                            offset: Box::new(LirOperand::Direct(offset as u64)),
-                        },
-                    }];
+                        if next_restore_register >= restore_registers.len() {
+                            panic!("Not enough restore registers for this instruction!");
+                        }
+                        let restore_register = restore_registers[next_restore_register].clone();
+                        match register_type {
+                            RegisterType::Data => context.data_restore += 1,
+                            RegisterType::Address => context.address_restore += 1,
+                        }
 
-                    match signal {
-                        MemorySignal::Read => {
-                            pre.extend(load_spilled);
+                        let load_spilled = vec![LirInstruction::Mov {
+                            size: WordSize::Long,
+                            source: LirOperand::IndirectOffset {
+                                base: Box::new(self.frame_pointer.clone()),
+                                offset: Box::new(LirOperand::Direct(offset as u64)),
+                            },
+                            destination: restore_register.clone(),
+                        }];
+
+                        let store_spilled = vec![LirInstruction::Mov {
+                            size: WordSize::Long,
+                            source: restore_register.clone(),
+                            destination: LirOperand::IndirectOffset {
+                                base: Box::new(self.frame_pointer.clone()),
+                                offset: Box::new(LirOperand::Direct(offset as u64)),
+                            },
+                        }];
+
+                        match signal {
+                            MemorySignal::Read => {
+                                context.pre.extend(load_spilled);
+                            }
+                            MemorySignal::Write => {
+                                context.post.extend(store_spilled);
+                            }
+                            MemorySignal::ReadWrite => {
+                                context.pre.extend(load_spilled);
+                                context.post.extend(store_spilled);
+                            }
                         }
-                        MemorySignal::Write => {
-                            post.extend(store_spilled);
-                        }
-                        MemorySignal::ReadWrite => {
-                            pre.extend(load_spilled);
-                            post.extend(store_spilled);
-                        }
+                        *operand = restore_register;
                     }
-                    *operand = restore_register;
                 }
             }
             LirOperand::Indirect(register) => {
-                self.allocate_operand(
-                    register,
-                    MemorySignal::Read,
-                    data_restore_register,
-                    address_restore_register,
-                    pre,
-                    post,
-                );
+                self.allocate_operand(register, MemorySignal::Read, context, false);
             }
             LirOperand::IndirectPostIncrement(register)
             | LirOperand::IndirectPreDecrement(register) => {
-                self.allocate_operand(
-                    register,
-                    MemorySignal::ReadWrite,
-                    data_restore_register,
-                    address_restore_register,
-                    pre,
-                    post,
-                );
+                self.allocate_operand(register, MemorySignal::ReadWrite, context, false);
             }
             LirOperand::IndirectOffset {
                 base,
                 offset: offset_register,
             } => {
-                self.allocate_operand(
-                    base,
-                    MemorySignal::Read,
-                    data_restore_register,
-                    address_restore_register,
-                    pre,
-                    post,
-                );
-                self.allocate_operand(
-                    offset_register,
-                    MemorySignal::Read,
-                    data_restore_register,
-                    address_restore_register,
-                    pre,
-                    post,
-                );
+                self.allocate_operand(base, MemorySignal::Read, context, false);
+                self.allocate_operand(offset_register, MemorySignal::Read, context, false);
                 if let LirOperand::Register(register, RegisterType::Data) = **offset_register
                     && register < 5
                 {
-                    if *data_restore_register >= self.restore_data_registers.len() {
+                    if context.data_restore >= self.restore_data_registers.len() {
                         panic!("Not enough restore registers to legalize IndirectOffset index!");
                     }
-                    let valid_register =
-                        self.restore_data_registers[*data_restore_register].clone();
-                    *data_restore_register += 1;
-                    pre.push(LirInstruction::Mov {
+                    let valid_register = self.restore_data_registers[context.data_restore].clone();
+                    context.data_restore += 1;
+                    context.pre.push(LirInstruction::Mov {
                         size: WordSize::Long,
                         source: LirOperand::Register(register, RegisterType::Data),
                         destination: valid_register.clone(),
@@ -1951,10 +1931,10 @@ pub fn compile_lir(control_flow_graph: ControlFlowGraph) -> LirPackage {
             Type::Bool | Type::Char => WordSize::Byte,
             _ => WordSize::Long,
         };
-        for (j, value_str) in array.values.iter().enumerate() {
+        for (i, value_str) in array.values.iter().enumerate() {
             let normalized = normalize_constant(value_str.clone());
             let value = normalized.parse::<i64>().unwrap_or(0) as u64;
-            data_section.insert(array.base_address + j as u64, (value, word_size.clone()));
+            data_section.insert(array.base_address + i as u64, (value, word_size.clone()));
         }
     }
 

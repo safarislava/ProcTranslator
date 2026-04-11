@@ -20,6 +20,8 @@ pub enum HirOperand {
     Link(HirRegister),
     Constant(String, Type),
     Void,
+    LocalVariable(StackSlot),
+    GlobalVariable(GlobalId),
 }
 
 #[derive(Debug, Clone)]
@@ -660,30 +662,13 @@ impl HirContext {
         let expression_type = expression.get_type();
         match expression {
             TypedExpression::Literal { value, typ } => HirOperand::Constant(value, typ),
-            TypedExpression::Variable { name, typ } => {
-                let word_size = self.get_word_size(&typ);
-                let destination = self.new_register();
-                let destination = match expression_type {
-                    Type::Class(_) | Type::Array(_, _) => HirOperand::Link(destination),
-                    _ => HirOperand::Value(destination),
-                };
-
+            TypedExpression::Variable { name, .. } => {
                 let is_local = self.scopes.iter().any(|scope| scope.contains_key(&name));
                 if is_local {
                     let slot = self.resolve_variable_address(&name);
-                    self.emit(HirInstruction::LoadStack {
-                        destination: destination.clone(),
-                        slot,
-                        word_size,
-                    });
-                    destination
+                    HirOperand::LocalVariable(slot)
                 } else if let Some(&id) = self.globals.get(&name) {
-                    self.emit(HirInstruction::LoadGlobal {
-                        destination: destination.clone(),
-                        id,
-                        word_size,
-                    });
-                    destination
+                    HirOperand::GlobalVariable(id)
                 } else {
                     panic!("Variable {} not found", name);
                 }

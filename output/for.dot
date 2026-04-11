@@ -4,13 +4,13 @@ digraph CFG {
   edge [fontname="Courier"];
 
   "B0" [label="B0\l---\lcall prologue\lalloc s0\ls0 = '0'\lalloc s1\ls1 = '0'\ljump B5\l "];
-  "B1" [label="B1\l---\lcall prologue\lalloc s2\lr9 = param[0]\ls2 = r9\lreturn '0'\l "];
-  "B2" [label="B2\l---\lcall prologue\lalloc s3\lr10 = param[0]\ls3 = r10\lreturn ''0''\l "];
-  "B3" [label="B3\l---\lcall prologue\lalloc s4\lr11 = param[0]\ls4 = r11\lalloc s5\lr12 = param[8]\ls5 = r12\lreturn\l "];
-  "B4" [label="B4\l---\lcall prologue\lalloc s6\lr13 = param[0]\ls6 = r13\lalloc s7\lr14 = param[8]\ls7 = r14\lreturn\l "];
-  "B5" [label="B5\l---\lr0 = load s1\lr1 = r0 Less '10'\lbranch r1 ? B6 : B7\l "];
-  "B6" [label="B6\l---\lr2 = load s0\lr3 = r2 Add '2'\ls0 = r3\lr4 = load s1\lr5 = r4 Add '1'\ls1 = r5\ljump B5\l "];
-  "B7" [label="B7\l---\lr6 = load s0\loutput '4' = r6\lr8 = load s0\lreturn r8\l "];
+  "B1" [label="B1\l---\lcall prologue\lalloc s2\lr5 = param[0]\ls2 = r5\lreturn '0'\l "];
+  "B2" [label="B2\l---\lcall prologue\lalloc s3\lr6 = param[0]\ls3 = r6\lreturn ''0''\l "];
+  "B3" [label="B3\l---\lcall prologue\lalloc s4\lr7 = param[0]\ls4 = r7\lalloc s5\lr8 = param[1]\ls5 = r8\lreturn\l "];
+  "B4" [label="B4\l---\lcall prologue\lalloc s6\lr9 = param[0]\ls6 = r9\lalloc s7\lr10 = param[1]\ls7 = r10\lreturn\l "];
+  "B5" [label="B5\l---\lr0 = local s1 Less '10'\lbranch r0 ? B6 : B7\l "];
+  "B6" [label="B6\l---\lr1 = local s0 Add '2'\ls0 = r1\lr2 = load s1\lr3 = r2 Add '1'\ls1 = r3\ljump B5\l "];
+  "B7" [label="B7\l---\loutput '4' = local s0\lreturn local s0\l "];
   "B0" -> "B5";
   "B5" -> "B6" [label="true"];
   "B5" -> "B7" [label="false"];
