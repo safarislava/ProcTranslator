@@ -9,7 +9,7 @@ fn main() -> ResBox<()> {
     setup_logger();
     create_cfg_schemes();
 
-    let name = "calc";
+    let name = "matrix_simd";
     let content = fs::read_to_string(format!("examples/correct/{name}.java"))?;
 
     let control_flow_graph = compile_to_hir(&content)?;

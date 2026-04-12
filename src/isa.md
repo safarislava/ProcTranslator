@@ -14,24 +14,24 @@ n operands instructions
 Branch instructions
 - 7 bits - operator code
 - 1 bit - reserved
-- 8 bytes - address
+- 7 bytes - address
 
 Operand Description 
 -
 - [7:5] - mode
 - [4:2] - main register 
-- [1:0] - offset, support 32bit constant (00), D5 (01), D6 (10),  D7 (11)
+- [1:0] - offset, support 32bit constant (00), D5 (01), D6 (10), D7 (11)
 
 Mode:
 -
-- 0x0 - #* - direct (next word, it extends with sign)
+- 0x0 - #* - direct (constant in next word)
 - 0x1 - D* - data register
 - 0x2 - A* - address register
 - 0x3 - (A*) - indirect
 - 0x4 - (A*)+ - indirect, post-increment
 - 0x5 - -(A*) - indirect, pre-decrement
 - 0x6 - (A*:O) - indirect, with offset
-- 0x7 - (#*) - indirect, direct (next 2 words)
+- 0x7 - (#*) - indirect, direct (constant in next word)
 
 Operator code:
 ---
@@ -101,10 +101,12 @@ Operator code:
 0x1A - LSL.size count, dest
 - count = {#* | D* | A* | MEMORY}
 - dest = {#* | D* | A* | MEMORY}
+- set C-flag
 
 0x1B - LSR.size count, dest
 - count = {#* | D* | A* | MEMORY}
 - dest = {#* | D* | A* | MEMORY}
+- set C-flag
 
 0x1C - ASL.size count, dest
 - count = {#* | D* | A* | MEMORY}
@@ -175,13 +177,13 @@ Operator code:
 - a, b = {A*}
 
 0x49 - VEND c
-- c, = {A*}
+- c = {A*}
 ---
-0x50 - IN port, to
-- to = {D* | A* | MEMORY}
+0x50 - IN port, dest
+- dest = {D* | A* | MEMORY}
 
-0x51 - OUT port, from
-- from = {#* | D* | A* | MEMORY}
+0x51 - OUT port, source
+- source = {#* | D* | A* | MEMORY}
 
 0x52 - EI 
 - Enable interrupts
@@ -189,22 +191,43 @@ Operator code:
 0x53 - DI
 - Disable interrupts
 
-0x60 - VCMPBEQ label
+0x60 - VCMPBEQ a, b
+- a, b = {A*}
+- return mask 
 
-0x61 - VCMPBNE label
+0x61 - VCMPBNE a, b
+- a, b = {A*}
+- return mask
 
-0x62 - VCMPBGT label
+0x62 - VCMPBGT a, b
+- a, b = {A*}
+- return mask
 
-0x63 - VCMPBGE label
+0x63 - VCMPBGE a, b
+- a, b = {A*}
+- return mask
 
-0x64 - VCMPBLT label
+0x64 - VCMPBLT a, b
+- a, b = {A*}
+- return mask
 
-0x65 - VCMPBLE label
+0x65 - VCMPBLE a, b
+- a, b = {A*}
+- return mask
 
-0x66 - VCMPBCS label
+0x66 - VCMPBCS a, b
+- a, b = {A*}
+- return mask
 
-0x67 - VCMPBCC label
+0x67 - VCMPBCC a, b
+- a, b = {A*}
+- return mask
 
-0x68 - VCMPBVS label
+0x68 - VCMPBVS a, b
+- a, b = {A*}
+- return mask
 
-0x69 - VCMPBVC label
+0x69 - VCMPBVC a, b
+- a, b = {A*}
+- return mask 
+

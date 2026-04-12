@@ -399,3 +399,15 @@ fn test_vector_test_simd() {
     let output = run_test("vector_test_simd", vec![]);
     assert_golden_yaml!(&output, "vector_test_simd");
 }
+
+#[test]
+fn test_matrix() {
+    let output = run_test("matrix", vec![]);
+    assert_golden_yaml!(&output, "matrix");
+}
+
+#[test]
+fn test_matrix_simd() {
+    let output = run_test("matrix_simd", vec![]);
+    assert_golden_yaml!(&output, "matrix_simd");
+}
