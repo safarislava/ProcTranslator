@@ -108,20 +108,38 @@ fn simplify_expression(expression: RawExpression) -> RawExpression {
                     _ => unreachable!(),
                 };
 
-                let name = match *left {
-                    Expression::Variable { typ: _, name } => name,
-                    _ => unreachable!(),
-                };
-
-                RawExpression::Assign {
-                    typ,
-                    name: name.clone(),
-                    value: Box::new(Expression::BinaryOperator {
-                        typ: (),
-                        left: Box::new(Expression::Variable { typ: (), name }),
-                        operator,
-                        right,
-                    }),
+                if let Expression::Variable { name, .. } = *left {
+                    RawExpression::Assign {
+                        typ,
+                        name: name.clone(),
+                        value: Box::new(Expression::BinaryOperator {
+                            typ: (),
+                            left: Box::new(Expression::Variable { typ: (), name }),
+                            operator,
+                            right,
+                        }),
+                    }
+                } else if let Expression::Slice {
+                    expression,
+                    start,
+                    size,
+                    ..
+                } = *left.clone()
+                {
+                    RawExpression::AssignSlice {
+                        typ,
+                        expression,
+                        start,
+                        size,
+                        value: Box::new(Expression::BinaryOperator {
+                            typ: (),
+                            left: left.clone(),
+                            operator,
+                            right,
+                        }),
+                    }
+                } else {
+                    unreachable!()
                 }
             }
             _ => expression,

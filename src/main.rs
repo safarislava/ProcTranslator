@@ -7,13 +7,12 @@ use std::fs;
 
 fn main() -> ResBox<()> {
     setup_logger();
-    create_cfg_schemes();
+    // create_cfg_schemes();
 
     let name = "matrix_simd";
-    let content = fs::read_to_string(format!("examples/correct/{name}.java"))?;
+    let content = fs::read_to_string(format!("examples/{name}.java"))?;
 
     let control_flow_graph = compile_to_hir(&content)?;
-    dump_to_file(format!("output/{name}.dot"), control_flow_graph.to_dot())?;
     let lir_package = compile_lir(control_flow_graph);
     let package = translate(lir_package);
     simulate_machine(package, vec![]);
@@ -44,7 +43,7 @@ fn create_cfg_schemes() {
 }
 
 fn create_cfg_scheme(name: &str) -> ResBox<()> {
-    let content = fs::read_to_string(format!("examples/correct/{name}.java"))?;
+    let content = fs::read_to_string(format!("examples/{name}.java"))?;
     let cfg = compile_to_hir(&content)?;
     dump_to_file(format!("output/{name}.dot"), cfg.to_dot())?;
     Ok(())

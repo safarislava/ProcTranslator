@@ -24,74 +24,74 @@ log: |2-
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 0, 0, 99999]
    INFO TICK 3 | PC=2 | MOV.w
-   INFO TICK 4 | #40000
+   INFO TICK 4 | #1000
    INFO TICK 5 | A5
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 40000, 0, 99999]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 0, 99999]
    INFO TICK 6 | PC=4 | CALL.b
    INFO TICK 7
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 40000, 0, 99999]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 0, 99999]
    INFO TICK 8 | PC=7 | MOV.w
    INFO TICK 9 | A6
    INFO TICK 10 | -(A7)
    INFO TICK 11 | Load (#99998) = 0 | Store (#99998) = 0
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 40000, 0, 99998]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 0, 99998]
    INFO TICK 12 | PC=8 | MOV.w
    INFO TICK 13 | A7
    INFO TICK 14 | A6
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 40000, 99998, 99998]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
    INFO TICK 15 | PC=9 | SUB.w
    INFO TICK 16 | #0
    INFO TICK 17 | A7
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 40000, 99998, 99998]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
    INFO TICK 18 | PC=11 | CMP.b
    INFO TICK 19 | (#0)
    INFO TICK 20 | Load (#0) = 0
    INFO TICK 21 | #1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 40000, 99998, 99998]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
    INFO TICK 22 | PC=14 | BEQ.b
    INFO TICK 23
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 40000, 99998, 99998]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
    INFO TICK 24 | PC=16 | JMP.b
    INFO TICK 25
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 40000, 99998, 99998]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
    INFO TICK 26 | PC=79 | CMP.b
    INFO TICK 27 | (#4)
    INFO TICK 28 | Load (#4) = 1
    INFO TICK 29 | #1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 40000, 99998, 99998]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
    INFO TICK 30 | PC=82 | BEQ.b
    INFO TICK 31
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 40000, 99998, 99998]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
    INFO TICK 32 | PC=86 | MOV.w
    INFO TICK 33 | (#5)
    INFO TICK 34 | Load (#5) = 2
    INFO TICK 35 | D0
   DEBUG D [2, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 40000, 99998, 99998]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
    INFO TICK 36 | PC=88 | MOV.w
    INFO TICK 37 | A6
    INFO TICK 38 | A7
   DEBUG D [2, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 40000, 99998, 99998]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
    INFO TICK 39 | PC=89 | MOV.w
    INFO TICK 40 | (A7)+
    INFO TICK 41 | Load (#99998) = 0
    INFO TICK 42 | A6
   DEBUG D [2, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 40000, 0, 99999]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 0, 99999]
    INFO TICK 43 | PC=90 | RET.b
    INFO TICK 44
   DEBUG D [2, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 40000, 0, 99999]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 0, 99999]
    INFO TICK 45 | PC=6 | HLT.b
    INFO TICK 46 | Result : 2

@@ -1235,7 +1235,7 @@ impl LirContext {
             },
             LirInstruction::Mov {
                 size: WordSize::Long,
-                source: LirOperand::Direct(40000),
+                source: LirOperand::Direct(1000),
                 destination: self.heap_pointer.clone(),
             },
             LirInstruction::Call {

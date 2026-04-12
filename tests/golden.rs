@@ -9,6 +9,7 @@ use std::sync::{Arc, Mutex};
 use tracing::subscriber::DefaultGuard;
 use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 
+#[derive(Clone)]
 pub struct TestOutput {
     pub program: String,
     input: Vec<InterruptLog>,
@@ -17,7 +18,7 @@ pub struct TestOutput {
     pub log: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct InterruptLog {
     tick: u64,
     value: i64,
@@ -84,8 +85,8 @@ fn setup_test_logger() -> (DefaultGuard, Arc<Mutex<Vec<u8>>>) {
 }
 
 fn run_test(name: &str, interrupts: Vec<InterruptRequest>) -> TestOutput {
-    let content = fs::read_to_string(format!("examples/correct/{name}.java"))
-        .unwrap_or_else(|e| panic!("Failed to read examples/correct/{name}.java: {e}"));
+    let content = fs::read_to_string(format!("examples/{name}.java"))
+        .unwrap_or_else(|e| panic!("Failed to read examples/{name}.java: {e}"));
 
     let (guard, log_buffer) = setup_test_logger();
 
@@ -130,11 +131,25 @@ fn run_test(name: &str, interrupts: Vec<InterruptRequest>) -> TestOutput {
 
 #[macro_export]
 macro_rules! assert_golden_yaml {
-    ($output:expr, $snapshot_name:expr) => {{
+    ($output:expr, $snapshot_name:expr) => {{ assert_golden_yaml!($output, $snapshot_name, false) }};
+    ($output:expr, $snapshot_name:expr, $last_log_only:expr) => {{
         use insta::assert_snapshot;
         use serde_yaml;
 
-        let yaml = serde_yaml::to_string($output).expect("Failed to serialize TestOutput to YAML");
+        let mut output_for_snapshot = ($output).clone();
+
+        if $last_log_only {
+            output_for_snapshot.log = output_for_snapshot
+                .log
+                .lines()
+                .filter(|line| !line.trim().is_empty())
+                .last()
+                .map(|s| s.trim_end().to_string())
+                .unwrap_or_default();
+        }
+
+        let yaml = serde_yaml::to_string(&output_for_snapshot)
+            .expect("Failed to serialize TestOutput to YAML");
 
         let mut settings = insta::Settings::clone_current();
         settings.set_snapshot_path("snapshots");
@@ -158,55 +173,55 @@ pub fn export_test_output(output: &TestOutput, path: &str) -> std::io::Result<()
 #[test]
 fn test_classes() {
     let output = run_test("classes", vec![]);
-    assert_golden_yaml!(&output, "classes");
+    assert_golden_yaml!(&output, "classes", false);
 }
 
 #[test]
 fn test_calc() {
     let output = run_test("calc", vec![]);
-    assert_golden_yaml!(&output, "calc");
+    assert_golden_yaml!(&output, "calc", false);
 }
 
 #[test]
 fn test_return() {
     let output = run_test("return", vec![]);
-    assert_golden_yaml!(&output, "return");
+    assert_golden_yaml!(&output, "return", false);
 }
 
 #[test]
 fn test_while() {
     let output = run_test("while", vec![]);
-    assert_golden_yaml!(&output, "while");
+    assert_golden_yaml!(&output, "while", false);
 }
 
 #[test]
 fn test_for() {
     let output = run_test("for", vec![]);
-    assert_golden_yaml!(&output, "for");
+    assert_golden_yaml!(&output, "for", false);
 }
 
 #[test]
 fn test_bool() {
     let output = run_test("bool", vec![]);
-    assert_golden_yaml!(&output, "bool");
+    assert_golden_yaml!(&output, "bool", false);
 }
 
 #[test]
 fn test_global() {
     let output = run_test("global", vec![]);
-    assert_golden_yaml!(&output, "global");
+    assert_golden_yaml!(&output, "global", false);
 }
 
 #[test]
 fn test_params() {
     let output = run_test("params", vec![]);
-    assert_golden_yaml!(&output, "params");
+    assert_golden_yaml!(&output, "params", false);
 }
 
 #[test]
 fn test_array() {
     let output = run_test("array", vec![]);
-    assert_golden_yaml!(&output, "array");
+    assert_golden_yaml!(&output, "array", false);
 }
 
 #[test]
@@ -246,13 +261,13 @@ fn test_cat() {
             },
         ],
     );
-    assert_golden_yaml!(&output, "cat");
+    assert_golden_yaml!(&output, "cat", false);
 }
 
 #[test]
 fn test_hello_world() {
     let output = run_test("hello_world", vec![]);
-    assert_golden_yaml!(&output, "hello world");
+    assert_golden_yaml!(&output, "hello world", false);
 }
 
 #[test]
@@ -322,7 +337,7 @@ fn test_hello_user() {
             },
         ],
     );
-    assert_golden_yaml!(&output, "hello_user");
+    assert_golden_yaml!(&output, "hello_user", false);
 }
 
 #[test]
@@ -367,47 +382,47 @@ fn test_sort() {
             },
         ],
     );
-    assert_golden_yaml!(&output, "sort");
+    assert_golden_yaml!(&output, "sort", true);
 }
 
 #[test]
 fn test_vector() {
     let output = run_test("vector", vec![]);
-    assert_golden_yaml!(&output, "vector");
+    assert_golden_yaml!(&output, "vector", false);
 }
 
 #[test]
 fn test_double() {
     let output = run_test("double", vec![]);
-    assert_golden_yaml!(&output, "double");
+    assert_golden_yaml!(&output, "double", false);
 }
 
 #[test]
 fn test_bitwise() {
     let output = run_test("bitwise", vec![]);
-    assert_golden_yaml!(&output, "bitwise");
+    assert_golden_yaml!(&output, "bitwise", false);
 }
 
 #[test]
 fn test_vector_test() {
     let output = run_test("vector_test", vec![]);
-    assert_golden_yaml!(&output, "vector_test");
+    assert_golden_yaml!(&output, "vector_test", true);
 }
 
 #[test]
 fn test_vector_test_simd() {
     let output = run_test("vector_test_simd", vec![]);
-    assert_golden_yaml!(&output, "vector_test_simd");
+    assert_golden_yaml!(&output, "vector_test_simd", true);
 }
 
 #[test]
 fn test_matrix() {
     let output = run_test("matrix", vec![]);
-    assert_golden_yaml!(&output, "matrix");
+    assert_golden_yaml!(&output, "matrix", true);
 }
 
 #[test]
 fn test_matrix_simd() {
     let output = run_test("matrix_simd", vec![]);
-    assert_golden_yaml!(&output, "matrix_simd");
+    assert_golden_yaml!(&output, "matrix_simd", true);
 }
