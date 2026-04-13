@@ -131,9 +131,6 @@ impl ControlUnit {
                 self.stack.push(self.pc);
                 self.latch_pc(PcSelector::ByInterrupt);
 
-                self.execution_state = ExecutionState::Interrupt(1);
-            }
-            1 => {
                 self.data_path.read_address_register(7);
                 self.data_path
                     .update_left_data(DataSelector::AddressRegister);
@@ -142,12 +139,18 @@ impl ControlUnit {
                 self.data_path.pre_mode_selector = PreModeSelector::Decrement;
                 self.data_path.latch_data_address();
                 self.data_path.latch_address_register(7, &WordSize::Long);
-
                 self.data_path.read_data_memory();
+
+                self.execution_state = ExecutionState::Interrupt(1);
+            }
+            1 => {
                 self.data_path
                     .update_write_data_mux(WriteDataSelector::Memory);
                 self.data_path.latch_write_data();
 
+                self.execution_state = ExecutionState::Interrupt(2);
+            }
+            2 => {
                 self.data_path.set_nzcv_to_alu_output();
                 self.data_path.update_write_data_mux(WriteDataSelector::Alu);
                 self.data_path.latch_write_data_part(&WordSize::Byte);

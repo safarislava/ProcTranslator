@@ -5,7 +5,7 @@ mod data_path;
 mod instruction_parser;
 mod io;
 mod nzcv;
-mod printers;
+pub mod printers;
 mod program_memory;
 pub mod simulation;
 mod stack;

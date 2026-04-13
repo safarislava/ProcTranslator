@@ -1,8 +1,10 @@
+use proc_translator::machine::printers::disassemble::disassemble;
 use proc_translator::machine::simulation::{DeviceChoice, InterruptRequest, simulate_machine};
 use proc_translator::translator::asm::translate;
 use proc_translator::translator::common::compile_to_hir;
 use proc_translator::translator::lir::compile_lir;
 use serde::{Serialize, Serializer, ser::SerializeMap};
+use std::collections::BTreeMap;
 use std::fs;
 use std::io::Write;
 use std::sync::{Arc, Mutex};
@@ -16,6 +18,8 @@ pub struct TestOutput {
     int_output: Vec<i64>,
     char_output: Vec<char>,
     pub log: String,
+    pub data_section: BTreeMap<u64, i64>,
+    pub machine_code: String,
 }
 
 #[derive(Serialize, Clone)]
@@ -34,6 +38,8 @@ impl Serialize for TestOutput {
         map.serialize_entry("input", &self.input)?;
         map.serialize_entry("int_output", &self.int_output)?;
         map.serialize_entry("char_output", &self.char_output.iter().collect::<String>())?;
+        map.serialize_entry("data_section", &self.data_section)?;
+        map.serialize_entry("machine_code", &self.machine_code)?;
         map.serialize_entry("log", &self.log)?;
         map.end()
     }
@@ -68,7 +74,6 @@ impl<'a> Write for TestWriterGuard<'a> {
 
 fn setup_test_logger() -> (DefaultGuard, Arc<Mutex<Vec<u8>>>) {
     let buffer = Arc::new(Mutex::new(Vec::new()));
-
     let layer = fmt::layer()
         .with_ansi(false)
         .with_target(false)
@@ -91,9 +96,22 @@ fn run_test(name: &str, interrupts: Vec<InterruptRequest>) -> TestOutput {
     let (guard, log_buffer) = setup_test_logger();
 
     let control_flow_graph = compile_to_hir(&content).expect("HIR compilation failed");
-
     let lir_package = compile_lir(control_flow_graph);
     let package = translate(lir_package);
+
+    let data_section: BTreeMap<u64, i64> = package
+        .data
+        .iter()
+        .map(|(addr, (value, _))| (*addr, *value as i64))
+        .collect();
+
+    let machine_code = disassemble(&package.program)
+        .iter()
+        .map(|line| line.trim_end().to_string())
+        .filter(|line| !line.is_empty())
+        .collect::<Vec<_>>()
+        .join("\n");
+
     let (int_output, char_output) = simulate_machine(package, interrupts.clone());
 
     drop(guard);
@@ -126,6 +144,8 @@ fn run_test(name: &str, interrupts: Vec<InterruptRequest>) -> TestOutput {
         int_output,
         char_output,
         log,
+        data_section,
+        machine_code,
     }
 }
 
@@ -135,9 +155,7 @@ macro_rules! assert_golden_yaml {
     ($output:expr, $snapshot_name:expr, $last_log_only:expr) => {{
         use insta::assert_snapshot;
         use serde_yaml;
-
         let mut output_for_snapshot = ($output).clone();
-
         if $last_log_only {
             output_for_snapshot.log = output_for_snapshot
                 .log
@@ -147,10 +165,8 @@ macro_rules! assert_golden_yaml {
                 .map(|s| s.trim_end().to_string())
                 .unwrap_or_default();
         }
-
         let yaml = serde_yaml::to_string(&output_for_snapshot)
             .expect("Failed to serialize TestOutput to YAML");
-
         let mut settings = insta::Settings::clone_current();
         settings.set_snapshot_path("snapshots");
         settings.set_prepend_module_to_snapshot(false);
@@ -163,9 +179,7 @@ macro_rules! assert_golden_yaml {
 
 pub fn export_test_output(output: &TestOutput, path: &str) -> std::io::Result<()> {
     use serde_yaml;
-
     let yaml = serde_yaml::to_string(output).map_err(std::io::Error::other)?;
-
     fs::write(path, yaml)?;
     Ok(())
 }
