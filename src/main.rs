@@ -1,4 +1,4 @@
-use proc_translator::fio::{
+use proc_translator::io::{
     load_data, load_interrupt_vector, load_interrupts, load_program, write_bin, write_output,
 };
 use proc_translator::logger::setup_logger;

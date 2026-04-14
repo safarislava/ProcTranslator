@@ -5,6 +5,7 @@ pub mod common;
 pub mod expression;
 pub mod hir;
 pub mod lir;
+mod lsra;
 pub mod parser;
 pub mod printers;
 pub mod simplifier;

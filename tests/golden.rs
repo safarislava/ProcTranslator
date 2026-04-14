@@ -1,4 +1,4 @@
-use proc_translator::fio::load_interrupts;
+use proc_translator::io::load_interrupts;
 use proc_translator::machine::printers::disassemble::disassemble;
 use proc_translator::machine::simulation::{InterruptRequest, simulate_machine};
 use proc_translator::translator::common::compile;
