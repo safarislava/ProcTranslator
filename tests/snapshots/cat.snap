@@ -21,29 +21,32 @@ program: |-
 input:
 - tick: 200
   value: 72
-- tick: 250
+- tick: 500
   value: 101
-- tick: 350
+- tick: 800
   value: 108
-- tick: 450
+- tick: 1200
   value: 108
-- tick: 550
+- tick: 1600
   value: 111
-- tick: 650
+- tick: 2000
   value: 0
 int_output: []
-char_output: "Hello\0"
+char_output: Hello
 data_section:
-  0: 0
-  1: 1
-  3: 0
-  4: 48
-  5: 0
+- 0
+- 1
+- 0
+- 0
+- 48
+- 0
 machine_code: |-
   0x0000: 0x03005C00   MOV.w A7, #0x0001869F
   0x0002: 0x03005400   MOV.w A5, #0x000003E8
   0x0004: 0x42000000   CALL.b 0x0000000000000027
-  0x0006: 0x00000000   HLT.b #0x0328BC00, #0x0324BC00
+  0x0006: 0x00000000   HLT.b
+  0x0007: 0x0324BC00   MOV.w -(A7), D1
+  0x0008: 0x0328BC00   MOV.w -(A7), D2
   0x0009: 0x032CBC00   MOV.w -(A7), D3
   0x000A: 0x0330BC00   MOV.w -(A7), D4
   0x000B: 0x0334BC00   MOV.w -(A7), D5
@@ -663,958 +666,2398 @@ log: |2-
    INFO TICK 317
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
-   INFO TICK 318 | INTERRUPT
-   INFO TICK 319
-   INFO TICK 320
+   INFO TICK 318 | PC=124 | CMP.b
+   INFO TICK 319 | (#2)
+   INFO TICK 320 | Load (#2) = 1
+   INFO TICK 321 | #1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99997]
-   INFO TICK 321 | PC=7 | MOV.w
-   INFO TICK 322 | D1
-   INFO TICK 323 | -(A7)
-   INFO TICK 324 | Load (#99996) = 0 | Store (#99996) = 0
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 322 | PC=127 | BEQ.b
+   INFO TICK 323
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99996]
-   INFO TICK 325 | PC=8 | MOV.w
-   INFO TICK 326 | D2
-   INFO TICK 327 | -(A7)
-   INFO TICK 328 | Load (#99995) = 0 | Store (#99995) = 0
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 324 | PC=131 | JMP.b
+   INFO TICK 325
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99995]
-   INFO TICK 329 | PC=9 | MOV.w
-   INFO TICK 330 | D3
-   INFO TICK 331 | -(A7)
-   INFO TICK 332 | Load (#99994) = 0 | Store (#99994) = 0
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 326 | PC=124 | CMP.b
+   INFO TICK 327 | (#2)
+   INFO TICK 328 | Load (#2) = 1
+   INFO TICK 329 | #1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99994]
-   INFO TICK 333 | PC=10 | MOV.w
-   INFO TICK 334 | D4
-   INFO TICK 335 | -(A7)
-   INFO TICK 336 | Load (#99993) = 0 | Store (#99993) = 0
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 330 | PC=127 | BEQ.b
+   INFO TICK 331
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99993]
-   INFO TICK 337 | PC=11 | MOV.w
-   INFO TICK 338 | D5
-   INFO TICK 339 | -(A7)
-   INFO TICK 340 | Load (#99992) = 0 | Store (#99992) = 0
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 332 | PC=131 | JMP.b
+   INFO TICK 333
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99992]
-   INFO TICK 341 | PC=12 | MOV.w
-   INFO TICK 342 | A0
-   INFO TICK 343 | -(A7)
-   INFO TICK 344 | Load (#99991) = 0 | Store (#99991) = 0
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 334 | PC=124 | CMP.b
+   INFO TICK 335 | (#2)
+   INFO TICK 336 | Load (#2) = 1
+   INFO TICK 337 | #1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99991]
-   INFO TICK 345 | PC=13 | MOV.w
-   INFO TICK 346 | A1
-   INFO TICK 347 | -(A7)
-   INFO TICK 348 | Load (#99990) = 0 | Store (#99990) = 0
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 338 | PC=127 | BEQ.b
+   INFO TICK 339
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99990]
-   INFO TICK 349 | PC=14 | MOV.w
-   INFO TICK 350 | A2
-   INFO TICK 351 | -(A7)
-   INFO TICK 352 | Load (#99989) = 0 | Store (#99989) = 0
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 340 | PC=131 | JMP.b
+   INFO TICK 341
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99989]
-   INFO TICK 353 | PC=15 | MOV.w
-   INFO TICK 354 | A6
-   INFO TICK 355 | -(A7)
-   INFO TICK 356 | Load (#99988) = 99998 | Store (#99988) = 99998
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 342 | PC=124 | CMP.b
+   INFO TICK 343 | (#2)
+   INFO TICK 344 | Load (#2) = 1
+   INFO TICK 345 | #1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99988]
-   INFO TICK 357 | PC=16 | MOV.w
-   INFO TICK 358 | A7
-   INFO TICK 359 | A6
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 346 | PC=127 | BEQ.b
+   INFO TICK 347
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99988]
-   INFO TICK 360 | PC=17 | SUB.w
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 348 | PC=131 | JMP.b
+   INFO TICK 349
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 350 | PC=124 | CMP.b
+   INFO TICK 351 | (#2)
+   INFO TICK 352 | Load (#2) = 1
+   INFO TICK 353 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 354 | PC=127 | BEQ.b
+   INFO TICK 355
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 356 | PC=131 | JMP.b
+   INFO TICK 357
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 358 | PC=124 | CMP.b
+   INFO TICK 359 | (#2)
+   INFO TICK 360 | Load (#2) = 1
    INFO TICK 361 | #1
-   INFO TICK 362 | A7
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 363 | PC=19 | IN.b
-   INFO TICK 364 | IN #101 | D1
-  DEBUG D [0, 101, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 365 | PC=20 | MOV.b
-   INFO TICK 366 | D1
-   INFO TICK 367 | (A6:#-1)
-   INFO TICK 368 | Load (#99987) = 72 | Store (#99987) = 101
-  DEBUG D [0, 101, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 369 | PC=22 | CMP.b
-   INFO TICK 370 | (#0)
-   INFO TICK 371 | Load (#0) = 0
-   INFO TICK 372 | (A6:#-1)
-   INFO TICK 373 | Load (#99987) = 101
-  DEBUG D [0, 101, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 374 | PC=25 | BEQ.b
-   INFO TICK 375
-  DEBUG D [0, 101, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 376 | PC=27 | MOV.w
-   INFO TICK 377 | #0
-   INFO TICK 378 | D1
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 362 | PC=127 | BEQ.b
+   INFO TICK 363
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 379 | PC=29 | JMP.b
-   INFO TICK 380
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 364 | PC=131 | JMP.b
+   INFO TICK 365
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 381 | PC=33 | CMP.b
-   INFO TICK 382 | D1
-   INFO TICK 383 | #1
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 366 | PC=124 | CMP.b
+   INFO TICK 367 | (#2)
+   INFO TICK 368 | Load (#2) = 1
+   INFO TICK 369 | #1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 384 | PC=35 | BEQ.b
-   INFO TICK 385
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 370 | PC=127 | BEQ.b
+   INFO TICK 371
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 386 | PC=37 | JMP.b
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 372 | PC=131 | JMP.b
+   INFO TICK 373
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 374 | PC=124 | CMP.b
+   INFO TICK 375 | (#2)
+   INFO TICK 376 | Load (#2) = 1
+   INFO TICK 377 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 378 | PC=127 | BEQ.b
+   INFO TICK 379
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 380 | PC=131 | JMP.b
+   INFO TICK 381
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 382 | PC=124 | CMP.b
+   INFO TICK 383 | (#2)
+   INFO TICK 384 | Load (#2) = 1
+   INFO TICK 385 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 386 | PC=127 | BEQ.b
    INFO TICK 387
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 388 | PC=109 | JMP.b
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 388 | PC=131 | JMP.b
    INFO TICK 389
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 390 | PC=111 | OUT.b
-   INFO TICK 391 | (A6:#-1)
-   INFO TICK 392 | Load (#99987) = 101
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 393 | PC=113 | MOV.w
-   INFO TICK 394 | A6
-   INFO TICK 395 | A7
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99988]
-   INFO TICK 396 | PC=114 | MOV.w
-   INFO TICK 397 | (A7)+
-   INFO TICK 398 | Load (#99988) = 99998
-   INFO TICK 399 | A6
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99989]
-   INFO TICK 400 | PC=115 | MOV.w
-   INFO TICK 401 | (A7)+
-   INFO TICK 402 | Load (#99989) = 0
-   INFO TICK 403 | A2
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99990]
-   INFO TICK 404 | PC=116 | MOV.w
-   INFO TICK 405 | (A7)+
-   INFO TICK 406 | Load (#99990) = 0
-   INFO TICK 407 | A1
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99991]
-   INFO TICK 408 | PC=117 | MOV.w
-   INFO TICK 409 | (A7)+
-   INFO TICK 410 | Load (#99991) = 0
-   INFO TICK 411 | A0
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99992]
-   INFO TICK 412 | PC=118 | MOV.w
-   INFO TICK 413 | (A7)+
-   INFO TICK 414 | Load (#99992) = 0
-   INFO TICK 415 | D5
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99993]
-   INFO TICK 416 | PC=119 | MOV.w
-   INFO TICK 417 | (A7)+
-   INFO TICK 418 | Load (#99993) = 0
-   INFO TICK 419 | D4
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99994]
-   INFO TICK 420 | PC=120 | MOV.w
-   INFO TICK 421 | (A7)+
-   INFO TICK 422 | Load (#99994) = 0
-   INFO TICK 423 | D3
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99995]
-   INFO TICK 424 | PC=121 | MOV.w
-   INFO TICK 425 | (A7)+
-   INFO TICK 426 | Load (#99995) = 0
-   INFO TICK 427 | D2
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99996]
-   INFO TICK 428 | PC=122 | MOV.w
-   INFO TICK 429 | (A7)+
-   INFO TICK 430 | Load (#99996) = 0
-   INFO TICK 431 | D1
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99997]
-   INFO TICK 432 | PC=123 | INTRET.b
-   INFO TICK 433
-   INFO TICK 434
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 390 | PC=124 | CMP.b
+   INFO TICK 391 | (#2)
+   INFO TICK 392 | Load (#2) = 1
+   INFO TICK 393 | #1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
-   INFO TICK 435 | INTERRUPT
-   INFO TICK 436
+   INFO TICK 394 | PC=127 | BEQ.b
+   INFO TICK 395
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 396 | PC=131 | JMP.b
+   INFO TICK 397
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 398 | PC=124 | CMP.b
+   INFO TICK 399 | (#2)
+   INFO TICK 400 | Load (#2) = 1
+   INFO TICK 401 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 402 | PC=127 | BEQ.b
+   INFO TICK 403
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 404 | PC=131 | JMP.b
+   INFO TICK 405
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 406 | PC=124 | CMP.b
+   INFO TICK 407 | (#2)
+   INFO TICK 408 | Load (#2) = 1
+   INFO TICK 409 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 410 | PC=127 | BEQ.b
+   INFO TICK 411
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 412 | PC=131 | JMP.b
+   INFO TICK 413
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 414 | PC=124 | CMP.b
+   INFO TICK 415 | (#2)
+   INFO TICK 416 | Load (#2) = 1
+   INFO TICK 417 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 418 | PC=127 | BEQ.b
+   INFO TICK 419
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 420 | PC=131 | JMP.b
+   INFO TICK 421
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 422 | PC=124 | CMP.b
+   INFO TICK 423 | (#2)
+   INFO TICK 424 | Load (#2) = 1
+   INFO TICK 425 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 426 | PC=127 | BEQ.b
+   INFO TICK 427
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 428 | PC=131 | JMP.b
+   INFO TICK 429
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 430 | PC=124 | CMP.b
+   INFO TICK 431 | (#2)
+   INFO TICK 432 | Load (#2) = 1
+   INFO TICK 433 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 434 | PC=127 | BEQ.b
+   INFO TICK 435
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 436 | PC=131 | JMP.b
    INFO TICK 437
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99997]
-   INFO TICK 438 | PC=7 | MOV.w
-   INFO TICK 439 | D1
-   INFO TICK 440 | -(A7)
-   INFO TICK 441 | Load (#99996) = 0 | Store (#99996) = 0
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 438 | PC=124 | CMP.b
+   INFO TICK 439 | (#2)
+   INFO TICK 440 | Load (#2) = 1
+   INFO TICK 441 | #1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99996]
-   INFO TICK 442 | PC=8 | MOV.w
-   INFO TICK 443 | D2
-   INFO TICK 444 | -(A7)
-   INFO TICK 445 | Load (#99995) = 0 | Store (#99995) = 0
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 442 | PC=127 | BEQ.b
+   INFO TICK 443
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99995]
-   INFO TICK 446 | PC=9 | MOV.w
-   INFO TICK 447 | D3
-   INFO TICK 448 | -(A7)
-   INFO TICK 449 | Load (#99994) = 0 | Store (#99994) = 0
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 444 | PC=131 | JMP.b
+   INFO TICK 445
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99994]
-   INFO TICK 450 | PC=10 | MOV.w
-   INFO TICK 451 | D4
-   INFO TICK 452 | -(A7)
-   INFO TICK 453 | Load (#99993) = 0 | Store (#99993) = 0
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 446 | PC=124 | CMP.b
+   INFO TICK 447 | (#2)
+   INFO TICK 448 | Load (#2) = 1
+   INFO TICK 449 | #1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99993]
-   INFO TICK 454 | PC=11 | MOV.w
-   INFO TICK 455 | D5
-   INFO TICK 456 | -(A7)
-   INFO TICK 457 | Load (#99992) = 0 | Store (#99992) = 0
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 450 | PC=127 | BEQ.b
+   INFO TICK 451
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99992]
-   INFO TICK 458 | PC=12 | MOV.w
-   INFO TICK 459 | A0
-   INFO TICK 460 | -(A7)
-   INFO TICK 461 | Load (#99991) = 0 | Store (#99991) = 0
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 452 | PC=131 | JMP.b
+   INFO TICK 453
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99991]
-   INFO TICK 462 | PC=13 | MOV.w
-   INFO TICK 463 | A1
-   INFO TICK 464 | -(A7)
-   INFO TICK 465 | Load (#99990) = 0 | Store (#99990) = 0
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 454 | PC=124 | CMP.b
+   INFO TICK 455 | (#2)
+   INFO TICK 456 | Load (#2) = 1
+   INFO TICK 457 | #1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99990]
-   INFO TICK 466 | PC=14 | MOV.w
-   INFO TICK 467 | A2
-   INFO TICK 468 | -(A7)
-   INFO TICK 469 | Load (#99989) = 0 | Store (#99989) = 0
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 458 | PC=127 | BEQ.b
+   INFO TICK 459
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99989]
-   INFO TICK 470 | PC=15 | MOV.w
-   INFO TICK 471 | A6
-   INFO TICK 472 | -(A7)
-   INFO TICK 473 | Load (#99988) = 99998 | Store (#99988) = 99998
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 460 | PC=131 | JMP.b
+   INFO TICK 461
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99988]
-   INFO TICK 474 | PC=16 | MOV.w
-   INFO TICK 475 | A7
-   INFO TICK 476 | A6
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 462 | PC=124 | CMP.b
+   INFO TICK 463 | (#2)
+   INFO TICK 464 | Load (#2) = 1
+   INFO TICK 465 | #1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99988]
-   INFO TICK 477 | PC=17 | SUB.w
-   INFO TICK 478 | #1
-   INFO TICK 479 | A7
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 466 | PC=127 | BEQ.b
+   INFO TICK 467
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 480 | PC=19 | IN.b
-   INFO TICK 481 | IN #108 | D1
-  DEBUG D [0, 108, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 482 | PC=20 | MOV.b
-   INFO TICK 483 | D1
-   INFO TICK 484 | (A6:#-1)
-   INFO TICK 485 | Load (#99987) = 101 | Store (#99987) = 108
-  DEBUG D [0, 108, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 486 | PC=22 | CMP.b
-   INFO TICK 487 | (#0)
-   INFO TICK 488 | Load (#0) = 0
-   INFO TICK 489 | (A6:#-1)
-   INFO TICK 490 | Load (#99987) = 108
-  DEBUG D [0, 108, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 491 | PC=25 | BEQ.b
-   INFO TICK 492
-  DEBUG D [0, 108, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 493 | PC=27 | MOV.w
-   INFO TICK 494 | #0
-   INFO TICK 495 | D1
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 468 | PC=131 | JMP.b
+   INFO TICK 469
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 496 | PC=29 | JMP.b
-   INFO TICK 497
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 470 | PC=124 | CMP.b
+   INFO TICK 471 | (#2)
+   INFO TICK 472 | Load (#2) = 1
+   INFO TICK 473 | #1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 498 | PC=33 | CMP.b
-   INFO TICK 499 | D1
-   INFO TICK 500 | #1
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 474 | PC=127 | BEQ.b
+   INFO TICK 475
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 501 | PC=35 | BEQ.b
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 476 | PC=131 | JMP.b
+   INFO TICK 477
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 478 | PC=124 | CMP.b
+   INFO TICK 479 | (#2)
+   INFO TICK 480 | Load (#2) = 1
+   INFO TICK 481 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 482 | PC=127 | BEQ.b
+   INFO TICK 483
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 484 | PC=131 | JMP.b
+   INFO TICK 485
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 486 | PC=124 | CMP.b
+   INFO TICK 487 | (#2)
+   INFO TICK 488 | Load (#2) = 1
+   INFO TICK 489 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 490 | PC=127 | BEQ.b
+   INFO TICK 491
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 492 | PC=131 | JMP.b
+   INFO TICK 493
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 494 | PC=124 | CMP.b
+   INFO TICK 495 | (#2)
+   INFO TICK 496 | Load (#2) = 1
+   INFO TICK 497 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 498 | PC=127 | BEQ.b
+   INFO TICK 499
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 500 | INTERRUPT
+   INFO TICK 501
    INFO TICK 502
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 503 | PC=37 | JMP.b
-   INFO TICK 504
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 505 | PC=109 | JMP.b
-   INFO TICK 506
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 507 | PC=111 | OUT.b
-   INFO TICK 508 | (A6:#-1)
-   INFO TICK 509 | Load (#99987) = 108
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 510 | PC=113 | MOV.w
-   INFO TICK 511 | A6
-   INFO TICK 512 | A7
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99988]
-   INFO TICK 513 | PC=114 | MOV.w
-   INFO TICK 514 | (A7)+
-   INFO TICK 515 | Load (#99988) = 99998
-   INFO TICK 516 | A6
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99989]
-   INFO TICK 517 | PC=115 | MOV.w
-   INFO TICK 518 | (A7)+
-   INFO TICK 519 | Load (#99989) = 0
-   INFO TICK 520 | A2
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99990]
-   INFO TICK 521 | PC=116 | MOV.w
-   INFO TICK 522 | (A7)+
-   INFO TICK 523 | Load (#99990) = 0
-   INFO TICK 524 | A1
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99991]
-   INFO TICK 525 | PC=117 | MOV.w
-   INFO TICK 526 | (A7)+
-   INFO TICK 527 | Load (#99991) = 0
-   INFO TICK 528 | A0
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99992]
-   INFO TICK 529 | PC=118 | MOV.w
-   INFO TICK 530 | (A7)+
-   INFO TICK 531 | Load (#99992) = 0
-   INFO TICK 532 | D5
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99993]
-   INFO TICK 533 | PC=119 | MOV.w
-   INFO TICK 534 | (A7)+
-   INFO TICK 535 | Load (#99993) = 0
-   INFO TICK 536 | D4
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99994]
-   INFO TICK 537 | PC=120 | MOV.w
-   INFO TICK 538 | (A7)+
-   INFO TICK 539 | Load (#99994) = 0
-   INFO TICK 540 | D3
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99995]
-   INFO TICK 541 | PC=121 | MOV.w
-   INFO TICK 542 | (A7)+
-   INFO TICK 543 | Load (#99995) = 0
-   INFO TICK 544 | D2
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99997]
+   INFO TICK 503 | PC=7 | MOV.w
+   INFO TICK 504 | D1
+   INFO TICK 505 | -(A7)
+   INFO TICK 506 | Load (#99996) = 0 | Store (#99996) = 0
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99996]
-   INFO TICK 545 | PC=122 | MOV.w
-   INFO TICK 546 | (A7)+
-   INFO TICK 547 | Load (#99996) = 0
+   INFO TICK 507 | PC=8 | MOV.w
+   INFO TICK 508 | D2
+   INFO TICK 509 | -(A7)
+   INFO TICK 510 | Load (#99995) = 0 | Store (#99995) = 0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99995]
+   INFO TICK 511 | PC=9 | MOV.w
+   INFO TICK 512 | D3
+   INFO TICK 513 | -(A7)
+   INFO TICK 514 | Load (#99994) = 0 | Store (#99994) = 0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99994]
+   INFO TICK 515 | PC=10 | MOV.w
+   INFO TICK 516 | D4
+   INFO TICK 517 | -(A7)
+   INFO TICK 518 | Load (#99993) = 0 | Store (#99993) = 0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99993]
+   INFO TICK 519 | PC=11 | MOV.w
+   INFO TICK 520 | D5
+   INFO TICK 521 | -(A7)
+   INFO TICK 522 | Load (#99992) = 0 | Store (#99992) = 0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99992]
+   INFO TICK 523 | PC=12 | MOV.w
+   INFO TICK 524 | A0
+   INFO TICK 525 | -(A7)
+   INFO TICK 526 | Load (#99991) = 0 | Store (#99991) = 0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99991]
+   INFO TICK 527 | PC=13 | MOV.w
+   INFO TICK 528 | A1
+   INFO TICK 529 | -(A7)
+   INFO TICK 530 | Load (#99990) = 0 | Store (#99990) = 0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99990]
+   INFO TICK 531 | PC=14 | MOV.w
+   INFO TICK 532 | A2
+   INFO TICK 533 | -(A7)
+   INFO TICK 534 | Load (#99989) = 0 | Store (#99989) = 0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99989]
+   INFO TICK 535 | PC=15 | MOV.w
+   INFO TICK 536 | A6
+   INFO TICK 537 | -(A7)
+   INFO TICK 538 | Load (#99988) = 99998 | Store (#99988) = 99998
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99988]
+   INFO TICK 539 | PC=16 | MOV.w
+   INFO TICK 540 | A7
+   INFO TICK 541 | A6
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99988]
+   INFO TICK 542 | PC=17 | SUB.w
+   INFO TICK 543 | #1
+   INFO TICK 544 | A7
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 545 | PC=19 | IN.b
+   INFO TICK 546 | IN #101 | D1
+  DEBUG D [0, 101, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 547 | PC=20 | MOV.b
    INFO TICK 548 | D1
+   INFO TICK 549 | (A6:#-1)
+   INFO TICK 550 | Load (#99987) = 72 | Store (#99987) = 101
+  DEBUG D [0, 101, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 551 | PC=22 | CMP.b
+   INFO TICK 552 | (#0)
+   INFO TICK 553 | Load (#0) = 0
+   INFO TICK 554 | (A6:#-1)
+   INFO TICK 555 | Load (#99987) = 101
+  DEBUG D [0, 101, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 556 | PC=25 | BEQ.b
+   INFO TICK 557
+  DEBUG D [0, 101, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 558 | PC=27 | MOV.w
+   INFO TICK 559 | #0
+   INFO TICK 560 | D1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 561 | PC=29 | JMP.b
+   INFO TICK 562
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 563 | PC=33 | CMP.b
+   INFO TICK 564 | D1
+   INFO TICK 565 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 566 | PC=35 | BEQ.b
+   INFO TICK 567
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 568 | PC=37 | JMP.b
+   INFO TICK 569
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 570 | PC=109 | JMP.b
+   INFO TICK 571
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 572 | PC=111 | OUT.b
+   INFO TICK 573 | (A6:#-1)
+   INFO TICK 574 | Load (#99987) = 101
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 575 | PC=113 | MOV.w
+   INFO TICK 576 | A6
+   INFO TICK 577 | A7
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99988]
+   INFO TICK 578 | PC=114 | MOV.w
+   INFO TICK 579 | (A7)+
+   INFO TICK 580 | Load (#99988) = 99998
+   INFO TICK 581 | A6
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99989]
+   INFO TICK 582 | PC=115 | MOV.w
+   INFO TICK 583 | (A7)+
+   INFO TICK 584 | Load (#99989) = 0
+   INFO TICK 585 | A2
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99990]
+   INFO TICK 586 | PC=116 | MOV.w
+   INFO TICK 587 | (A7)+
+   INFO TICK 588 | Load (#99990) = 0
+   INFO TICK 589 | A1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99991]
+   INFO TICK 590 | PC=117 | MOV.w
+   INFO TICK 591 | (A7)+
+   INFO TICK 592 | Load (#99991) = 0
+   INFO TICK 593 | A0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99992]
+   INFO TICK 594 | PC=118 | MOV.w
+   INFO TICK 595 | (A7)+
+   INFO TICK 596 | Load (#99992) = 0
+   INFO TICK 597 | D5
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99993]
+   INFO TICK 598 | PC=119 | MOV.w
+   INFO TICK 599 | (A7)+
+   INFO TICK 600 | Load (#99993) = 0
+   INFO TICK 601 | D4
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99994]
+   INFO TICK 602 | PC=120 | MOV.w
+   INFO TICK 603 | (A7)+
+   INFO TICK 604 | Load (#99994) = 0
+   INFO TICK 605 | D3
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99995]
+   INFO TICK 606 | PC=121 | MOV.w
+   INFO TICK 607 | (A7)+
+   INFO TICK 608 | Load (#99995) = 0
+   INFO TICK 609 | D2
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99996]
+   INFO TICK 610 | PC=122 | MOV.w
+   INFO TICK 611 | (A7)+
+   INFO TICK 612 | Load (#99996) = 0
+   INFO TICK 613 | D1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99997]
-   INFO TICK 549 | PC=123 | INTRET.b
-   INFO TICK 550
-   INFO TICK 551
+   INFO TICK 614 | PC=123 | INTRET.b
+   INFO TICK 615
+   INFO TICK 616
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
-   INFO TICK 552 | INTERRUPT
-   INFO TICK 553
-   INFO TICK 554
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99997]
-   INFO TICK 555 | PC=7 | MOV.w
-   INFO TICK 556 | D1
-   INFO TICK 557 | -(A7)
-   INFO TICK 558 | Load (#99996) = 0 | Store (#99996) = 0
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99996]
-   INFO TICK 559 | PC=8 | MOV.w
-   INFO TICK 560 | D2
-   INFO TICK 561 | -(A7)
-   INFO TICK 562 | Load (#99995) = 0 | Store (#99995) = 0
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99995]
-   INFO TICK 563 | PC=9 | MOV.w
-   INFO TICK 564 | D3
-   INFO TICK 565 | -(A7)
-   INFO TICK 566 | Load (#99994) = 0 | Store (#99994) = 0
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99994]
-   INFO TICK 567 | PC=10 | MOV.w
-   INFO TICK 568 | D4
-   INFO TICK 569 | -(A7)
-   INFO TICK 570 | Load (#99993) = 0 | Store (#99993) = 0
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99993]
-   INFO TICK 571 | PC=11 | MOV.w
-   INFO TICK 572 | D5
-   INFO TICK 573 | -(A7)
-   INFO TICK 574 | Load (#99992) = 0 | Store (#99992) = 0
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99992]
-   INFO TICK 575 | PC=12 | MOV.w
-   INFO TICK 576 | A0
-   INFO TICK 577 | -(A7)
-   INFO TICK 578 | Load (#99991) = 0 | Store (#99991) = 0
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99991]
-   INFO TICK 579 | PC=13 | MOV.w
-   INFO TICK 580 | A1
-   INFO TICK 581 | -(A7)
-   INFO TICK 582 | Load (#99990) = 0 | Store (#99990) = 0
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99990]
-   INFO TICK 583 | PC=14 | MOV.w
-   INFO TICK 584 | A2
-   INFO TICK 585 | -(A7)
-   INFO TICK 586 | Load (#99989) = 0 | Store (#99989) = 0
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99989]
-   INFO TICK 587 | PC=15 | MOV.w
-   INFO TICK 588 | A6
-   INFO TICK 589 | -(A7)
-   INFO TICK 590 | Load (#99988) = 99998 | Store (#99988) = 99998
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99988]
-   INFO TICK 591 | PC=16 | MOV.w
-   INFO TICK 592 | A7
-   INFO TICK 593 | A6
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99988]
-   INFO TICK 594 | PC=17 | SUB.w
-   INFO TICK 595 | #1
-   INFO TICK 596 | A7
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 597 | PC=19 | IN.b
-   INFO TICK 598 | IN #108 | D1
-  DEBUG D [0, 108, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 599 | PC=20 | MOV.b
-   INFO TICK 600 | D1
-   INFO TICK 601 | (A6:#-1)
-   INFO TICK 602 | Load (#99987) = 108 | Store (#99987) = 108
-  DEBUG D [0, 108, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 603 | PC=22 | CMP.b
-   INFO TICK 604 | (#0)
-   INFO TICK 605 | Load (#0) = 0
-   INFO TICK 606 | (A6:#-1)
-   INFO TICK 607 | Load (#99987) = 108
-  DEBUG D [0, 108, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 608 | PC=25 | BEQ.b
-   INFO TICK 609
-  DEBUG D [0, 108, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 610 | PC=27 | MOV.w
-   INFO TICK 611 | #0
-   INFO TICK 612 | D1
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 613 | PC=29 | JMP.b
-   INFO TICK 614
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 615 | PC=33 | CMP.b
-   INFO TICK 616 | D1
-   INFO TICK 617 | #1
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 618 | PC=35 | BEQ.b
-   INFO TICK 619
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 620 | PC=37 | JMP.b
-   INFO TICK 621
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 622 | PC=109 | JMP.b
-   INFO TICK 623
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 624 | PC=111 | OUT.b
-   INFO TICK 625 | (A6:#-1)
-   INFO TICK 626 | Load (#99987) = 108
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 627 | PC=113 | MOV.w
-   INFO TICK 628 | A6
-   INFO TICK 629 | A7
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99988]
-   INFO TICK 630 | PC=114 | MOV.w
-   INFO TICK 631 | (A7)+
-   INFO TICK 632 | Load (#99988) = 99998
-   INFO TICK 633 | A6
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99989]
-   INFO TICK 634 | PC=115 | MOV.w
-   INFO TICK 635 | (A7)+
-   INFO TICK 636 | Load (#99989) = 0
-   INFO TICK 637 | A2
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99990]
-   INFO TICK 638 | PC=116 | MOV.w
-   INFO TICK 639 | (A7)+
-   INFO TICK 640 | Load (#99990) = 0
-   INFO TICK 641 | A1
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99991]
-   INFO TICK 642 | PC=117 | MOV.w
-   INFO TICK 643 | (A7)+
-   INFO TICK 644 | Load (#99991) = 0
-   INFO TICK 645 | A0
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99992]
-   INFO TICK 646 | PC=118 | MOV.w
-   INFO TICK 647 | (A7)+
-   INFO TICK 648 | Load (#99992) = 0
-   INFO TICK 649 | D5
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99993]
-   INFO TICK 650 | PC=119 | MOV.w
-   INFO TICK 651 | (A7)+
-   INFO TICK 652 | Load (#99993) = 0
-   INFO TICK 653 | D4
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99994]
-   INFO TICK 654 | PC=120 | MOV.w
-   INFO TICK 655 | (A7)+
-   INFO TICK 656 | Load (#99994) = 0
-   INFO TICK 657 | D3
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99995]
-   INFO TICK 658 | PC=121 | MOV.w
-   INFO TICK 659 | (A7)+
-   INFO TICK 660 | Load (#99995) = 0
-   INFO TICK 661 | D2
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99996]
-   INFO TICK 662 | PC=122 | MOV.w
-   INFO TICK 663 | (A7)+
-   INFO TICK 664 | Load (#99996) = 0
-   INFO TICK 665 | D1
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99997]
-   INFO TICK 666 | PC=123 | INTRET.b
-   INFO TICK 667
-   INFO TICK 668
+   INFO TICK 617 | PC=131 | JMP.b
+   INFO TICK 618
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
-   INFO TICK 669 | INTERRUPT
-   INFO TICK 670
-   INFO TICK 671
+   INFO TICK 619 | PC=124 | CMP.b
+   INFO TICK 620 | (#2)
+   INFO TICK 621 | Load (#2) = 1
+   INFO TICK 622 | #1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99997]
-   INFO TICK 672 | PC=7 | MOV.w
-   INFO TICK 673 | D1
-   INFO TICK 674 | -(A7)
-   INFO TICK 675 | Load (#99996) = 0 | Store (#99996) = 0
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 623 | PC=127 | BEQ.b
+   INFO TICK 624
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99996]
-   INFO TICK 676 | PC=8 | MOV.w
-   INFO TICK 677 | D2
-   INFO TICK 678 | -(A7)
-   INFO TICK 679 | Load (#99995) = 0 | Store (#99995) = 0
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 625 | PC=131 | JMP.b
+   INFO TICK 626
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99995]
-   INFO TICK 680 | PC=9 | MOV.w
-   INFO TICK 681 | D3
-   INFO TICK 682 | -(A7)
-   INFO TICK 683 | Load (#99994) = 0 | Store (#99994) = 0
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 627 | PC=124 | CMP.b
+   INFO TICK 628 | (#2)
+   INFO TICK 629 | Load (#2) = 1
+   INFO TICK 630 | #1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99994]
-   INFO TICK 684 | PC=10 | MOV.w
-   INFO TICK 685 | D4
-   INFO TICK 686 | -(A7)
-   INFO TICK 687 | Load (#99993) = 0 | Store (#99993) = 0
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 631 | PC=127 | BEQ.b
+   INFO TICK 632
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99993]
-   INFO TICK 688 | PC=11 | MOV.w
-   INFO TICK 689 | D5
-   INFO TICK 690 | -(A7)
-   INFO TICK 691 | Load (#99992) = 0 | Store (#99992) = 0
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 633 | PC=131 | JMP.b
+   INFO TICK 634
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99992]
-   INFO TICK 692 | PC=12 | MOV.w
-   INFO TICK 693 | A0
-   INFO TICK 694 | -(A7)
-   INFO TICK 695 | Load (#99991) = 0 | Store (#99991) = 0
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 635 | PC=124 | CMP.b
+   INFO TICK 636 | (#2)
+   INFO TICK 637 | Load (#2) = 1
+   INFO TICK 638 | #1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99991]
-   INFO TICK 696 | PC=13 | MOV.w
-   INFO TICK 697 | A1
-   INFO TICK 698 | -(A7)
-   INFO TICK 699 | Load (#99990) = 0 | Store (#99990) = 0
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 639 | PC=127 | BEQ.b
+   INFO TICK 640
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99990]
-   INFO TICK 700 | PC=14 | MOV.w
-   INFO TICK 701 | A2
-   INFO TICK 702 | -(A7)
-   INFO TICK 703 | Load (#99989) = 0 | Store (#99989) = 0
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 641 | PC=131 | JMP.b
+   INFO TICK 642
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99989]
-   INFO TICK 704 | PC=15 | MOV.w
-   INFO TICK 705 | A6
-   INFO TICK 706 | -(A7)
-   INFO TICK 707 | Load (#99988) = 99998 | Store (#99988) = 99998
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 643 | PC=124 | CMP.b
+   INFO TICK 644 | (#2)
+   INFO TICK 645 | Load (#2) = 1
+   INFO TICK 646 | #1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99988]
-   INFO TICK 708 | PC=16 | MOV.w
-   INFO TICK 709 | A7
-   INFO TICK 710 | A6
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 647 | PC=127 | BEQ.b
+   INFO TICK 648
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99988]
-   INFO TICK 711 | PC=17 | SUB.w
-   INFO TICK 712 | #1
-   INFO TICK 713 | A7
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 649 | PC=131 | JMP.b
+   INFO TICK 650
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 714 | PC=19 | IN.b
-   INFO TICK 715 | IN #111 | D1
-  DEBUG D [0, 111, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 716 | PC=20 | MOV.b
-   INFO TICK 717 | D1
-   INFO TICK 718 | (A6:#-1)
-   INFO TICK 719 | Load (#99987) = 108 | Store (#99987) = 111
-  DEBUG D [0, 111, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 720 | PC=22 | CMP.b
-   INFO TICK 721 | (#0)
-   INFO TICK 722 | Load (#0) = 0
-   INFO TICK 723 | (A6:#-1)
-   INFO TICK 724 | Load (#99987) = 111
-  DEBUG D [0, 111, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 725 | PC=25 | BEQ.b
-   INFO TICK 726
-  DEBUG D [0, 111, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 727 | PC=27 | MOV.w
-   INFO TICK 728 | #0
-   INFO TICK 729 | D1
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 651 | PC=124 | CMP.b
+   INFO TICK 652 | (#2)
+   INFO TICK 653 | Load (#2) = 1
+   INFO TICK 654 | #1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 730 | PC=29 | JMP.b
-   INFO TICK 731
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 655 | PC=127 | BEQ.b
+   INFO TICK 656
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 732 | PC=33 | CMP.b
-   INFO TICK 733 | D1
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 657 | PC=131 | JMP.b
+   INFO TICK 658
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 659 | PC=124 | CMP.b
+   INFO TICK 660 | (#2)
+   INFO TICK 661 | Load (#2) = 1
+   INFO TICK 662 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 663 | PC=127 | BEQ.b
+   INFO TICK 664
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 665 | PC=131 | JMP.b
+   INFO TICK 666
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 667 | PC=124 | CMP.b
+   INFO TICK 668 | (#2)
+   INFO TICK 669 | Load (#2) = 1
+   INFO TICK 670 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 671 | PC=127 | BEQ.b
+   INFO TICK 672
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 673 | PC=131 | JMP.b
+   INFO TICK 674
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 675 | PC=124 | CMP.b
+   INFO TICK 676 | (#2)
+   INFO TICK 677 | Load (#2) = 1
+   INFO TICK 678 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 679 | PC=127 | BEQ.b
+   INFO TICK 680
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 681 | PC=131 | JMP.b
+   INFO TICK 682
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 683 | PC=124 | CMP.b
+   INFO TICK 684 | (#2)
+   INFO TICK 685 | Load (#2) = 1
+   INFO TICK 686 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 687 | PC=127 | BEQ.b
+   INFO TICK 688
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 689 | PC=131 | JMP.b
+   INFO TICK 690
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 691 | PC=124 | CMP.b
+   INFO TICK 692 | (#2)
+   INFO TICK 693 | Load (#2) = 1
+   INFO TICK 694 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 695 | PC=127 | BEQ.b
+   INFO TICK 696
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 697 | PC=131 | JMP.b
+   INFO TICK 698
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 699 | PC=124 | CMP.b
+   INFO TICK 700 | (#2)
+   INFO TICK 701 | Load (#2) = 1
+   INFO TICK 702 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 703 | PC=127 | BEQ.b
+   INFO TICK 704
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 705 | PC=131 | JMP.b
+   INFO TICK 706
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 707 | PC=124 | CMP.b
+   INFO TICK 708 | (#2)
+   INFO TICK 709 | Load (#2) = 1
+   INFO TICK 710 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 711 | PC=127 | BEQ.b
+   INFO TICK 712
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 713 | PC=131 | JMP.b
+   INFO TICK 714
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 715 | PC=124 | CMP.b
+   INFO TICK 716 | (#2)
+   INFO TICK 717 | Load (#2) = 1
+   INFO TICK 718 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 719 | PC=127 | BEQ.b
+   INFO TICK 720
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 721 | PC=131 | JMP.b
+   INFO TICK 722
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 723 | PC=124 | CMP.b
+   INFO TICK 724 | (#2)
+   INFO TICK 725 | Load (#2) = 1
+   INFO TICK 726 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 727 | PC=127 | BEQ.b
+   INFO TICK 728
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 729 | PC=131 | JMP.b
+   INFO TICK 730
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 731 | PC=124 | CMP.b
+   INFO TICK 732 | (#2)
+   INFO TICK 733 | Load (#2) = 1
    INFO TICK 734 | #1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 735 | PC=35 | BEQ.b
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 735 | PC=127 | BEQ.b
    INFO TICK 736
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 737 | PC=37 | JMP.b
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 737 | PC=131 | JMP.b
    INFO TICK 738
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 739 | PC=109 | JMP.b
-   INFO TICK 740
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 741 | PC=111 | OUT.b
-   INFO TICK 742 | (A6:#-1)
-   INFO TICK 743 | Load (#99987) = 111
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 744 | PC=113 | MOV.w
-   INFO TICK 745 | A6
-   INFO TICK 746 | A7
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99988]
-   INFO TICK 747 | PC=114 | MOV.w
-   INFO TICK 748 | (A7)+
-   INFO TICK 749 | Load (#99988) = 99998
-   INFO TICK 750 | A6
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99989]
-   INFO TICK 751 | PC=115 | MOV.w
-   INFO TICK 752 | (A7)+
-   INFO TICK 753 | Load (#99989) = 0
-   INFO TICK 754 | A2
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99990]
-   INFO TICK 755 | PC=116 | MOV.w
-   INFO TICK 756 | (A7)+
-   INFO TICK 757 | Load (#99990) = 0
-   INFO TICK 758 | A1
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99991]
-   INFO TICK 759 | PC=117 | MOV.w
-   INFO TICK 760 | (A7)+
-   INFO TICK 761 | Load (#99991) = 0
-   INFO TICK 762 | A0
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99992]
-   INFO TICK 763 | PC=118 | MOV.w
-   INFO TICK 764 | (A7)+
-   INFO TICK 765 | Load (#99992) = 0
-   INFO TICK 766 | D5
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99993]
-   INFO TICK 767 | PC=119 | MOV.w
-   INFO TICK 768 | (A7)+
-   INFO TICK 769 | Load (#99993) = 0
-   INFO TICK 770 | D4
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99994]
-   INFO TICK 771 | PC=120 | MOV.w
-   INFO TICK 772 | (A7)+
-   INFO TICK 773 | Load (#99994) = 0
-   INFO TICK 774 | D3
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99995]
-   INFO TICK 775 | PC=121 | MOV.w
-   INFO TICK 776 | (A7)+
-   INFO TICK 777 | Load (#99995) = 0
-   INFO TICK 778 | D2
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99996]
-   INFO TICK 779 | PC=122 | MOV.w
-   INFO TICK 780 | (A7)+
-   INFO TICK 781 | Load (#99996) = 0
-   INFO TICK 782 | D1
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99997]
-   INFO TICK 783 | PC=123 | INTRET.b
-   INFO TICK 784
-   INFO TICK 785
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 739 | PC=124 | CMP.b
+   INFO TICK 740 | (#2)
+   INFO TICK 741 | Load (#2) = 1
+   INFO TICK 742 | #1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
-   INFO TICK 786 | INTERRUPT
-   INFO TICK 787
-   INFO TICK 788
+   INFO TICK 743 | PC=127 | BEQ.b
+   INFO TICK 744
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 745 | PC=131 | JMP.b
+   INFO TICK 746
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 747 | PC=124 | CMP.b
+   INFO TICK 748 | (#2)
+   INFO TICK 749 | Load (#2) = 1
+   INFO TICK 750 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 751 | PC=127 | BEQ.b
+   INFO TICK 752
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 753 | PC=131 | JMP.b
+   INFO TICK 754
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 755 | PC=124 | CMP.b
+   INFO TICK 756 | (#2)
+   INFO TICK 757 | Load (#2) = 1
+   INFO TICK 758 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 759 | PC=127 | BEQ.b
+   INFO TICK 760
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 761 | PC=131 | JMP.b
+   INFO TICK 762
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 763 | PC=124 | CMP.b
+   INFO TICK 764 | (#2)
+   INFO TICK 765 | Load (#2) = 1
+   INFO TICK 766 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 767 | PC=127 | BEQ.b
+   INFO TICK 768
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 769 | PC=131 | JMP.b
+   INFO TICK 770
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 771 | PC=124 | CMP.b
+   INFO TICK 772 | (#2)
+   INFO TICK 773 | Load (#2) = 1
+   INFO TICK 774 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 775 | PC=127 | BEQ.b
+   INFO TICK 776
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 777 | PC=131 | JMP.b
+   INFO TICK 778
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 779 | PC=124 | CMP.b
+   INFO TICK 780 | (#2)
+   INFO TICK 781 | Load (#2) = 1
+   INFO TICK 782 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 783 | PC=127 | BEQ.b
+   INFO TICK 784
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 785 | PC=131 | JMP.b
+   INFO TICK 786
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 787 | PC=124 | CMP.b
+   INFO TICK 788 | (#2)
+   INFO TICK 789 | Load (#2) = 1
+   INFO TICK 790 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 791 | PC=127 | BEQ.b
+   INFO TICK 792
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 793 | PC=131 | JMP.b
+   INFO TICK 794
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 795 | PC=124 | CMP.b
+   INFO TICK 796 | (#2)
+   INFO TICK 797 | Load (#2) = 1
+   INFO TICK 798 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 799 | PC=127 | BEQ.b
+   INFO TICK 800
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 801 | INTERRUPT
+   INFO TICK 802
+   INFO TICK 803
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99997]
-   INFO TICK 789 | PC=7 | MOV.w
-   INFO TICK 790 | D1
-   INFO TICK 791 | -(A7)
-   INFO TICK 792 | Load (#99996) = 0 | Store (#99996) = 0
+   INFO TICK 804 | PC=7 | MOV.w
+   INFO TICK 805 | D1
+   INFO TICK 806 | -(A7)
+   INFO TICK 807 | Load (#99996) = 0 | Store (#99996) = 0
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99996]
-   INFO TICK 793 | PC=8 | MOV.w
-   INFO TICK 794 | D2
-   INFO TICK 795 | -(A7)
-   INFO TICK 796 | Load (#99995) = 0 | Store (#99995) = 0
+   INFO TICK 808 | PC=8 | MOV.w
+   INFO TICK 809 | D2
+   INFO TICK 810 | -(A7)
+   INFO TICK 811 | Load (#99995) = 0 | Store (#99995) = 0
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99995]
-   INFO TICK 797 | PC=9 | MOV.w
-   INFO TICK 798 | D3
-   INFO TICK 799 | -(A7)
-   INFO TICK 800 | Load (#99994) = 0 | Store (#99994) = 0
+   INFO TICK 812 | PC=9 | MOV.w
+   INFO TICK 813 | D3
+   INFO TICK 814 | -(A7)
+   INFO TICK 815 | Load (#99994) = 0 | Store (#99994) = 0
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99994]
-   INFO TICK 801 | PC=10 | MOV.w
-   INFO TICK 802 | D4
-   INFO TICK 803 | -(A7)
-   INFO TICK 804 | Load (#99993) = 0 | Store (#99993) = 0
+   INFO TICK 816 | PC=10 | MOV.w
+   INFO TICK 817 | D4
+   INFO TICK 818 | -(A7)
+   INFO TICK 819 | Load (#99993) = 0 | Store (#99993) = 0
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99993]
-   INFO TICK 805 | PC=11 | MOV.w
-   INFO TICK 806 | D5
-   INFO TICK 807 | -(A7)
-   INFO TICK 808 | Load (#99992) = 0 | Store (#99992) = 0
+   INFO TICK 820 | PC=11 | MOV.w
+   INFO TICK 821 | D5
+   INFO TICK 822 | -(A7)
+   INFO TICK 823 | Load (#99992) = 0 | Store (#99992) = 0
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99992]
-   INFO TICK 809 | PC=12 | MOV.w
-   INFO TICK 810 | A0
-   INFO TICK 811 | -(A7)
-   INFO TICK 812 | Load (#99991) = 0 | Store (#99991) = 0
+   INFO TICK 824 | PC=12 | MOV.w
+   INFO TICK 825 | A0
+   INFO TICK 826 | -(A7)
+   INFO TICK 827 | Load (#99991) = 0 | Store (#99991) = 0
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99991]
-   INFO TICK 813 | PC=13 | MOV.w
-   INFO TICK 814 | A1
-   INFO TICK 815 | -(A7)
-   INFO TICK 816 | Load (#99990) = 0 | Store (#99990) = 0
+   INFO TICK 828 | PC=13 | MOV.w
+   INFO TICK 829 | A1
+   INFO TICK 830 | -(A7)
+   INFO TICK 831 | Load (#99990) = 0 | Store (#99990) = 0
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99990]
-   INFO TICK 817 | PC=14 | MOV.w
-   INFO TICK 818 | A2
-   INFO TICK 819 | -(A7)
-   INFO TICK 820 | Load (#99989) = 0 | Store (#99989) = 0
+   INFO TICK 832 | PC=14 | MOV.w
+   INFO TICK 833 | A2
+   INFO TICK 834 | -(A7)
+   INFO TICK 835 | Load (#99989) = 0 | Store (#99989) = 0
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99989]
-   INFO TICK 821 | PC=15 | MOV.w
-   INFO TICK 822 | A6
-   INFO TICK 823 | -(A7)
-   INFO TICK 824 | Load (#99988) = 99998 | Store (#99988) = 99998
+   INFO TICK 836 | PC=15 | MOV.w
+   INFO TICK 837 | A6
+   INFO TICK 838 | -(A7)
+   INFO TICK 839 | Load (#99988) = 99998 | Store (#99988) = 99998
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99988]
-   INFO TICK 825 | PC=16 | MOV.w
-   INFO TICK 826 | A7
-   INFO TICK 827 | A6
+   INFO TICK 840 | PC=16 | MOV.w
+   INFO TICK 841 | A7
+   INFO TICK 842 | A6
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99988]
-   INFO TICK 828 | PC=17 | SUB.w
-   INFO TICK 829 | #1
-   INFO TICK 830 | A7
+   INFO TICK 843 | PC=17 | SUB.w
+   INFO TICK 844 | #1
+   INFO TICK 845 | A7
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 831 | PC=19 | IN.b
-   INFO TICK 832 | IN #0 | D1
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+   INFO TICK 846 | PC=19 | IN.b
+   INFO TICK 847 | IN #108 | D1
+  DEBUG D [0, 108, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 833 | PC=20 | MOV.b
-   INFO TICK 834 | D1
-   INFO TICK 835 | (A6:#-1)
-   INFO TICK 836 | Load (#99987) = 111 | Store (#99987) = 0
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+   INFO TICK 848 | PC=20 | MOV.b
+   INFO TICK 849 | D1
+   INFO TICK 850 | (A6:#-1)
+   INFO TICK 851 | Load (#99987) = 101 | Store (#99987) = 108
+  DEBUG D [0, 108, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 837 | PC=22 | CMP.b
-   INFO TICK 838 | (#0)
-   INFO TICK 839 | Load (#0) = 0
-   INFO TICK 840 | (A6:#-1)
-   INFO TICK 841 | Load (#99987) = 0
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+   INFO TICK 852 | PC=22 | CMP.b
+   INFO TICK 853 | (#0)
+   INFO TICK 854 | Load (#0) = 0
+   INFO TICK 855 | (A6:#-1)
+   INFO TICK 856 | Load (#99987) = 108
+  DEBUG D [0, 108, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 842 | PC=25 | BEQ.b
-   INFO TICK 843
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 844 | PC=31 | MOV.w
-   INFO TICK 845 | #1
-   INFO TICK 846 | D1
-  DEBUG D [0, 1, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 847 | PC=33 | CMP.b
-   INFO TICK 848 | D1
-   INFO TICK 849 | #1
-  DEBUG D [0, 1, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 850 | PC=35 | BEQ.b
-   INFO TICK 851
-  DEBUG D [0, 1, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 852 | PC=104 | MOV.b
-   INFO TICK 853 | (#5)
-   INFO TICK 854 | Load (#5) = 0
-   INFO TICK 855 | (#2)
-   INFO TICK 856 | Load (#2) = 1 | Store (#2) = 0
-  DEBUG D [0, 1, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 857 | PC=107 | JMP.b
+   INFO TICK 857 | PC=25 | BEQ.b
    INFO TICK 858
-  DEBUG D [0, 1, 0, 0, 0, 0, 0, 0]
+  DEBUG D [0, 108, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 859 | PC=111 | OUT.b
-   INFO TICK 860 | (A6:#-1)
-   INFO TICK 861 | Load (#99987) = 0
-  DEBUG D [0, 1, 0, 0, 0, 0, 0, 0]
+   INFO TICK 859 | PC=27 | MOV.w
+   INFO TICK 860 | #0
+   INFO TICK 861 | D1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
-   INFO TICK 862 | PC=113 | MOV.w
-   INFO TICK 863 | A6
-   INFO TICK 864 | A7
-  DEBUG D [0, 1, 0, 0, 0, 0, 0, 0]
+   INFO TICK 862 | PC=29 | JMP.b
+   INFO TICK 863
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 864 | PC=33 | CMP.b
+   INFO TICK 865 | D1
+   INFO TICK 866 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 867 | PC=35 | BEQ.b
+   INFO TICK 868
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 869 | PC=37 | JMP.b
+   INFO TICK 870
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 871 | PC=109 | JMP.b
+   INFO TICK 872
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 873 | PC=111 | OUT.b
+   INFO TICK 874 | (A6:#-1)
+   INFO TICK 875 | Load (#99987) = 108
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 876 | PC=113 | MOV.w
+   INFO TICK 877 | A6
+   INFO TICK 878 | A7
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99988]
-   INFO TICK 865 | PC=114 | MOV.w
-   INFO TICK 866 | (A7)+
-   INFO TICK 867 | Load (#99988) = 99998
-   INFO TICK 868 | A6
-  DEBUG D [0, 1, 0, 0, 0, 0, 0, 0]
+   INFO TICK 879 | PC=114 | MOV.w
+   INFO TICK 880 | (A7)+
+   INFO TICK 881 | Load (#99988) = 99998
+   INFO TICK 882 | A6
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99989]
-   INFO TICK 869 | PC=115 | MOV.w
-   INFO TICK 870 | (A7)+
-   INFO TICK 871 | Load (#99989) = 0
-   INFO TICK 872 | A2
-  DEBUG D [0, 1, 0, 0, 0, 0, 0, 0]
+   INFO TICK 883 | PC=115 | MOV.w
+   INFO TICK 884 | (A7)+
+   INFO TICK 885 | Load (#99989) = 0
+   INFO TICK 886 | A2
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99990]
-   INFO TICK 873 | PC=116 | MOV.w
-   INFO TICK 874 | (A7)+
-   INFO TICK 875 | Load (#99990) = 0
-   INFO TICK 876 | A1
-  DEBUG D [0, 1, 0, 0, 0, 0, 0, 0]
+   INFO TICK 887 | PC=116 | MOV.w
+   INFO TICK 888 | (A7)+
+   INFO TICK 889 | Load (#99990) = 0
+   INFO TICK 890 | A1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99991]
-   INFO TICK 877 | PC=117 | MOV.w
-   INFO TICK 878 | (A7)+
-   INFO TICK 879 | Load (#99991) = 0
-   INFO TICK 880 | A0
-  DEBUG D [0, 1, 0, 0, 0, 0, 0, 0]
+   INFO TICK 891 | PC=117 | MOV.w
+   INFO TICK 892 | (A7)+
+   INFO TICK 893 | Load (#99991) = 0
+   INFO TICK 894 | A0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99992]
-   INFO TICK 881 | PC=118 | MOV.w
-   INFO TICK 882 | (A7)+
-   INFO TICK 883 | Load (#99992) = 0
-   INFO TICK 884 | D5
-  DEBUG D [0, 1, 0, 0, 0, 0, 0, 0]
+   INFO TICK 895 | PC=118 | MOV.w
+   INFO TICK 896 | (A7)+
+   INFO TICK 897 | Load (#99992) = 0
+   INFO TICK 898 | D5
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99993]
-   INFO TICK 885 | PC=119 | MOV.w
-   INFO TICK 886 | (A7)+
-   INFO TICK 887 | Load (#99993) = 0
-   INFO TICK 888 | D4
-  DEBUG D [0, 1, 0, 0, 0, 0, 0, 0]
+   INFO TICK 899 | PC=119 | MOV.w
+   INFO TICK 900 | (A7)+
+   INFO TICK 901 | Load (#99993) = 0
+   INFO TICK 902 | D4
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99994]
-   INFO TICK 889 | PC=120 | MOV.w
-   INFO TICK 890 | (A7)+
-   INFO TICK 891 | Load (#99994) = 0
-   INFO TICK 892 | D3
-  DEBUG D [0, 1, 0, 0, 0, 0, 0, 0]
+   INFO TICK 903 | PC=120 | MOV.w
+   INFO TICK 904 | (A7)+
+   INFO TICK 905 | Load (#99994) = 0
+   INFO TICK 906 | D3
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99995]
-   INFO TICK 893 | PC=121 | MOV.w
-   INFO TICK 894 | (A7)+
-   INFO TICK 895 | Load (#99995) = 0
-   INFO TICK 896 | D2
-  DEBUG D [0, 1, 0, 0, 0, 0, 0, 0]
+   INFO TICK 907 | PC=121 | MOV.w
+   INFO TICK 908 | (A7)+
+   INFO TICK 909 | Load (#99995) = 0
+   INFO TICK 910 | D2
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99996]
-   INFO TICK 897 | PC=122 | MOV.w
-   INFO TICK 898 | (A7)+
-   INFO TICK 899 | Load (#99996) = 0
-   INFO TICK 900 | D1
+   INFO TICK 911 | PC=122 | MOV.w
+   INFO TICK 912 | (A7)+
+   INFO TICK 913 | Load (#99996) = 0
+   INFO TICK 914 | D1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99997]
-   INFO TICK 901 | PC=123 | INTRET.b
-   INFO TICK 902
-   INFO TICK 903
+   INFO TICK 915 | PC=123 | INTRET.b
+   INFO TICK 916
+   INFO TICK 917
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
-   INFO TICK 904 | PC=124 | CMP.b
-   INFO TICK 905 | (#2)
-   INFO TICK 906 | Load (#2) = 0
-   INFO TICK 907 | #1
+   INFO TICK 918 | PC=131 | JMP.b
+   INFO TICK 919
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
-   INFO TICK 908 | PC=127 | BEQ.b
-   INFO TICK 909
+   INFO TICK 920 | PC=124 | CMP.b
+   INFO TICK 921 | (#2)
+   INFO TICK 922 | Load (#2) = 1
+   INFO TICK 923 | #1
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
-   INFO TICK 910 | PC=129 | JMP.b
-   INFO TICK 911
+   INFO TICK 924 | PC=127 | BEQ.b
+   INFO TICK 925
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
-   INFO TICK 912 | PC=133 | MOV.w
-   INFO TICK 913 | A6
-   INFO TICK 914 | A7
+   INFO TICK 926 | PC=131 | JMP.b
+   INFO TICK 927
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
-   INFO TICK 915 | PC=134 | MOV.w
-   INFO TICK 916 | (A7)+
-   INFO TICK 917 | Load (#99998) = 0
-   INFO TICK 918 | A6
+   INFO TICK 928 | PC=124 | CMP.b
+   INFO TICK 929 | (#2)
+   INFO TICK 930 | Load (#2) = 1
+   INFO TICK 931 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 932 | PC=127 | BEQ.b
+   INFO TICK 933
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 934 | PC=131 | JMP.b
+   INFO TICK 935
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 936 | PC=124 | CMP.b
+   INFO TICK 937 | (#2)
+   INFO TICK 938 | Load (#2) = 1
+   INFO TICK 939 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 940 | PC=127 | BEQ.b
+   INFO TICK 941
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 942 | PC=131 | JMP.b
+   INFO TICK 943
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 944 | PC=124 | CMP.b
+   INFO TICK 945 | (#2)
+   INFO TICK 946 | Load (#2) = 1
+   INFO TICK 947 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 948 | PC=127 | BEQ.b
+   INFO TICK 949
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 950 | PC=131 | JMP.b
+   INFO TICK 951
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 952 | PC=124 | CMP.b
+   INFO TICK 953 | (#2)
+   INFO TICK 954 | Load (#2) = 1
+   INFO TICK 955 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 956 | PC=127 | BEQ.b
+   INFO TICK 957
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 958 | PC=131 | JMP.b
+   INFO TICK 959
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 960 | PC=124 | CMP.b
+   INFO TICK 961 | (#2)
+   INFO TICK 962 | Load (#2) = 1
+   INFO TICK 963 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 964 | PC=127 | BEQ.b
+   INFO TICK 965
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 966 | PC=131 | JMP.b
+   INFO TICK 967
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 968 | PC=124 | CMP.b
+   INFO TICK 969 | (#2)
+   INFO TICK 970 | Load (#2) = 1
+   INFO TICK 971 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 972 | PC=127 | BEQ.b
+   INFO TICK 973
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 974 | PC=131 | JMP.b
+   INFO TICK 975
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 976 | PC=124 | CMP.b
+   INFO TICK 977 | (#2)
+   INFO TICK 978 | Load (#2) = 1
+   INFO TICK 979 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 980 | PC=127 | BEQ.b
+   INFO TICK 981
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 982 | PC=131 | JMP.b
+   INFO TICK 983
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 984 | PC=124 | CMP.b
+   INFO TICK 985 | (#2)
+   INFO TICK 986 | Load (#2) = 1
+   INFO TICK 987 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 988 | PC=127 | BEQ.b
+   INFO TICK 989
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 990 | PC=131 | JMP.b
+   INFO TICK 991
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 992 | PC=124 | CMP.b
+   INFO TICK 993 | (#2)
+   INFO TICK 994 | Load (#2) = 1
+   INFO TICK 995 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 996 | PC=127 | BEQ.b
+   INFO TICK 997
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 998 | PC=131 | JMP.b
+   INFO TICK 999
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1000 | PC=124 | CMP.b
+   INFO TICK 1001 | (#2)
+   INFO TICK 1002 | Load (#2) = 1
+   INFO TICK 1003 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1004 | PC=127 | BEQ.b
+   INFO TICK 1005
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1006 | PC=131 | JMP.b
+   INFO TICK 1007
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1008 | PC=124 | CMP.b
+   INFO TICK 1009 | (#2)
+   INFO TICK 1010 | Load (#2) = 1
+   INFO TICK 1011 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1012 | PC=127 | BEQ.b
+   INFO TICK 1013
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1014 | PC=131 | JMP.b
+   INFO TICK 1015
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1016 | PC=124 | CMP.b
+   INFO TICK 1017 | (#2)
+   INFO TICK 1018 | Load (#2) = 1
+   INFO TICK 1019 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1020 | PC=127 | BEQ.b
+   INFO TICK 1021
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1022 | PC=131 | JMP.b
+   INFO TICK 1023
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1024 | PC=124 | CMP.b
+   INFO TICK 1025 | (#2)
+   INFO TICK 1026 | Load (#2) = 1
+   INFO TICK 1027 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1028 | PC=127 | BEQ.b
+   INFO TICK 1029
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1030 | PC=131 | JMP.b
+   INFO TICK 1031
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1032 | PC=124 | CMP.b
+   INFO TICK 1033 | (#2)
+   INFO TICK 1034 | Load (#2) = 1
+   INFO TICK 1035 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1036 | PC=127 | BEQ.b
+   INFO TICK 1037
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1038 | PC=131 | JMP.b
+   INFO TICK 1039
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1040 | PC=124 | CMP.b
+   INFO TICK 1041 | (#2)
+   INFO TICK 1042 | Load (#2) = 1
+   INFO TICK 1043 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1044 | PC=127 | BEQ.b
+   INFO TICK 1045
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1046 | PC=131 | JMP.b
+   INFO TICK 1047
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1048 | PC=124 | CMP.b
+   INFO TICK 1049 | (#2)
+   INFO TICK 1050 | Load (#2) = 1
+   INFO TICK 1051 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1052 | PC=127 | BEQ.b
+   INFO TICK 1053
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1054 | PC=131 | JMP.b
+   INFO TICK 1055
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1056 | PC=124 | CMP.b
+   INFO TICK 1057 | (#2)
+   INFO TICK 1058 | Load (#2) = 1
+   INFO TICK 1059 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1060 | PC=127 | BEQ.b
+   INFO TICK 1061
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1062 | PC=131 | JMP.b
+   INFO TICK 1063
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1064 | PC=124 | CMP.b
+   INFO TICK 1065 | (#2)
+   INFO TICK 1066 | Load (#2) = 1
+   INFO TICK 1067 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1068 | PC=127 | BEQ.b
+   INFO TICK 1069
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1070 | PC=131 | JMP.b
+   INFO TICK 1071
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1072 | PC=124 | CMP.b
+   INFO TICK 1073 | (#2)
+   INFO TICK 1074 | Load (#2) = 1
+   INFO TICK 1075 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1076 | PC=127 | BEQ.b
+   INFO TICK 1077
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1078 | PC=131 | JMP.b
+   INFO TICK 1079
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1080 | PC=124 | CMP.b
+   INFO TICK 1081 | (#2)
+   INFO TICK 1082 | Load (#2) = 1
+   INFO TICK 1083 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1084 | PC=127 | BEQ.b
+   INFO TICK 1085
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1086 | PC=131 | JMP.b
+   INFO TICK 1087
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1088 | PC=124 | CMP.b
+   INFO TICK 1089 | (#2)
+   INFO TICK 1090 | Load (#2) = 1
+   INFO TICK 1091 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1092 | PC=127 | BEQ.b
+   INFO TICK 1093
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1094 | PC=131 | JMP.b
+   INFO TICK 1095
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1096 | PC=124 | CMP.b
+   INFO TICK 1097 | (#2)
+   INFO TICK 1098 | Load (#2) = 1
+   INFO TICK 1099 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1100 | PC=127 | BEQ.b
+   INFO TICK 1101
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1102 | PC=131 | JMP.b
+   INFO TICK 1103
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1104 | PC=124 | CMP.b
+   INFO TICK 1105 | (#2)
+   INFO TICK 1106 | Load (#2) = 1
+   INFO TICK 1107 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1108 | PC=127 | BEQ.b
+   INFO TICK 1109
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1110 | PC=131 | JMP.b
+   INFO TICK 1111
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1112 | PC=124 | CMP.b
+   INFO TICK 1113 | (#2)
+   INFO TICK 1114 | Load (#2) = 1
+   INFO TICK 1115 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1116 | PC=127 | BEQ.b
+   INFO TICK 1117
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1118 | PC=131 | JMP.b
+   INFO TICK 1119
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1120 | PC=124 | CMP.b
+   INFO TICK 1121 | (#2)
+   INFO TICK 1122 | Load (#2) = 1
+   INFO TICK 1123 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1124 | PC=127 | BEQ.b
+   INFO TICK 1125
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1126 | PC=131 | JMP.b
+   INFO TICK 1127
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1128 | PC=124 | CMP.b
+   INFO TICK 1129 | (#2)
+   INFO TICK 1130 | Load (#2) = 1
+   INFO TICK 1131 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1132 | PC=127 | BEQ.b
+   INFO TICK 1133
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1134 | PC=131 | JMP.b
+   INFO TICK 1135
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1136 | PC=124 | CMP.b
+   INFO TICK 1137 | (#2)
+   INFO TICK 1138 | Load (#2) = 1
+   INFO TICK 1139 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1140 | PC=127 | BEQ.b
+   INFO TICK 1141
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1142 | PC=131 | JMP.b
+   INFO TICK 1143
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1144 | PC=124 | CMP.b
+   INFO TICK 1145 | (#2)
+   INFO TICK 1146 | Load (#2) = 1
+   INFO TICK 1147 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1148 | PC=127 | BEQ.b
+   INFO TICK 1149
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1150 | PC=131 | JMP.b
+   INFO TICK 1151
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1152 | PC=124 | CMP.b
+   INFO TICK 1153 | (#2)
+   INFO TICK 1154 | Load (#2) = 1
+   INFO TICK 1155 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1156 | PC=127 | BEQ.b
+   INFO TICK 1157
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1158 | PC=131 | JMP.b
+   INFO TICK 1159
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1160 | PC=124 | CMP.b
+   INFO TICK 1161 | (#2)
+   INFO TICK 1162 | Load (#2) = 1
+   INFO TICK 1163 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1164 | PC=127 | BEQ.b
+   INFO TICK 1165
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1166 | PC=131 | JMP.b
+   INFO TICK 1167
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1168 | PC=124 | CMP.b
+   INFO TICK 1169 | (#2)
+   INFO TICK 1170 | Load (#2) = 1
+   INFO TICK 1171 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1172 | PC=127 | BEQ.b
+   INFO TICK 1173
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1174 | PC=131 | JMP.b
+   INFO TICK 1175
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1176 | PC=124 | CMP.b
+   INFO TICK 1177 | (#2)
+   INFO TICK 1178 | Load (#2) = 1
+   INFO TICK 1179 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1180 | PC=127 | BEQ.b
+   INFO TICK 1181
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1182 | PC=131 | JMP.b
+   INFO TICK 1183
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1184 | PC=124 | CMP.b
+   INFO TICK 1185 | (#2)
+   INFO TICK 1186 | Load (#2) = 1
+   INFO TICK 1187 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1188 | PC=127 | BEQ.b
+   INFO TICK 1189
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1190 | PC=131 | JMP.b
+   INFO TICK 1191
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1192 | PC=124 | CMP.b
+   INFO TICK 1193 | (#2)
+   INFO TICK 1194 | Load (#2) = 1
+   INFO TICK 1195 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1196 | PC=127 | BEQ.b
+   INFO TICK 1197
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1198 | PC=131 | JMP.b
+   INFO TICK 1199
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1200 | INTERRUPT
+   INFO TICK 1201
+   INFO TICK 1202
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99997]
+   INFO TICK 1203 | PC=7 | MOV.w
+   INFO TICK 1204 | D1
+   INFO TICK 1205 | -(A7)
+   INFO TICK 1206 | Load (#99996) = 0 | Store (#99996) = 0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99996]
+   INFO TICK 1207 | PC=8 | MOV.w
+   INFO TICK 1208 | D2
+   INFO TICK 1209 | -(A7)
+   INFO TICK 1210 | Load (#99995) = 0 | Store (#99995) = 0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99995]
+   INFO TICK 1211 | PC=9 | MOV.w
+   INFO TICK 1212 | D3
+   INFO TICK 1213 | -(A7)
+   INFO TICK 1214 | Load (#99994) = 0 | Store (#99994) = 0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99994]
+   INFO TICK 1215 | PC=10 | MOV.w
+   INFO TICK 1216 | D4
+   INFO TICK 1217 | -(A7)
+   INFO TICK 1218 | Load (#99993) = 0 | Store (#99993) = 0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99993]
+   INFO TICK 1219 | PC=11 | MOV.w
+   INFO TICK 1220 | D5
+   INFO TICK 1221 | -(A7)
+   INFO TICK 1222 | Load (#99992) = 0 | Store (#99992) = 0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99992]
+   INFO TICK 1223 | PC=12 | MOV.w
+   INFO TICK 1224 | A0
+   INFO TICK 1225 | -(A7)
+   INFO TICK 1226 | Load (#99991) = 0 | Store (#99991) = 0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99991]
+   INFO TICK 1227 | PC=13 | MOV.w
+   INFO TICK 1228 | A1
+   INFO TICK 1229 | -(A7)
+   INFO TICK 1230 | Load (#99990) = 0 | Store (#99990) = 0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99990]
+   INFO TICK 1231 | PC=14 | MOV.w
+   INFO TICK 1232 | A2
+   INFO TICK 1233 | -(A7)
+   INFO TICK 1234 | Load (#99989) = 0 | Store (#99989) = 0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99989]
+   INFO TICK 1235 | PC=15 | MOV.w
+   INFO TICK 1236 | A6
+   INFO TICK 1237 | -(A7)
+   INFO TICK 1238 | Load (#99988) = 99998 | Store (#99988) = 99998
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99988]
+   INFO TICK 1239 | PC=16 | MOV.w
+   INFO TICK 1240 | A7
+   INFO TICK 1241 | A6
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99988]
+   INFO TICK 1242 | PC=17 | SUB.w
+   INFO TICK 1243 | #1
+   INFO TICK 1244 | A7
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 1245 | PC=19 | IN.b
+   INFO TICK 1246 | IN #108 | D1
+  DEBUG D [0, 108, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 1247 | PC=20 | MOV.b
+   INFO TICK 1248 | D1
+   INFO TICK 1249 | (A6:#-1)
+   INFO TICK 1250 | Load (#99987) = 108 | Store (#99987) = 108
+  DEBUG D [0, 108, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 1251 | PC=22 | CMP.b
+   INFO TICK 1252 | (#0)
+   INFO TICK 1253 | Load (#0) = 0
+   INFO TICK 1254 | (A6:#-1)
+   INFO TICK 1255 | Load (#99987) = 108
+  DEBUG D [0, 108, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 1256 | PC=25 | BEQ.b
+   INFO TICK 1257
+  DEBUG D [0, 108, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 1258 | PC=27 | MOV.w
+   INFO TICK 1259 | #0
+   INFO TICK 1260 | D1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 1261 | PC=29 | JMP.b
+   INFO TICK 1262
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 1263 | PC=33 | CMP.b
+   INFO TICK 1264 | D1
+   INFO TICK 1265 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 1266 | PC=35 | BEQ.b
+   INFO TICK 1267
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 1268 | PC=37 | JMP.b
+   INFO TICK 1269
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 1270 | PC=109 | JMP.b
+   INFO TICK 1271
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 1272 | PC=111 | OUT.b
+   INFO TICK 1273 | (A6:#-1)
+   INFO TICK 1274 | Load (#99987) = 108
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 1275 | PC=113 | MOV.w
+   INFO TICK 1276 | A6
+   INFO TICK 1277 | A7
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99988]
+   INFO TICK 1278 | PC=114 | MOV.w
+   INFO TICK 1279 | (A7)+
+   INFO TICK 1280 | Load (#99988) = 99998
+   INFO TICK 1281 | A6
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99989]
+   INFO TICK 1282 | PC=115 | MOV.w
+   INFO TICK 1283 | (A7)+
+   INFO TICK 1284 | Load (#99989) = 0
+   INFO TICK 1285 | A2
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99990]
+   INFO TICK 1286 | PC=116 | MOV.w
+   INFO TICK 1287 | (A7)+
+   INFO TICK 1288 | Load (#99990) = 0
+   INFO TICK 1289 | A1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99991]
+   INFO TICK 1290 | PC=117 | MOV.w
+   INFO TICK 1291 | (A7)+
+   INFO TICK 1292 | Load (#99991) = 0
+   INFO TICK 1293 | A0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99992]
+   INFO TICK 1294 | PC=118 | MOV.w
+   INFO TICK 1295 | (A7)+
+   INFO TICK 1296 | Load (#99992) = 0
+   INFO TICK 1297 | D5
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99993]
+   INFO TICK 1298 | PC=119 | MOV.w
+   INFO TICK 1299 | (A7)+
+   INFO TICK 1300 | Load (#99993) = 0
+   INFO TICK 1301 | D4
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99994]
+   INFO TICK 1302 | PC=120 | MOV.w
+   INFO TICK 1303 | (A7)+
+   INFO TICK 1304 | Load (#99994) = 0
+   INFO TICK 1305 | D3
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99995]
+   INFO TICK 1306 | PC=121 | MOV.w
+   INFO TICK 1307 | (A7)+
+   INFO TICK 1308 | Load (#99995) = 0
+   INFO TICK 1309 | D2
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99996]
+   INFO TICK 1310 | PC=122 | MOV.w
+   INFO TICK 1311 | (A7)+
+   INFO TICK 1312 | Load (#99996) = 0
+   INFO TICK 1313 | D1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99997]
+   INFO TICK 1314 | PC=123 | INTRET.b
+   INFO TICK 1315
+   INFO TICK 1316
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1317 | PC=124 | CMP.b
+   INFO TICK 1318 | (#2)
+   INFO TICK 1319 | Load (#2) = 1
+   INFO TICK 1320 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1321 | PC=127 | BEQ.b
+   INFO TICK 1322
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1323 | PC=131 | JMP.b
+   INFO TICK 1324
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1325 | PC=124 | CMP.b
+   INFO TICK 1326 | (#2)
+   INFO TICK 1327 | Load (#2) = 1
+   INFO TICK 1328 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1329 | PC=127 | BEQ.b
+   INFO TICK 1330
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1331 | PC=131 | JMP.b
+   INFO TICK 1332
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1333 | PC=124 | CMP.b
+   INFO TICK 1334 | (#2)
+   INFO TICK 1335 | Load (#2) = 1
+   INFO TICK 1336 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1337 | PC=127 | BEQ.b
+   INFO TICK 1338
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1339 | PC=131 | JMP.b
+   INFO TICK 1340
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1341 | PC=124 | CMP.b
+   INFO TICK 1342 | (#2)
+   INFO TICK 1343 | Load (#2) = 1
+   INFO TICK 1344 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1345 | PC=127 | BEQ.b
+   INFO TICK 1346
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1347 | PC=131 | JMP.b
+   INFO TICK 1348
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1349 | PC=124 | CMP.b
+   INFO TICK 1350 | (#2)
+   INFO TICK 1351 | Load (#2) = 1
+   INFO TICK 1352 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1353 | PC=127 | BEQ.b
+   INFO TICK 1354
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1355 | PC=131 | JMP.b
+   INFO TICK 1356
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1357 | PC=124 | CMP.b
+   INFO TICK 1358 | (#2)
+   INFO TICK 1359 | Load (#2) = 1
+   INFO TICK 1360 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1361 | PC=127 | BEQ.b
+   INFO TICK 1362
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1363 | PC=131 | JMP.b
+   INFO TICK 1364
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1365 | PC=124 | CMP.b
+   INFO TICK 1366 | (#2)
+   INFO TICK 1367 | Load (#2) = 1
+   INFO TICK 1368 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1369 | PC=127 | BEQ.b
+   INFO TICK 1370
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1371 | PC=131 | JMP.b
+   INFO TICK 1372
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1373 | PC=124 | CMP.b
+   INFO TICK 1374 | (#2)
+   INFO TICK 1375 | Load (#2) = 1
+   INFO TICK 1376 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1377 | PC=127 | BEQ.b
+   INFO TICK 1378
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1379 | PC=131 | JMP.b
+   INFO TICK 1380
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1381 | PC=124 | CMP.b
+   INFO TICK 1382 | (#2)
+   INFO TICK 1383 | Load (#2) = 1
+   INFO TICK 1384 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1385 | PC=127 | BEQ.b
+   INFO TICK 1386
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1387 | PC=131 | JMP.b
+   INFO TICK 1388
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1389 | PC=124 | CMP.b
+   INFO TICK 1390 | (#2)
+   INFO TICK 1391 | Load (#2) = 1
+   INFO TICK 1392 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1393 | PC=127 | BEQ.b
+   INFO TICK 1394
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1395 | PC=131 | JMP.b
+   INFO TICK 1396
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1397 | PC=124 | CMP.b
+   INFO TICK 1398 | (#2)
+   INFO TICK 1399 | Load (#2) = 1
+   INFO TICK 1400 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1401 | PC=127 | BEQ.b
+   INFO TICK 1402
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1403 | PC=131 | JMP.b
+   INFO TICK 1404
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1405 | PC=124 | CMP.b
+   INFO TICK 1406 | (#2)
+   INFO TICK 1407 | Load (#2) = 1
+   INFO TICK 1408 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1409 | PC=127 | BEQ.b
+   INFO TICK 1410
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1411 | PC=131 | JMP.b
+   INFO TICK 1412
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1413 | PC=124 | CMP.b
+   INFO TICK 1414 | (#2)
+   INFO TICK 1415 | Load (#2) = 1
+   INFO TICK 1416 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1417 | PC=127 | BEQ.b
+   INFO TICK 1418
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1419 | PC=131 | JMP.b
+   INFO TICK 1420
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1421 | PC=124 | CMP.b
+   INFO TICK 1422 | (#2)
+   INFO TICK 1423 | Load (#2) = 1
+   INFO TICK 1424 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1425 | PC=127 | BEQ.b
+   INFO TICK 1426
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1427 | PC=131 | JMP.b
+   INFO TICK 1428
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1429 | PC=124 | CMP.b
+   INFO TICK 1430 | (#2)
+   INFO TICK 1431 | Load (#2) = 1
+   INFO TICK 1432 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1433 | PC=127 | BEQ.b
+   INFO TICK 1434
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1435 | PC=131 | JMP.b
+   INFO TICK 1436
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1437 | PC=124 | CMP.b
+   INFO TICK 1438 | (#2)
+   INFO TICK 1439 | Load (#2) = 1
+   INFO TICK 1440 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1441 | PC=127 | BEQ.b
+   INFO TICK 1442
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1443 | PC=131 | JMP.b
+   INFO TICK 1444
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1445 | PC=124 | CMP.b
+   INFO TICK 1446 | (#2)
+   INFO TICK 1447 | Load (#2) = 1
+   INFO TICK 1448 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1449 | PC=127 | BEQ.b
+   INFO TICK 1450
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1451 | PC=131 | JMP.b
+   INFO TICK 1452
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1453 | PC=124 | CMP.b
+   INFO TICK 1454 | (#2)
+   INFO TICK 1455 | Load (#2) = 1
+   INFO TICK 1456 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1457 | PC=127 | BEQ.b
+   INFO TICK 1458
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1459 | PC=131 | JMP.b
+   INFO TICK 1460
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1461 | PC=124 | CMP.b
+   INFO TICK 1462 | (#2)
+   INFO TICK 1463 | Load (#2) = 1
+   INFO TICK 1464 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1465 | PC=127 | BEQ.b
+   INFO TICK 1466
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1467 | PC=131 | JMP.b
+   INFO TICK 1468
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1469 | PC=124 | CMP.b
+   INFO TICK 1470 | (#2)
+   INFO TICK 1471 | Load (#2) = 1
+   INFO TICK 1472 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1473 | PC=127 | BEQ.b
+   INFO TICK 1474
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1475 | PC=131 | JMP.b
+   INFO TICK 1476
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1477 | PC=124 | CMP.b
+   INFO TICK 1478 | (#2)
+   INFO TICK 1479 | Load (#2) = 1
+   INFO TICK 1480 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1481 | PC=127 | BEQ.b
+   INFO TICK 1482
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1483 | PC=131 | JMP.b
+   INFO TICK 1484
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1485 | PC=124 | CMP.b
+   INFO TICK 1486 | (#2)
+   INFO TICK 1487 | Load (#2) = 1
+   INFO TICK 1488 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1489 | PC=127 | BEQ.b
+   INFO TICK 1490
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1491 | PC=131 | JMP.b
+   INFO TICK 1492
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1493 | PC=124 | CMP.b
+   INFO TICK 1494 | (#2)
+   INFO TICK 1495 | Load (#2) = 1
+   INFO TICK 1496 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1497 | PC=127 | BEQ.b
+   INFO TICK 1498
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1499 | PC=131 | JMP.b
+   INFO TICK 1500
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1501 | PC=124 | CMP.b
+   INFO TICK 1502 | (#2)
+   INFO TICK 1503 | Load (#2) = 1
+   INFO TICK 1504 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1505 | PC=127 | BEQ.b
+   INFO TICK 1506
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1507 | PC=131 | JMP.b
+   INFO TICK 1508
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1509 | PC=124 | CMP.b
+   INFO TICK 1510 | (#2)
+   INFO TICK 1511 | Load (#2) = 1
+   INFO TICK 1512 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1513 | PC=127 | BEQ.b
+   INFO TICK 1514
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1515 | PC=131 | JMP.b
+   INFO TICK 1516
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1517 | PC=124 | CMP.b
+   INFO TICK 1518 | (#2)
+   INFO TICK 1519 | Load (#2) = 1
+   INFO TICK 1520 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1521 | PC=127 | BEQ.b
+   INFO TICK 1522
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1523 | PC=131 | JMP.b
+   INFO TICK 1524
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1525 | PC=124 | CMP.b
+   INFO TICK 1526 | (#2)
+   INFO TICK 1527 | Load (#2) = 1
+   INFO TICK 1528 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1529 | PC=127 | BEQ.b
+   INFO TICK 1530
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1531 | PC=131 | JMP.b
+   INFO TICK 1532
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1533 | PC=124 | CMP.b
+   INFO TICK 1534 | (#2)
+   INFO TICK 1535 | Load (#2) = 1
+   INFO TICK 1536 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1537 | PC=127 | BEQ.b
+   INFO TICK 1538
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1539 | PC=131 | JMP.b
+   INFO TICK 1540
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1541 | PC=124 | CMP.b
+   INFO TICK 1542 | (#2)
+   INFO TICK 1543 | Load (#2) = 1
+   INFO TICK 1544 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1545 | PC=127 | BEQ.b
+   INFO TICK 1546
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1547 | PC=131 | JMP.b
+   INFO TICK 1548
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1549 | PC=124 | CMP.b
+   INFO TICK 1550 | (#2)
+   INFO TICK 1551 | Load (#2) = 1
+   INFO TICK 1552 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1553 | PC=127 | BEQ.b
+   INFO TICK 1554
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1555 | PC=131 | JMP.b
+   INFO TICK 1556
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1557 | PC=124 | CMP.b
+   INFO TICK 1558 | (#2)
+   INFO TICK 1559 | Load (#2) = 1
+   INFO TICK 1560 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1561 | PC=127 | BEQ.b
+   INFO TICK 1562
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1563 | PC=131 | JMP.b
+   INFO TICK 1564
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1565 | PC=124 | CMP.b
+   INFO TICK 1566 | (#2)
+   INFO TICK 1567 | Load (#2) = 1
+   INFO TICK 1568 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1569 | PC=127 | BEQ.b
+   INFO TICK 1570
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1571 | PC=131 | JMP.b
+   INFO TICK 1572
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1573 | PC=124 | CMP.b
+   INFO TICK 1574 | (#2)
+   INFO TICK 1575 | Load (#2) = 1
+   INFO TICK 1576 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1577 | PC=127 | BEQ.b
+   INFO TICK 1578
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1579 | PC=131 | JMP.b
+   INFO TICK 1580
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1581 | PC=124 | CMP.b
+   INFO TICK 1582 | (#2)
+   INFO TICK 1583 | Load (#2) = 1
+   INFO TICK 1584 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1585 | PC=127 | BEQ.b
+   INFO TICK 1586
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1587 | PC=131 | JMP.b
+   INFO TICK 1588
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1589 | PC=124 | CMP.b
+   INFO TICK 1590 | (#2)
+   INFO TICK 1591 | Load (#2) = 1
+   INFO TICK 1592 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1593 | PC=127 | BEQ.b
+   INFO TICK 1594
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1595 | PC=131 | JMP.b
+   INFO TICK 1596
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1597 | PC=124 | CMP.b
+   INFO TICK 1598 | (#2)
+   INFO TICK 1599 | Load (#2) = 1
+   INFO TICK 1600 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1601 | INTERRUPT
+   INFO TICK 1602
+   INFO TICK 1603
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99997]
+   INFO TICK 1604 | PC=7 | MOV.w
+   INFO TICK 1605 | D1
+   INFO TICK 1606 | -(A7)
+   INFO TICK 1607 | Load (#99996) = 0 | Store (#99996) = 0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99996]
+   INFO TICK 1608 | PC=8 | MOV.w
+   INFO TICK 1609 | D2
+   INFO TICK 1610 | -(A7)
+   INFO TICK 1611 | Load (#99995) = 0 | Store (#99995) = 0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99995]
+   INFO TICK 1612 | PC=9 | MOV.w
+   INFO TICK 1613 | D3
+   INFO TICK 1614 | -(A7)
+   INFO TICK 1615 | Load (#99994) = 0 | Store (#99994) = 0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99994]
+   INFO TICK 1616 | PC=10 | MOV.w
+   INFO TICK 1617 | D4
+   INFO TICK 1618 | -(A7)
+   INFO TICK 1619 | Load (#99993) = 0 | Store (#99993) = 0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99993]
+   INFO TICK 1620 | PC=11 | MOV.w
+   INFO TICK 1621 | D5
+   INFO TICK 1622 | -(A7)
+   INFO TICK 1623 | Load (#99992) = 0 | Store (#99992) = 0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99992]
+   INFO TICK 1624 | PC=12 | MOV.w
+   INFO TICK 1625 | A0
+   INFO TICK 1626 | -(A7)
+   INFO TICK 1627 | Load (#99991) = 0 | Store (#99991) = 0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99991]
+   INFO TICK 1628 | PC=13 | MOV.w
+   INFO TICK 1629 | A1
+   INFO TICK 1630 | -(A7)
+   INFO TICK 1631 | Load (#99990) = 0 | Store (#99990) = 0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99990]
+   INFO TICK 1632 | PC=14 | MOV.w
+   INFO TICK 1633 | A2
+   INFO TICK 1634 | -(A7)
+   INFO TICK 1635 | Load (#99989) = 0 | Store (#99989) = 0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99989]
+   INFO TICK 1636 | PC=15 | MOV.w
+   INFO TICK 1637 | A6
+   INFO TICK 1638 | -(A7)
+   INFO TICK 1639 | Load (#99988) = 99998 | Store (#99988) = 99998
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99988]
+   INFO TICK 1640 | PC=16 | MOV.w
+   INFO TICK 1641 | A7
+   INFO TICK 1642 | A6
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99988]
+   INFO TICK 1643 | PC=17 | SUB.w
+   INFO TICK 1644 | #1
+   INFO TICK 1645 | A7
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 1646 | PC=19 | IN.b
+   INFO TICK 1647 | IN #111 | D1
+  DEBUG D [0, 111, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 1648 | PC=20 | MOV.b
+   INFO TICK 1649 | D1
+   INFO TICK 1650 | (A6:#-1)
+   INFO TICK 1651 | Load (#99987) = 108 | Store (#99987) = 111
+  DEBUG D [0, 111, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 1652 | PC=22 | CMP.b
+   INFO TICK 1653 | (#0)
+   INFO TICK 1654 | Load (#0) = 0
+   INFO TICK 1655 | (A6:#-1)
+   INFO TICK 1656 | Load (#99987) = 111
+  DEBUG D [0, 111, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 1657 | PC=25 | BEQ.b
+   INFO TICK 1658
+  DEBUG D [0, 111, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 1659 | PC=27 | MOV.w
+   INFO TICK 1660 | #0
+   INFO TICK 1661 | D1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 1662 | PC=29 | JMP.b
+   INFO TICK 1663
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 1664 | PC=33 | CMP.b
+   INFO TICK 1665 | D1
+   INFO TICK 1666 | #1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 1667 | PC=35 | BEQ.b
+   INFO TICK 1668
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 1669 | PC=37 | JMP.b
+   INFO TICK 1670
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 1671 | PC=109 | JMP.b
+   INFO TICK 1672
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 1673 | PC=111 | OUT.b
+   INFO TICK 1674 | (A6:#-1)
+   INFO TICK 1675 | Load (#99987) = 111
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99987]
+   INFO TICK 1676 | PC=113 | MOV.w
+   INFO TICK 1677 | A6
+   INFO TICK 1678 | A7
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99988, 99988]
+   INFO TICK 1679 | PC=114 | MOV.w
+   INFO TICK 1680 | (A7)+
+   INFO TICK 1681 | Load (#99988) = 99998
+   INFO TICK 1682 | A6
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99989]
+   INFO TICK 1683 | PC=115 | MOV.w
+   INFO TICK 1684 | (A7)+
+   INFO TICK 1685 | Load (#99989) = 0
+   INFO TICK 1686 | A2
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99990]
+   INFO TICK 1687 | PC=116 | MOV.w
+   INFO TICK 1688 | (A7)+
+   INFO TICK 1689 | Load (#99990) = 0
+   INFO TICK 1690 | A1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99991]
+   INFO TICK 1691 | PC=117 | MOV.w
+   INFO TICK 1692 | (A7)+
+   INFO TICK 1693 | Load (#99991) = 0
+   INFO TICK 1694 | A0
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99992]
+   INFO TICK 1695 | PC=118 | MOV.w
+   INFO TICK 1696 | (A7)+
+   INFO TICK 1697 | Load (#99992) = 0
+   INFO TICK 1698 | D5
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99993]
+   INFO TICK 1699 | PC=119 | MOV.w
+   INFO TICK 1700 | (A7)+
+   INFO TICK 1701 | Load (#99993) = 0
+   INFO TICK 1702 | D4
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99994]
+   INFO TICK 1703 | PC=120 | MOV.w
+   INFO TICK 1704 | (A7)+
+   INFO TICK 1705 | Load (#99994) = 0
+   INFO TICK 1706 | D3
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99995]
+   INFO TICK 1707 | PC=121 | MOV.w
+   INFO TICK 1708 | (A7)+
+   INFO TICK 1709 | Load (#99995) = 0
+   INFO TICK 1710 | D2
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99996]
+   INFO TICK 1711 | PC=122 | MOV.w
+   INFO TICK 1712 | (A7)+
+   INFO TICK 1713 | Load (#99996) = 0
+   INFO TICK 1714 | D1
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99997]
+   INFO TICK 1715 | PC=123 | INTRET.b
+   INFO TICK 1716
+   INFO TICK 1717
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1718 | PC=127 | BEQ.b
+   INFO TICK 1719
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1720 | PC=129 | JMP.b
+   INFO TICK 1721
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1722 | PC=133 | MOV.w
+   INFO TICK 1723 | A6
+   INFO TICK 1724 | A7
+  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
+  DEBUG A [0, 0, 0, 0, 0, 1000, 99998, 99998]
+   INFO TICK 1725 | PC=134 | MOV.w
+   INFO TICK 1726 | (A7)+
+   INFO TICK 1727 | Load (#99998) = 0
+   INFO TICK 1728 | A6
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 0, 99999]
-   INFO TICK 919 | PC=135 | RET.b
-   INFO TICK 920
+   INFO TICK 1729 | PC=135 | RET.b
+   INFO TICK 1730
   DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
   DEBUG A [0, 0, 0, 0, 0, 1000, 0, 99999]
-   INFO TICK 921 | PC=6 | HLT.b
-   INFO TICK 922 | Result : 0
+   INFO TICK 1731 | PC=6 | HLT.b
+   INFO TICK 1732 | Result : 0

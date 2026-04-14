@@ -1,50 +1,67 @@
+use proc_translator::fio::{
+    load_data, load_interrupt_vector, load_interrupts, load_program, write_bin, write_output,
+};
 use proc_translator::logger::setup_logger;
 use proc_translator::machine::simulation::simulate_machine;
-use proc_translator::translator::asm::translate;
-use proc_translator::translator::common::{ResBox, compile_to_hir, dump_to_file};
-use proc_translator::translator::lir::compile_lir;
-use std::fs;
+use proc_translator::translator::asm::ControlUnitPackage;
+use proc_translator::translator::common::{ResBox, compile};
+use std::{env, fs};
+
+enum Mode {
+    Compile,
+    Simulate,
+    All,
+}
 
 fn main() -> ResBox<()> {
+    let args: Vec<String> = env::args().collect();
+
+    let mut name = "cat";
+    let mut mode = Mode::All;
+    if args.len() > 1 {
+        match args[1].as_str() {
+            "compile" => {
+                mode = Mode::Compile;
+                name = args[2].as_str();
+            }
+            "simulate" => {
+                mode = Mode::Simulate;
+                name = args[2].as_str();
+            }
+            "all" => {
+                mode = Mode::All;
+                name = args[2].as_str();
+            }
+            _ => panic!("Unknown mode"),
+        }
+    }
+
     setup_logger();
-    // create_cfg_schemes();
 
-    let name = "prob1";
-    let content = fs::read_to_string(format!("examples/{name}.java"))?;
+    match mode {
+        Mode::Compile => {
+            let program = fs::read_to_string(format!("examples/{}.java", name))?;
+            let package = compile(&program)?;
+            write_bin(name, package)?;
+        }
+        Mode::Simulate => {
+            let package = ControlUnitPackage {
+                program: load_program(name)?,
+                data: load_data(name)?,
+                interrupt_vectors: load_interrupt_vector(name)?,
+            };
+            let interrupts = load_interrupts(name)?;
+            let (int_output, char_output) = simulate_machine(package, interrupts);
+            write_output(name, int_output, char_output)?;
+        }
+        Mode::All => {
+            let program = fs::read_to_string(format!("examples/{}.java", name))?;
+            let package = compile(&program)?;
+            let interrupts = load_interrupts(name)?;
+            let (int_output, char_output) = simulate_machine(package, interrupts);
+            write_output(name, int_output, char_output)?;
+        }
+    }
 
-    let control_flow_graph = compile_to_hir(&content)?;
-    let lir_package = compile_lir(control_flow_graph);
-    let package = translate(lir_package);
-    simulate_machine(package, vec![]);
-    Ok(())
-}
-
-#[allow(dead_code)]
-fn create_cfg_schemes() {
-    create_cfg_scheme("array").unwrap();
-    create_cfg_scheme("bitwise").unwrap();
-    create_cfg_scheme("bool").unwrap();
-    create_cfg_scheme("calc").unwrap();
-    create_cfg_scheme("cat").unwrap();
-    create_cfg_scheme("classes").unwrap();
-    create_cfg_scheme("double").unwrap();
-    create_cfg_scheme("for").unwrap();
-    create_cfg_scheme("global").unwrap();
-    create_cfg_scheme("hello_user").unwrap();
-    create_cfg_scheme("hello_world").unwrap();
-    create_cfg_scheme("params").unwrap();
-    create_cfg_scheme("prob1").unwrap();
-    create_cfg_scheme("return").unwrap();
-    create_cfg_scheme("sort").unwrap();
-    create_cfg_scheme("vector").unwrap();
-    create_cfg_scheme("vector_test").unwrap();
-    create_cfg_scheme("vector_test_simd").unwrap();
-    create_cfg_scheme("while").unwrap();
-}
-
-fn create_cfg_scheme(name: &str) -> ResBox<()> {
-    let content = fs::read_to_string(format!("examples/{name}.java"))?;
-    let cfg = compile_to_hir(&content)?;
-    dump_to_file(format!("output/{name}.dot"), cfg.to_dot())?;
     Ok(())
 }

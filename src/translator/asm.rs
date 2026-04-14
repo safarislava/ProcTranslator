@@ -486,16 +486,12 @@ impl AsmTranslator {
 
 pub struct ControlUnitPackage {
     pub program: Vec<u32>,
-    pub data: HashMap<Address, (u64, WordSize)>,
+    pub data: Vec<u64>,
     pub interrupt_vectors: [Address; 8],
 }
 
 impl ControlUnitPackage {
-    fn new(
-        program: Vec<u32>,
-        data: HashMap<Address, (u64, WordSize)>,
-        interrupt_vectors: [Address; 8],
-    ) -> Self {
+    fn new(program: Vec<u32>, data: Vec<u64>, interrupt_vectors: [Address; 8]) -> Self {
         Self {
             program,
             data,
@@ -513,7 +509,14 @@ pub fn translate(lir_package: LirPackage) -> ControlUnitPackage {
         .chunks_exact(4)
         .map(|chunk| u32::from_be_bytes(chunk.try_into().unwrap()))
         .collect();
-    ControlUnitPackage::new(program, lir_package.data_section, interrupt_vectors)
+
+    let max_address = lir_package.data_section.keys().max().unwrap();
+    let mut data: Vec<u64> = vec![0; *max_address as usize + 1];
+    for (&address, &(value, _)) in &lir_package.data_section {
+        data[address as usize] = value;
+    }
+
+    ControlUnitPackage::new(program, data, interrupt_vectors)
 }
 
 impl Default for AsmTranslator {

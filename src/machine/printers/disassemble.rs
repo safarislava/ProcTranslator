@@ -125,6 +125,7 @@ pub fn disassemble(program: &[u32]) -> Vec<String> {
         let mut line = format!("0x{:04X}: 0x{:08X}   {}{} ", i, ir, operator, word_size);
 
         match operator_code {
+            0x00 => {}
             0x20 | 0x21 | 0x30..=0x39 => {
                 if i + 1 < program.len() {
                     let high = ir & 0x00ffffff;

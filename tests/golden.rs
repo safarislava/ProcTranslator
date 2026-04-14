@@ -1,10 +1,8 @@
+use proc_translator::fio::load_interrupts;
 use proc_translator::machine::printers::disassemble::disassemble;
-use proc_translator::machine::simulation::{DeviceChoice, InterruptRequest, simulate_machine};
-use proc_translator::translator::asm::translate;
-use proc_translator::translator::common::compile_to_hir;
-use proc_translator::translator::lir::compile_lir;
+use proc_translator::machine::simulation::{InterruptRequest, simulate_machine};
+use proc_translator::translator::common::compile;
 use serde::{Serialize, Serializer, ser::SerializeMap};
-use std::collections::BTreeMap;
 use std::fs;
 use std::io::Write;
 use std::sync::{Arc, Mutex};
@@ -18,7 +16,7 @@ pub struct TestOutput {
     int_output: Vec<i64>,
     char_output: Vec<char>,
     pub log: String,
-    pub data_section: BTreeMap<u64, i64>,
+    pub data_section: Vec<i64>,
     pub machine_code: String,
 }
 
@@ -95,15 +93,9 @@ fn run_test(name: &str, interrupts: Vec<InterruptRequest>) -> TestOutput {
 
     let (guard, log_buffer) = setup_test_logger();
 
-    let control_flow_graph = compile_to_hir(&content).expect("HIR compilation failed");
-    let lir_package = compile_lir(control_flow_graph);
-    let package = translate(lir_package);
+    let package = compile(&content).expect("Failed to compile");
 
-    let data_section: BTreeMap<u64, i64> = package
-        .data
-        .iter()
-        .map(|(addr, (value, _))| (*addr, *value as i64))
-        .collect();
+    let data_section: Vec<i64> = package.data.iter().map(|value| *value as i64).collect();
 
     let machine_code = disassemble(&package.program)
         .iter()
@@ -240,41 +232,7 @@ fn test_array() {
 
 #[test]
 fn test_cat() {
-    let output = run_test(
-        "cat",
-        vec![
-            InterruptRequest {
-                tick: 200,
-                value: 72,
-                device: DeviceChoice::CharInput,
-            },
-            InterruptRequest {
-                tick: 250,
-                value: 101,
-                device: DeviceChoice::CharInput,
-            },
-            InterruptRequest {
-                tick: 350,
-                value: 108,
-                device: DeviceChoice::CharInput,
-            },
-            InterruptRequest {
-                tick: 450,
-                value: 108,
-                device: DeviceChoice::CharInput,
-            },
-            InterruptRequest {
-                tick: 550,
-                value: 111,
-                device: DeviceChoice::CharInput,
-            },
-            InterruptRequest {
-                tick: 650,
-                value: 0,
-                device: DeviceChoice::CharInput,
-            },
-        ],
-    );
+    let output = run_test("cat", load_interrupts("cat").unwrap());
     assert_golden_yaml!(&output, "cat", false);
 }
 
@@ -286,116 +244,13 @@ fn test_hello_world() {
 
 #[test]
 fn test_hello_user() {
-    let output = run_test(
-        "hello_user",
-        vec![
-            InterruptRequest {
-                tick: 200,
-                value: 115,
-                device: DeviceChoice::CharInput,
-            },
-            InterruptRequest {
-                tick: 250,
-                value: 97,
-                device: DeviceChoice::CharInput,
-            },
-            InterruptRequest {
-                tick: 300,
-                value: 102,
-                device: DeviceChoice::CharInput,
-            },
-            InterruptRequest {
-                tick: 350,
-                value: 97,
-                device: DeviceChoice::CharInput,
-            },
-            InterruptRequest {
-                tick: 400,
-                value: 114,
-                device: DeviceChoice::CharInput,
-            },
-            InterruptRequest {
-                tick: 450,
-                value: 105,
-                device: DeviceChoice::CharInput,
-            },
-            InterruptRequest {
-                tick: 500,
-                value: 115,
-                device: DeviceChoice::CharInput,
-            },
-            InterruptRequest {
-                tick: 550,
-                value: 108,
-                device: DeviceChoice::CharInput,
-            },
-            InterruptRequest {
-                tick: 600,
-                value: 97,
-                device: DeviceChoice::CharInput,
-            },
-            InterruptRequest {
-                tick: 650,
-                value: 118,
-                device: DeviceChoice::CharInput,
-            },
-            InterruptRequest {
-                tick: 700,
-                value: 97,
-                device: DeviceChoice::CharInput,
-            },
-            InterruptRequest {
-                tick: 750,
-                value: 0,
-                device: DeviceChoice::CharInput,
-            },
-        ],
-    );
-    assert_golden_yaml!(&output, "hello_user", false);
+    let output = run_test("hello_user", load_interrupts("hello_user").unwrap());
+    assert_golden_yaml!(&output, "hello_user", true);
 }
 
 #[test]
 fn test_sort() {
-    let output = run_test(
-        "sort",
-        vec![
-            InterruptRequest {
-                tick: 150,
-                value: 6,
-                device: DeviceChoice::IntInput,
-            },
-            InterruptRequest {
-                tick: 200,
-                value: 101,
-                device: DeviceChoice::IntInput,
-            },
-            InterruptRequest {
-                tick: 250,
-                value: 3,
-                device: DeviceChoice::IntInput,
-            },
-            InterruptRequest {
-                tick: 300,
-                value: -99,
-                device: DeviceChoice::IntInput,
-            },
-            InterruptRequest {
-                tick: 350,
-                value: 99,
-                device: DeviceChoice::IntInput,
-            },
-            InterruptRequest {
-                tick: 400,
-                value: 24,
-                device: DeviceChoice::IntInput,
-            },
-            InterruptRequest {
-                tick: 450,
-                value: 52,
-                device: DeviceChoice::IntInput,
-            },
-        ],
-    );
+    let output = run_test("sort", load_interrupts("sort").unwrap());
     assert_golden_yaml!(&output, "sort", true);
 }
 

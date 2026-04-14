@@ -80,19 +80,19 @@ program: |-
       return;
   }
 input:
-- tick: 150
-  value: 6
 - tick: 200
+  value: 6
+- tick: 600
   value: 101
-- tick: 250
+- tick: 1000
   value: 3
-- tick: 300
+- tick: 1400
   value: -99
-- tick: 350
+- tick: 1800
   value: 99
-- tick: 400
+- tick: 2200
   value: 24
-- tick: 450
+- tick: 2600
   value: 52
 int_output:
 - -99
@@ -103,15 +103,18 @@ int_output:
 - 101
 char_output: ''
 data_section:
-  0: 1
-  1: 0
-  3: 48
-  4: 2
+- 1
+- 0
+- 0
+- 48
+- 2
 machine_code: |-
   0x0000: 0x03005C00   MOV.w A7, #0x0001869F
   0x0002: 0x03005400   MOV.w A5, #0x000003E8
   0x0004: 0x42000000   CALL.b 0x0000000000000064
-  0x0006: 0x00000000   HLT.b #0x035C5800, #0x0358BC00
+  0x0006: 0x00000000   HLT.b
+  0x0007: 0x0358BC00   MOV.w -(A7), A6
+  0x0008: 0x035C5800   MOV.w A6, A7
   0x0009: 0x25005C00   SUB.w A7, #0x00000001
   0x000B: 0x03D84000   MOV.w A0, (A6:#0x00000001)
   0x000D: 0x03D82400   MOV.w D1, (A6:#0x00000002)
@@ -546,4 +549,4 @@ machine_code: |-
   0x02A4: 0x039C2800   MOV.w D2, (A7)+
   0x02A5: 0x039C2400   MOV.w D1, (A7)+
   0x02A6: 0x46000000   INTRET.b
-log: ' INFO TICK 6366 | Result : 0'
+log: ' INFO TICK 7374 | Result : 0'

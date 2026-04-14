@@ -959,21 +959,19 @@ impl ControlUnit {
         })
     }
 
-    pub fn load_data_section(&mut self, data_section: HashMap<Address, (u64, WordSize)>) {
-        data_section
-            .iter()
-            .for_each(|(address, (value, word_size))| {
-                self.data_path.data_address = *address;
-                self.data_path.read_data_memory();
-                self.data_path
-                    .update_write_data_mux(WriteDataSelector::Memory);
-                self.data_path.latch_write_data();
+    pub fn load_data_section(&mut self, data_section: Vec<u64>) {
+        data_section.iter().enumerate().for_each(|(i, value)| {
+            self.data_path.data_address = i as u64;
+            self.data_path.read_data_memory();
+            self.data_path
+                .update_write_data_mux(WriteDataSelector::Memory);
+            self.data_path.latch_write_data();
 
-                self.data_path.alu_output = *value;
-                self.data_path.update_write_data_mux(WriteDataSelector::Alu);
-                self.data_path.latch_write_data_part(word_size);
-                self.data_path.write_data_memory(WriteSelector::Scalar);
-            })
+            self.data_path.alu_output = *value;
+            self.data_path.update_write_data_mux(WriteDataSelector::Alu);
+            self.data_path.latch_write_data_part(&WordSize::Long);
+            self.data_path.write_data_memory(WriteSelector::Scalar);
+        })
     }
 
     pub fn load_interrupt_vectors(&mut self, interrupt_vectors: [Address; 8]) {

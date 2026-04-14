@@ -1,3 +1,4 @@
+pub mod fio;
 pub mod isa;
 pub mod logger;
 pub mod machine;
