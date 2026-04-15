@@ -563,34 +563,24 @@ impl HirContext {
 
                 let mut parameter_offset = 0;
                 if self.current_class.is_some() {
-                    let register = HirOperand::Link(self.new_register());
+                    let this_slot = self.declare_variable("this".to_string());
                     self.emit(HirInstruction::LoadParameter {
-                        destination: register.clone(),
+                        destination: HirOperand::LocalVariable(this_slot),
                         offset: 0,
                         word_size: WordSize::Long,
                     });
-                    self.this_register = Some(register);
+                    self.this_register = Some(HirOperand::LocalVariable(this_slot));
                     parameter_offset = 1;
                 }
 
                 for argument in arguments.iter() {
                     let slot = self.declare_variable(argument.name.clone());
-                    let register = self.new_register();
-                    let destination = match argument.typ {
-                        Type::Class(_) | Type::Array(_, _) => HirOperand::Link(register),
-                        _ => HirOperand::Value(register),
-                    };
                     self.emit(HirInstruction::LoadParameter {
-                        destination: destination.clone(),
+                        destination: HirOperand::LocalVariable(slot),
                         offset: parameter_offset,
                         word_size: self.get_word_size(&argument.typ),
                     });
                     parameter_offset += 1;
-                    self.emit(HirInstruction::StoreStack {
-                        slot,
-                        value: destination,
-                        word_size: self.get_word_size(&argument.typ),
-                    });
                 }
 
                 for child in ast.children {

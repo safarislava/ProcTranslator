@@ -870,7 +870,7 @@ impl LirContext {
                         base: Box::new(self.frame_pointer.clone()),
                         offset: Box::new(LirOperand::Direct(offset + 1)),
                     },
-                    destination: self.get_virtual_register(destination),
+                    destination: self.lower_operand(destination),
                 });
             }
             HirInstruction::AllocateStack { slot } => {
