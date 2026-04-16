@@ -4,10 +4,10 @@ digraph CFG {
   edge [fontname="Courier"];
 
   "B0" [label="B0\l---\lcall prologue\lbranch 'false' ? B5 : B6\l "];
-  "B1" [label="B1\l---\lcall prologue\lalloc s0\lr0 = param[0]\ls0 = r0\lreturn '0'\l "];
-  "B2" [label="B2\l---\lcall prologue\lalloc s1\lr1 = param[0]\ls1 = r1\lreturn ''0''\l "];
-  "B3" [label="B3\l---\lcall prologue\lalloc s2\lr2 = param[0]\ls2 = r2\lalloc s3\lr3 = param[1]\ls3 = r3\lreturn\l "];
-  "B4" [label="B4\l---\lcall prologue\lalloc s4\lr4 = param[0]\ls4 = r4\lalloc s5\lr5 = param[1]\ls5 = r5\lreturn\l "];
+  "B1" [label="B1\l---\lcall prologue\lalloc s0\llocal s0 = param[0]\lreturn '0'\l "];
+  "B2" [label="B2\l---\lcall prologue\lalloc s1\llocal s1 = param[0]\lreturn ''0''\l "];
+  "B3" [label="B3\l---\lcall prologue\lalloc s2\llocal s2 = param[0]\lalloc s3\llocal s3 = param[1]\lreturn\l "];
+  "B4" [label="B4\l---\lcall prologue\lalloc s4\llocal s4 = param[0]\lalloc s5\llocal s5 = param[1]\lreturn\l "];
   "B5" [label="B5\l---\lreturn '1'\l "];
   "B6" [label="B6\l---\lbranch 'true' ? B7 : B8\l "];
   "B7" [label="B7\l---\lreturn '2'\l "];

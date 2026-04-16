@@ -3,11 +3,11 @@ digraph CFG {
   node [shape=box, fontname="Courier", style=filled, fillcolor=white, margin="0.2,0.1"];
   edge [fontname="Courier"];
 
-  "B0" [label="B0\l---\lcall prologue\lalloc s0\lr0 = param[0]\ls0 = r0\lalloc s1\lr1 = param[1]\ls1 = r1\lalloc s2\lr2 = param[2]\ls2 = r2\lr3 = local s0 Add local s1\lr4 = r3 Multiply local s2\lreturn r4\l "];
-  "B1" [label="B1\l---\lcall prologue\lalloc s3\ls3 = '9'\lalloc s4\ls4 = '-1'\lalloc s5\lr5 = call B0(local s3, local s4, '4')\ls5 = r5\loutput '4' = local s5\lreturn\l "];
-  "B2" [label="B2\l---\lcall prologue\lalloc s6\lr7 = param[0]\ls6 = r7\lreturn '0'\l "];
-  "B3" [label="B3\l---\lcall prologue\lalloc s7\lr8 = param[0]\ls7 = r8\lreturn ''0''\l "];
-  "B4" [label="B4\l---\lcall prologue\lalloc s8\lr9 = param[0]\ls8 = r9\lalloc s9\lr10 = param[1]\ls9 = r10\lreturn\l "];
-  "B5" [label="B5\l---\lcall prologue\lalloc s10\lr11 = param[0]\ls10 = r11\lalloc s11\lr12 = param[1]\ls11 = r12\lreturn\l "];
+  "B0" [label="B0\l---\lcall prologue\lalloc s0\llocal s0 = param[0]\lalloc s1\llocal s1 = param[1]\lalloc s2\llocal s2 = param[2]\lr0 = local s0 Add local s1\lr1 = r0 Multiply local s2\lreturn r1\l "];
+  "B1" [label="B1\l---\lcall prologue\lalloc s3\ls3 = '9'\lalloc s4\ls4 = '-1'\lalloc s5\lr2 = call B0(local s3, local s4, '4')\ls5 = r2\loutput '4' = local s5\lreturn\l "];
+  "B2" [label="B2\l---\lcall prologue\lalloc s6\llocal s6 = param[0]\lreturn '0'\l "];
+  "B3" [label="B3\l---\lcall prologue\lalloc s7\llocal s7 = param[0]\lreturn ''0''\l "];
+  "B4" [label="B4\l---\lcall prologue\lalloc s8\llocal s8 = param[0]\lalloc s9\llocal s9 = param[1]\lreturn\l "];
+  "B5" [label="B5\l---\lcall prologue\lalloc s10\llocal s10 = param[0]\lalloc s11\llocal s11 = param[1]\lreturn\l "];
   "B1" [fillcolor=lightgreen];
 }

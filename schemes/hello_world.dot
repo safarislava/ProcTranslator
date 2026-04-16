@@ -4,10 +4,10 @@ digraph CFG {
   edge [fontname="Courier"];
 
   "B0" [label="B0\l---\lcall prologue\lalloc s0\llink r0 = new array[14]\llink r0 = copy array [0]\ls0 = link r0\lalloc s1\ls1 = '0'\ljump B5\l "];
-  "B1" [label="B1\l---\lcall prologue\lalloc s2\lr6 = param[0]\ls2 = r6\lreturn '0'\l "];
-  "B2" [label="B2\l---\lcall prologue\lalloc s3\lr7 = param[0]\ls3 = r7\lreturn ''0''\l "];
-  "B3" [label="B3\l---\lcall prologue\lalloc s4\lr8 = param[0]\ls4 = r8\lalloc s5\lr9 = param[1]\ls5 = r9\lreturn\l "];
-  "B4" [label="B4\l---\lcall prologue\lalloc s6\lr10 = param[0]\ls6 = r10\lalloc s7\lr11 = param[1]\ls7 = r11\lreturn\l "];
+  "B1" [label="B1\l---\lcall prologue\lalloc s2\llocal s2 = param[0]\lreturn '0'\l "];
+  "B2" [label="B2\l---\lcall prologue\lalloc s3\llocal s3 = param[0]\lreturn ''0''\l "];
+  "B3" [label="B3\l---\lcall prologue\lalloc s4\llocal s4 = param[0]\lalloc s5\llocal s5 = param[1]\lreturn\l "];
+  "B4" [label="B4\l---\lcall prologue\lalloc s6\llocal s6 = param[0]\lalloc s7\llocal s7 = param[1]\lreturn\l "];
   "B5" [label="B5\l---\lr1 = local s1 Less '14'\lbranch r1 ? B6 : B7\l "];
   "B6" [label="B6\l---\lr2 = local s0[local s1]\loutput '5' = r2\lr4 = load s1\lr5 = r4 Add '1'\ls1 = r5\ljump B5\l "];
   "B7" [label="B7\l---\lreturn\l "];

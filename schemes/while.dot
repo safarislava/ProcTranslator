@@ -3,18 +3,18 @@ digraph CFG {
   node [shape=box, fontname="Courier", style=filled, fillcolor=white, margin="0.2,0.1"];
   edge [fontname="Courier"];
 
-  "B0" [label="B0\l---\lcall prologue\lalloc s0\lr0 = param[0]\ls0 = r0\lr1 = local s0 Add '5'\lreturn r1\l "];
+  "B0" [label="B0\l---\lcall prologue\lalloc s0\llocal s0 = param[0]\lr0 = local s0 Add '5'\lreturn r0\l "];
   "B1" [label="B1\l---\lcall prologue\lalloc s1\ls1 = '0'\ljump B6\l "];
-  "B2" [label="B2\l---\lcall prologue\lalloc s2\lr8 = param[0]\ls2 = r8\lreturn '0'\l "];
-  "B3" [label="B3\l---\lcall prologue\lalloc s3\lr9 = param[0]\ls3 = r9\lreturn ''0''\l "];
-  "B4" [label="B4\l---\lcall prologue\lalloc s4\lr10 = param[0]\ls4 = r10\lalloc s5\lr11 = param[1]\ls5 = r11\lreturn\l "];
-  "B5" [label="B5\l---\lcall prologue\lalloc s6\lr12 = param[0]\ls6 = r12\lalloc s7\lr13 = param[1]\ls7 = r13\lreturn\l "];
+  "B2" [label="B2\l---\lcall prologue\lalloc s2\llocal s2 = param[0]\lreturn '0'\l "];
+  "B3" [label="B3\l---\lcall prologue\lalloc s3\llocal s3 = param[0]\lreturn ''0''\l "];
+  "B4" [label="B4\l---\lcall prologue\lalloc s4\llocal s4 = param[0]\lalloc s5\llocal s5 = param[1]\lreturn\l "];
+  "B5" [label="B5\l---\lcall prologue\lalloc s6\llocal s6 = param[0]\lalloc s7\llocal s7 = param[1]\lreturn\l "];
   "B6" [label="B6\l---\lbranch 'true' ? B7 : B8\l "];
-  "B7" [label="B7\l---\lr2 = local s1 Equal '9'\lbranch r2 ? B9 : B10\l "];
+  "B7" [label="B7\l---\lr1 = local s1 Equal '9'\lbranch r1 ? B9 : B10\l "];
   "B8" [label="B8\l---\loutput '4' = local s1\lreturn local s1\l "];
-  "B9" [label="B9\l---\lr3 = load s1\lr4 = r3 Add '1'\ls1 = r4\ljump B11\l "];
-  "B10" [label="B10\l---\lr5 = local s1 Equal '10'\lbranch r5 ? B12 : B13\l "];
-  "B11" [label="B11\l---\lr6 = call B0(local s1)\ls1 = r6\ljump B6\l "];
+  "B9" [label="B9\l---\lr2 = load s1\lr3 = r2 Add '1'\ls1 = r3\ljump B11\l "];
+  "B10" [label="B10\l---\lr4 = local s1 Equal '10'\lbranch r4 ? B12 : B13\l "];
+  "B11" [label="B11\l---\lr5 = call B0(local s1)\ls1 = r5\ljump B6\l "];
   "B12" [label="B12\l---\ljump B8\l "];
   "B13" [label="B13\l---\ljump B14\l "];
   "B14" [label="B14\l---\ljump B11\l "];
