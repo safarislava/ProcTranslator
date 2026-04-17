@@ -84,6 +84,7 @@ program: |-
       name.add(v);
       return;
   }
+ticks: 5879
 input:
 - tick: 200
   value: 115

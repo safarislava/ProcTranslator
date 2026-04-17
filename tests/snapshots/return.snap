@@ -14,6 +14,7 @@ program: |-
           return 3;
       }
   }
+ticks: 47
 input: []
 int_output: []
 char_output: ''

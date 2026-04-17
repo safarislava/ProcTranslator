@@ -19,6 +19,7 @@ program: |-
       iout(4, node.counter);
       return;
   }
+ticks: 324
 input: []
 int_output:
 - 9

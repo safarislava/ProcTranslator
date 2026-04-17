@@ -10,6 +10,7 @@ program: |-
       }
       return;
   }
+ticks: 827
 input: []
 int_output: []
 char_output: "Hello, World!\0"

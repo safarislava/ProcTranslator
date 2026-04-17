@@ -39,6 +39,7 @@ program: |-
       }
       return;
   }
+ticks: 51786
 input: []
 int_output:
 - 6712005494740828460

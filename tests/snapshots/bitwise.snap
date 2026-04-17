@@ -23,6 +23,7 @@ program: |-
 
       return;
   }
+ticks: 429
 input: []
 int_output:
 - 4

@@ -27,6 +27,7 @@ program: |-
       }
       return;
   }
+ticks: 28186
 input: []
 int_output:
 - 3329663154

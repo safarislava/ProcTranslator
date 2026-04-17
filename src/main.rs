@@ -51,14 +51,14 @@ fn main() -> ResBox<()> {
                 interrupt_vectors: load_interrupt_vector(name)?,
             };
             let interrupts = load_interrupts(name)?;
-            let (int_output, char_output) = simulate_machine(package, interrupts);
+            let (int_output, char_output, _) = simulate_machine(package, interrupts);
             write_output(name, int_output, char_output)?;
         }
         Mode::All => {
             let program = fs::read_to_string(format!("examples/{}.java", name))?;
             let package = compile(&program)?;
             let interrupts = load_interrupts(name)?;
-            let (int_output, char_output) = simulate_machine(package, interrupts);
+            let (int_output, char_output, _) = simulate_machine(package, interrupts);
             write_output(name, int_output, char_output)?;
         }
     }

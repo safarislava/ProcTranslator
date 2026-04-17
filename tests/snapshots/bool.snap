@@ -6,6 +6,7 @@ program: |-
   bool Main() {
       return (23 * 44) % 2 == 0;
   }
+ticks: 56
 input: []
 int_output: []
 char_output: ''

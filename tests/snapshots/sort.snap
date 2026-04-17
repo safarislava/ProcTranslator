@@ -79,6 +79,7 @@ program: |-
       }
       return;
   }
+ticks: 7323
 input:
 - tick: 200
   value: 6

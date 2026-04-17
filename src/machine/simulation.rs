@@ -27,7 +27,7 @@ impl InterruptRequest {
 pub fn simulate_machine(
     package: ControlUnitPackage,
     mut interrupts: Vec<InterruptRequest>,
-) -> (Vec<i64>, Vec<char>) {
+) -> (Vec<i64>, Vec<char>, u64) {
     let mut control_unit = ControlUnit::default();
     control_unit.load_program(&package.program);
     control_unit.load_data_section(package.data);
@@ -83,6 +83,7 @@ pub fn simulate_machine(
     (
         control_unit.data_path.io.int_output_log,
         control_unit.data_path.io.char_output_log,
+        control_unit.tick,
     )
 }
 

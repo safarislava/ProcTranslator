@@ -18,6 +18,7 @@ pub struct TestOutput {
     pub log: String,
     pub data_section: Vec<i64>,
     pub machine_code: String,
+    pub ticks: u64,
 }
 
 #[derive(Serialize, Clone)]
@@ -33,6 +34,7 @@ impl Serialize for TestOutput {
     {
         let mut map = serializer.serialize_map(Some(0))?;
         map.serialize_entry("program", &self.program)?;
+        map.serialize_entry("ticks", &self.ticks)?;
         map.serialize_entry("input", &self.input)?;
         map.serialize_entry("int_output", &self.int_output)?;
         map.serialize_entry("char_output", &self.char_output.iter().collect::<String>())?;
@@ -104,7 +106,19 @@ fn run_test(name: &str, interrupts: Vec<InterruptRequest>) -> TestOutput {
         .collect::<Vec<_>>()
         .join("\n");
 
-    let (int_output, char_output) = simulate_machine(package, interrupts.clone());
+    let (int_output, char_output, ticks) = simulate_machine(package, interrupts.clone());
+
+    println!("Test results: ");
+    println!(
+        "Input : {:?}",
+        interrupts
+            .iter()
+            .map(|i| (i.tick, i.value))
+            .collect::<Vec<_>>()
+    );
+    println!("Int output : {:?}", int_output);
+    println!("Char output : {}", char_output.iter().collect::<String>());
+    println!("Total ticks : {} ", ticks);
 
     drop(guard);
 
@@ -138,15 +152,18 @@ fn run_test(name: &str, interrupts: Vec<InterruptRequest>) -> TestOutput {
         log,
         data_section,
         machine_code,
+        ticks,
     }
 }
 
 #[macro_export]
 macro_rules! assert_golden_yaml {
     ($output:expr, $snapshot_name:expr) => {{ assert_golden_yaml!($output, $snapshot_name, false) }};
+
     ($output:expr, $snapshot_name:expr, $last_log_only:expr) => {{
         use insta::assert_snapshot;
         use serde_yaml;
+
         let mut output_for_snapshot = ($output).clone();
         if $last_log_only {
             output_for_snapshot.log = output_for_snapshot
@@ -162,7 +179,6 @@ macro_rules! assert_golden_yaml {
         let mut settings = insta::Settings::clone_current();
         settings.set_snapshot_path("snapshots");
         settings.set_prepend_module_to_snapshot(false);
-
         settings.bind(|| {
             assert_snapshot!($snapshot_name, yaml);
         });
@@ -215,7 +231,7 @@ fn test_bool() {
 #[test]
 fn test_global() {
     let output = run_test("global", vec![]);
-    assert_golden_yaml!(&output, "global", false);
+    assert_golden_yaml!(&output, "global", true);
 }
 
 #[test]
@@ -227,13 +243,13 @@ fn test_params() {
 #[test]
 fn test_array() {
     let output = run_test("array", vec![]);
-    assert_golden_yaml!(&output, "array", false);
+    assert_golden_yaml!(&output, "array", true);
 }
 
 #[test]
 fn test_cat() {
     let output = run_test("cat", load_interrupts("cat").unwrap());
-    assert_golden_yaml!(&output, "cat", false);
+    assert_golden_yaml!(&output, "cat", true);
 }
 
 #[test]
@@ -263,7 +279,7 @@ fn test_vector() {
 #[test]
 fn test_double() {
     let output = run_test("double", vec![]);
-    assert_golden_yaml!(&output, "double", false);
+    assert_golden_yaml!(&output, "double", true);
 }
 
 #[test]

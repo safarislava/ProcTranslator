@@ -14,6 +14,7 @@ program: |-
       iout(4, res);
       return;
   }
+ticks: 185
 input: []
 int_output:
 - 32
