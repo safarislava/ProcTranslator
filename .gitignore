@@ -1,0 +1,7 @@
+*.snap.new
+.DS_Store
+/target
+/.idea/
+/logs
+/bin
+/output
