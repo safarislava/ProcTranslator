@@ -1,12 +1,11 @@
 use crate::isa::{Mode, Operand, Operator, WordSize};
 use crate::machine::alu::AluOperator;
 use crate::machine::data_path::{
-    AluInputSelector, BranchSelector, BufferSelector, DataPath, DataSelector, ExternalSelector,
+    AluInputSelector, BranchSelector, DataPath, DataSelector, ExternalSelector, OffsetSelector,
     PostModeSelector, PreModeSelector, VectorModeSelector, WriteDataSelector, WriteSelector,
 };
 use crate::machine::instruction_parser::InstructionParser;
 use crate::machine::program_memory::ProgramMemory;
-use crate::machine::stack::Stack;
 use crate::machine::vector_alu::VectorAluOperator;
 use crate::translator::common::Address;
 use std::collections::HashMap;
@@ -19,15 +18,24 @@ pub enum Order {
 
 pub enum PcSelector {
     NextWord,
-    ByDecoder,
-    ByStack,
+    ByAddress,
+    ByDataPath,
     ByInterrupt,
+}
+
+pub enum OutputPcSelector {
+    Current,
+    Next,
+}
+
+pub enum OutputSelector {
+    Memory,
+    PC,
 }
 
 enum ExecutionState {
     Start,
     Execute(u8),
-    Interrupt(u8),
     Done,
     Stop,
 }
@@ -36,15 +44,15 @@ pub struct ControlUnit {
     instruction_parser: InstructionParser,
     pub data_path: DataPath,
     program_memory: ProgramMemory,
-    stack: Stack,
-    decoder_output: u64,
     pc: Address,
     read_data: u32,
     ir: u32,
+    output_pc_mux: u64,
     word_size: WordSize,
     operator: Operator,
     execution_state: ExecutionState,
     interrupt_flag: bool,
+    interrupt_processing: bool,
     vector_table: HashMap<u8, Address>,
     pub tick: u64,
     log: String,
@@ -59,29 +67,42 @@ impl ControlUnit {
     fn latch_pc(&mut self, signal: PcSelector) {
         self.pc = match signal {
             PcSelector::NextWord => self.pc + 1,
-            PcSelector::ByDecoder => self.decoder_output,
-            PcSelector::ByStack => self.stack.pop(),
+            PcSelector::ByAddress => self.assemble_branch_address(),
+            PcSelector::ByDataPath => self.data_path.alu_output,
             PcSelector::ByInterrupt => self.vector_table[&self.data_path.io.interrupt_vector],
         };
     }
 
-    fn latch_read_data(&mut self) {
+    fn update_read_data(&mut self) {
         self.read_data = self.program_memory.read(self.pc);
     }
 
     fn latch_ir(&mut self) {
-        self.ir = self.program_memory.read(self.pc);
+        self.ir = self.read_data;
     }
 
-    fn update_control_unit_output(&mut self) {
-        self.data_path.control_unit_output = self.decoder_output;
+    fn update_control_unit_output(&mut self, selector: OutputSelector) {
+        match selector {
+            OutputSelector::Memory => {
+                self.data_path.control_unit_output = self.read_data as i32 as i64 as u64
+            }
+            OutputSelector::PC => self.data_path.control_unit_output = self.output_pc_mux,
+        }
+    }
+
+    fn update_output_pc_mux(&mut self, selector: OutputPcSelector) {
+        match selector {
+            OutputPcSelector::Current => self.output_pc_mux = self.pc,
+            OutputPcSelector::Next => self.output_pc_mux = self.pc + 1,
+        }
     }
 
     pub fn step(&mut self) -> bool {
         match self.execution_state {
             ExecutionState::Start => {
                 if self.interrupt_flag && self.data_path.io.check_interrupt() {
-                    self.execution_state = ExecutionState::Interrupt(0);
+                    self.interrupt_processing = true;
+                    self.execution_state = ExecutionState::Execute(0);
                     return false;
                 }
                 self.fetch();
@@ -90,11 +111,6 @@ impl ControlUnit {
             }
             ExecutionState::Execute(step) => {
                 self.execute_step(step);
-                info!("{}", self.log);
-                false
-            }
-            ExecutionState::Interrupt(step) => {
-                self.interrupt(step);
                 info!("{}", self.log);
                 false
             }
@@ -122,51 +138,9 @@ impl ControlUnit {
         }
     }
 
-    fn interrupt(&mut self, step: u8) {
-        self.tick();
-        match step {
-            0 => {
-                self.log += "| INTERRUPT ";
-                self.interrupt_flag = false;
-                self.stack.push(self.pc);
-                self.latch_pc(PcSelector::ByInterrupt);
-
-                self.data_path.read_address_register(7);
-                self.data_path
-                    .update_left_data(DataSelector::AddressRegister);
-                self.data_path.update_left_alu_input(AluInputSelector::Data);
-                self.data_path.execute_alu(AluOperator::Trl);
-                self.data_path.pre_mode_selector = PreModeSelector::Decrement;
-                self.data_path.latch_data_address();
-                self.data_path.latch_address_register(7, &WordSize::Long);
-                self.data_path.read_data_memory();
-
-                self.execution_state = ExecutionState::Interrupt(1);
-            }
-            1 => {
-                self.data_path
-                    .update_write_data_mux(WriteDataSelector::Memory);
-                self.data_path.latch_write_data();
-
-                self.execution_state = ExecutionState::Interrupt(2);
-            }
-            2 => {
-                self.data_path.set_nzcv_to_alu_output();
-                self.data_path.update_write_data_mux(WriteDataSelector::Alu);
-                self.data_path.latch_write_data_part(&WordSize::Byte);
-                self.data_path.write_data_memory(WriteSelector::Scalar);
-
-                self.data_path.pre_mode_selector = PreModeSelector::None;
-                self.data_path.post_mode_selector = PostModeSelector::None;
-
-                self.execution_state = ExecutionState::Done;
-            }
-            _ => unreachable!(),
-        }
-    }
-
     fn fetch(&mut self) {
         self.tick();
+        self.update_read_data();
         self.latch_ir();
 
         let (operator, word_size) = self.instruction_parser.parse_operator(self.ir);
@@ -190,6 +164,12 @@ impl ControlUnit {
 
     fn execute_step(&mut self, step: u8) {
         self.tick();
+
+        if self.interrupt_processing {
+            self.execute_interrupt(step);
+            return;
+        }
+
         match self.operator {
             Operator::Hlt => {
                 self.execution_state = ExecutionState::Stop;
@@ -405,7 +385,7 @@ impl ControlUnit {
                 }
             }
             1 => {
-                self.prepare_operand_read_data(Order::Right);
+                self.prepare_operand_from_memory(Order::Right);
                 self.execution_state = ExecutionState::Execute(2);
             }
             2 => {
@@ -423,11 +403,15 @@ impl ControlUnit {
             }
             3 => {
                 let second = self.parse_data_writable(2);
-                self.prepare_operand_read_data(Order::Left);
+                self.prepare_operand_from_memory(Order::Left);
 
                 self.data_path.execute_alu(alu_op);
                 self.store_operand(second);
 
+                self.execution_state = ExecutionState::Execute(4);
+            }
+            4 => {
+                self.store_operand_in_memory();
                 self.execution_state = ExecutionState::Done;
             }
             _ => unreachable!(),
@@ -447,7 +431,7 @@ impl ControlUnit {
                 }
             }
             1 => {
-                self.prepare_operand_read_data(Order::Right);
+                self.prepare_operand_from_memory(Order::Right);
                 self.execution_state = ExecutionState::Execute(2);
             }
             2 => {
@@ -462,7 +446,7 @@ impl ControlUnit {
                 }
             }
             3 => {
-                self.prepare_operand_read_data(Order::Left);
+                self.prepare_operand_from_memory(Order::Left);
                 self.data_path.execute_alu(AluOperator::Sub);
                 self.execution_state = ExecutionState::Done;
             }
@@ -479,35 +463,31 @@ impl ControlUnit {
     ) {
         match step {
             0 => {
-                let left = self.parse_data_readable(1);
-                self.prepare_operand(Order::Left, &left);
-                if Self::is_operand_needed_second_step(&left) {
-                    self.execution_state = ExecutionState::Execute(step + 1);
-                } else {
-                    self.data_path.update_left_alu_input(AluInputSelector::Data);
-                    self.data_path.execute_alu(AluOperator::Trl);
-                    self.data_path.latch_data_address();
-                    self.data_path.read_data_memory();
-                    self.execution_state = ExecutionState::Execute(step + 2);
-                }
-            }
-            1 => {
-                self.prepare_operand_read_data(Order::Left);
-                self.data_path.update_left_alu_input(AluInputSelector::Data);
-                self.data_path.execute_alu(AluOperator::Trl);
-                self.data_path.latch_data_address();
-                self.data_path.read_data_memory();
-                self.execution_state = ExecutionState::Execute(step + 1);
-            }
-            2 => {
-                self.data_path.latch_left_vector_input_register();
-
-                let right = self.parse_data_readable(2);
+                let right = self.parse_data_readable(1);
                 self.prepare_operand(Order::Left, &right);
                 if Self::is_operand_needed_second_step(&right) {
                     self.execution_state = ExecutionState::Execute(step + 1);
                 } else {
-                    self.data_path.update_left_alu_input(AluInputSelector::Data);
+                    self.data_path.execute_alu(AluOperator::Trl);
+                    self.data_path.latch_data_address();
+                    self.execution_state = ExecutionState::Execute(step + 2);
+                }
+            }
+            1 => {
+                self.prepare_operand_from_memory(Order::Left);
+                self.data_path.execute_alu(AluOperator::Trl);
+                self.data_path.latch_data_address();
+                self.execution_state = ExecutionState::Execute(step + 1);
+            }
+            2 => {
+                self.data_path.read_data_memory();
+                self.data_path.latch_right_vector_input_register();
+
+                let left = self.parse_data_readable(2);
+                self.prepare_operand(Order::Left, &left);
+                if Self::is_operand_needed_second_step(&left) {
+                    self.execution_state = ExecutionState::Execute(step + 1);
+                } else {
                     self.data_path.execute_alu(AluOperator::Trl);
                     self.data_path.latch_data_address();
                     self.data_path.read_data_memory();
@@ -515,18 +495,18 @@ impl ControlUnit {
                 }
             }
             3 => {
-                self.prepare_operand_read_data(Order::Left);
-                self.data_path.update_left_alu_input(AluInputSelector::Data);
+                self.prepare_operand_from_memory(Order::Left);
                 self.data_path.execute_alu(AluOperator::Trl);
                 self.data_path.latch_data_address();
-                self.data_path.read_data_memory();
                 self.execution_state = ExecutionState::Execute(step + 1);
             }
             4 => {
-                self.data_path.latch_right_vector_input_register();
+                self.data_path.read_data_memory();
+                self.data_path.update_left_vector_input();
                 self.data_path.execute_vector_alu(operator);
                 self.data_path
                     .update_vector_alu_output_mux(vector_mode_selector, branch_selector);
+                self.data_path.latch_vector_output_register();
                 self.execution_state = ExecutionState::Done;
             }
             _ => {}
@@ -541,17 +521,17 @@ impl ControlUnit {
                 if Self::is_operand_needed_second_step(&destination) {
                     self.execution_state = ExecutionState::Execute(step + 1);
                 } else {
-                    self.data_path.update_left_alu_input(AluInputSelector::Data);
                     self.data_path.execute_alu(AluOperator::Trl);
                     self.data_path.latch_data_address();
-                    self.data_path.write_data_memory(WriteSelector::Vector);
-                    self.execution_state = ExecutionState::Done;
+                    self.execution_state = ExecutionState::Execute(1);
                 }
             }
             1 => {
-                self.data_path.update_left_alu_input(AluInputSelector::Data);
                 self.data_path.execute_alu(AluOperator::Trl);
                 self.data_path.latch_data_address();
+                self.execution_state = ExecutionState::Execute(2);
+            }
+            2 => {
                 self.data_path.write_data_memory(WriteSelector::Vector);
                 self.execution_state = ExecutionState::Done;
             }
@@ -562,9 +542,8 @@ impl ControlUnit {
     fn execute_jump(&mut self, step: u8) {
         match step {
             0 => {
-                self.latch_read_data();
-                self.decoder_output = self.assemble_branch_address();
-                self.latch_pc(PcSelector::ByDecoder);
+                self.update_read_data();
+                self.latch_pc(PcSelector::ByAddress);
                 self.execution_state = ExecutionState::Done;
             }
             _ => unreachable!(),
@@ -574,10 +553,42 @@ impl ControlUnit {
     fn execute_call(&mut self, step: u8) {
         match step {
             0 => {
-                self.latch_read_data();
-                self.decoder_output = self.assemble_branch_address();
-                self.stack.push(self.pc + 1);
-                self.latch_pc(PcSelector::ByDecoder);
+                self.update_read_data();
+                self.update_output_pc_mux(OutputPcSelector::Next);
+                self.update_control_unit_output(OutputSelector::PC);
+                self.data_path.external_selector = ExternalSelector::ControlUnit;
+                self.data_path
+                    .latch_right_data_register(DataSelector::External);
+                self.latch_pc(PcSelector::ByAddress);
+
+                self.data_path.read_address_register(7);
+                self.data_path
+                    .update_left_alu_input(DataSelector::AddressRegister);
+                self.data_path.execute_alu(AluOperator::Trl);
+                self.data_path.pre_mode_selector = PreModeSelector::Decrement;
+                self.data_path.latch_address_register(7, &WordSize::Long);
+                self.data_path.latch_data_address();
+
+                self.data_path.pre_mode_selector = PreModeSelector::None;
+                self.execution_state = ExecutionState::Execute(1);
+            }
+            1 => {
+                self.data_path.read_data_memory();
+                self.data_path
+                    .update_write_data_mux(WriteDataSelector::Memory);
+                self.data_path.latch_write_data();
+                self.execution_state = ExecutionState::Execute(2);
+            }
+            2 => {
+                self.data_path
+                    .update_right_alu_input(AluInputSelector::Data);
+                self.data_path.execute_alu(AluOperator::Trr);
+                self.data_path.update_write_data_mux(WriteDataSelector::Alu);
+                self.data_path.latch_write_data_part(&WordSize::Long);
+                self.execution_state = ExecutionState::Execute(3);
+            }
+            3 => {
+                self.data_path.write_data_memory(WriteSelector::Scalar);
                 self.execution_state = ExecutionState::Done;
             }
             _ => unreachable!(),
@@ -587,7 +598,102 @@ impl ControlUnit {
     fn execute_return(&mut self, step: u8) {
         match step {
             0 => {
-                self.latch_pc(PcSelector::ByStack);
+                self.data_path.read_address_register(7);
+                self.data_path
+                    .update_left_alu_input(DataSelector::AddressRegister);
+                self.data_path
+                    .update_left_alu_input(DataSelector::AddressRegister);
+                self.data_path.execute_alu(AluOperator::Trl);
+                self.data_path.post_mode_selector = PostModeSelector::Increment;
+                self.data_path.latch_data_address();
+                self.data_path.latch_address_register(7, &WordSize::Long);
+
+                self.data_path.post_mode_selector = PostModeSelector::None;
+                self.execution_state = ExecutionState::Execute(1);
+            }
+            1 => {
+                self.data_path.read_data_memory();
+                self.data_path.update_memory_output_mux(&WordSize::Long);
+                self.data_path.update_left_alu_input(DataSelector::Memory);
+                self.data_path.execute_alu(AluOperator::Trl);
+                self.latch_pc(PcSelector::ByDataPath);
+                self.execution_state = ExecutionState::Done;
+            }
+            _ => unreachable!(),
+        }
+    }
+
+    fn execute_interrupt(&mut self, step: u8) {
+        match step {
+            0 => {
+                self.log += "| INTERRUPT ";
+                self.interrupt_flag = false;
+
+                self.update_output_pc_mux(OutputPcSelector::Current);
+                self.update_control_unit_output(OutputSelector::PC);
+                self.latch_pc(PcSelector::ByInterrupt);
+
+                self.data_path.read_address_register(7);
+                self.data_path
+                    .update_left_alu_input(DataSelector::AddressRegister);
+                self.data_path.execute_alu(AluOperator::Trl);
+                self.data_path.pre_mode_selector = PreModeSelector::Decrement;
+                self.data_path.latch_data_address();
+                self.data_path.latch_address_register(7, &WordSize::Long);
+
+                self.data_path.pre_mode_selector = PreModeSelector::None;
+                self.execution_state = ExecutionState::Execute(1);
+            }
+            1 => {
+                self.data_path.read_data_memory();
+                self.data_path
+                    .update_write_data_mux(WriteDataSelector::Memory);
+                self.data_path.latch_write_data();
+
+                self.execution_state = ExecutionState::Execute(2);
+            }
+            2 => {
+                self.data_path.set_nzcv_to_alu_output();
+                self.data_path.update_write_data_mux(WriteDataSelector::Alu);
+                self.data_path.latch_write_data_part(&WordSize::Byte);
+
+                self.execution_state = ExecutionState::Execute(3);
+            }
+            3 => {
+                self.data_path.write_data_memory(WriteSelector::Scalar);
+
+                self.data_path.read_address_register(7);
+                self.data_path
+                    .update_left_alu_input(DataSelector::AddressRegister);
+                self.data_path.execute_alu(AluOperator::Trl);
+                self.data_path.pre_mode_selector = PreModeSelector::Decrement;
+                self.data_path.latch_data_address();
+                self.data_path.latch_address_register(7, &WordSize::Long);
+
+                self.data_path.pre_mode_selector = PreModeSelector::None;
+                self.execution_state = ExecutionState::Execute(4);
+            }
+            4 => {
+                self.data_path.read_data_memory();
+                self.data_path
+                    .update_write_data_mux(WriteDataSelector::Memory);
+                self.data_path.latch_write_data();
+
+                self.execution_state = ExecutionState::Execute(5);
+            }
+            5 => {
+                self.data_path.external_selector = ExternalSelector::ControlUnit;
+                self.data_path.update_left_alu_input(DataSelector::External);
+                self.data_path.execute_alu(AluOperator::Trl);
+                self.data_path.update_write_data_mux(WriteDataSelector::Alu);
+                self.data_path.latch_write_data_part(&WordSize::Long);
+
+                self.execution_state = ExecutionState::Execute(6);
+            }
+            6 => {
+                self.data_path.write_data_memory(WriteSelector::Scalar);
+
+                self.interrupt_processing = false;
                 self.execution_state = ExecutionState::Done;
             }
             _ => unreachable!(),
@@ -597,31 +703,46 @@ impl ControlUnit {
     fn execute_interrupt_return(&mut self, step: u8) {
         match step {
             0 => {
-                self.latch_pc(PcSelector::ByStack);
-
                 self.data_path.read_address_register(7);
                 self.data_path
-                    .update_left_data(DataSelector::AddressRegister);
-                self.data_path.update_left_alu_input(AluInputSelector::Data);
+                    .update_left_alu_input(DataSelector::AddressRegister);
                 self.data_path.execute_alu(AluOperator::Trl);
                 self.data_path.latch_data_address();
                 self.data_path.post_mode_selector = PostModeSelector::Increment;
                 self.data_path.latch_address_register(7, &WordSize::Long);
-                self.data_path.read_data_memory();
 
+                self.data_path.post_mode_selector = PostModeSelector::None;
                 self.execution_state = ExecutionState::Execute(1);
             }
             1 => {
-                self.data_path.update_memory_output_mmux(&self.word_size);
-                self.data_path.update_left_data(DataSelector::Memory);
-                self.data_path.update_left_alu_input(AluInputSelector::Data);
+                self.data_path.read_data_memory();
+                self.data_path.update_memory_output_mux(&WordSize::Long);
+                self.data_path.update_left_alu_input(DataSelector::Memory);
+                self.data_path.execute_alu(AluOperator::Trl);
+                self.latch_pc(PcSelector::ByDataPath);
+
+                self.execution_state = ExecutionState::Execute(2);
+            }
+            2 => {
+                self.data_path.read_address_register(7);
+                self.data_path
+                    .update_left_alu_input(DataSelector::AddressRegister);
+                self.data_path.execute_alu(AluOperator::Trl);
+                self.data_path.post_mode_selector = PostModeSelector::Increment;
+                self.data_path.latch_data_address();
+                self.data_path.latch_address_register(7, &WordSize::Long);
+
+                self.data_path.post_mode_selector = PostModeSelector::None;
+                self.execution_state = ExecutionState::Execute(3);
+            }
+            3 => {
+                self.data_path.read_data_memory();
+                self.data_path.update_memory_output_mux(&WordSize::Byte);
+                self.data_path.update_left_alu_input(DataSelector::Memory);
                 self.data_path.execute_alu(AluOperator::Trl);
                 self.data_path.restore_nzcv();
+
                 self.interrupt_flag = true;
-
-                self.data_path.pre_mode_selector = PreModeSelector::None;
-                self.data_path.post_mode_selector = PostModeSelector::None;
-
                 self.execution_state = ExecutionState::Done;
             }
             _ => unreachable!(),
@@ -637,10 +758,9 @@ impl ControlUnit {
     fn execute_branch(&mut self, step: u8, condition: bool) {
         match step {
             0 => {
-                self.latch_read_data();
-                self.decoder_output = self.assemble_branch_address();
+                self.update_read_data();
                 if condition {
-                    self.latch_pc(PcSelector::ByDecoder);
+                    self.latch_pc(PcSelector::ByAddress);
                 } else {
                     self.latch_pc(PcSelector::NextWord)
                 }
@@ -655,19 +775,21 @@ impl ControlUnit {
             0 => {
                 let port = self.parse_port(1);
                 self.data_path.read_io(port);
-
                 self.data_path.io.update_interrupt_vector();
-
                 self.data_path.external_selector = ExternalSelector::IO;
-                self.data_path.update_right_data(DataSelector::External);
+
                 self.log += &format!("| IN #{} ", self.data_path.io.output as i64);
 
                 let operand = self.parse_data_writable(2);
                 self.prepare_operand(Order::Left, &operand);
-
                 if Self::is_operand_needed_second_step(&operand) {
+                    self.data_path
+                        .latch_right_data_register(DataSelector::External);
                     self.execution_state = ExecutionState::Execute(1);
                 } else {
+                    self.data_path.update_right_offset(OffsetSelector::External);
+                    self.data_path
+                        .update_right_alu_input(AluInputSelector::Offset);
                     self.data_path.execute_alu(AluOperator::Trr);
                     self.store_operand(operand);
                     self.execution_state = ExecutionState::Done;
@@ -675,9 +797,15 @@ impl ControlUnit {
             }
             1 => {
                 let operand = self.parse_data_writable(2);
-                self.prepare_operand_read_data(Order::Left);
+                self.prepare_operand_from_memory(Order::Left);
+                self.data_path
+                    .update_right_alu_input(AluInputSelector::Data);
                 self.data_path.execute_alu(AluOperator::Trr);
                 self.store_operand(operand);
+                self.execution_state = ExecutionState::Execute(2);
+            }
+            2 => {
+                self.store_operand_in_memory();
                 self.execution_state = ExecutionState::Done;
             }
             _ => unreachable!(),
@@ -689,20 +817,20 @@ impl ControlUnit {
             0 => {
                 let port = self.parse_port(1);
                 let operand = self.parse_data_readable(2);
-                self.prepare_operand(Order::Right, &operand);
+                self.prepare_operand(Order::Left, &operand);
 
                 if Self::is_operand_needed_second_step(&operand) {
                     self.execution_state = ExecutionState::Execute(1);
                 } else {
-                    self.data_path.execute_alu(AluOperator::Trr);
+                    self.data_path.execute_alu(AluOperator::Trl);
                     self.data_path.write_io(port);
                     self.execution_state = ExecutionState::Done;
                 }
             }
             1 => {
                 let port = self.parse_port(1);
-                self.prepare_operand_read_data(Order::Right);
-                self.data_path.execute_alu(AluOperator::Trr);
+                self.prepare_operand_from_memory(Order::Left);
+                self.data_path.execute_alu(AluOperator::Trl);
                 self.data_path.write_io(port);
                 self.execution_state = ExecutionState::Done;
             }
@@ -712,14 +840,20 @@ impl ControlUnit {
 
     fn enable_interrupt(&mut self, step: u8) {
         match step {
-            0 => self.interrupt_flag = true,
+            0 => {
+                self.interrupt_flag = true;
+                self.execution_state = ExecutionState::Done;
+            }
             _ => unreachable!(),
         }
     }
 
     fn disable_interrupt(&mut self, step: u8) {
         match step {
-            0 => self.interrupt_flag = false,
+            0 => {
+                self.interrupt_flag = false;
+                self.execution_state = ExecutionState::Done;
+            }
             _ => unreachable!(),
         }
     }
@@ -727,21 +861,27 @@ impl ControlUnit {
     fn prepare_operand(&mut self, order: Order, operand: &Operand) {
         match operand.mode {
             Mode::Direct => {
-                self.latch_read_data();
+                self.update_read_data();
+                self.update_control_unit_output(OutputSelector::Memory);
+
                 self.latch_pc(PcSelector::NextWord);
-                self.decoder_output = (self.read_data as i32) as u64;
-                self.update_control_unit_output();
                 match order {
-                    Order::Left => self.data_path.update_left_data(DataSelector::External),
-                    Order::Right => self.data_path.update_right_data(DataSelector::External),
+                    Order::Left => self.data_path.update_left_alu_input(DataSelector::External),
+                    Order::Right => self
+                        .data_path
+                        .latch_right_data_register(DataSelector::External),
                 }
-                self.log += &format!("| #{} ", self.decoder_output as i64);
+                self.log += &format!("| #{} ", self.read_data as i64);
             }
             Mode::DataRegister => {
                 self.data_path.read_data_register(operand.main_register);
                 match order {
-                    Order::Left => self.data_path.update_left_data(DataSelector::DataRegister),
-                    Order::Right => self.data_path.update_right_data(DataSelector::DataRegister),
+                    Order::Left => self
+                        .data_path
+                        .update_left_alu_input(DataSelector::DataRegister),
+                    Order::Right => self
+                        .data_path
+                        .latch_right_data_register(DataSelector::DataRegister),
                 }
                 self.log += &format!("| D{} ", operand.main_register);
             }
@@ -750,30 +890,19 @@ impl ControlUnit {
                 match order {
                     Order::Left => self
                         .data_path
-                        .update_left_data(DataSelector::AddressRegister),
+                        .update_left_alu_input(DataSelector::AddressRegister),
                     Order::Right => self
                         .data_path
-                        .update_right_data(DataSelector::AddressRegister),
+                        .latch_right_data_register(DataSelector::AddressRegister),
                 }
                 self.log += &format!("| A{} ", operand.main_register);
             }
             Mode::Indirect | Mode::IndirectPostIncrement | Mode::IndirectPreDecrement => {
                 self.data_path.read_address_register(operand.main_register);
-                match order {
-                    Order::Left => {
-                        self.data_path
-                            .update_left_data(DataSelector::AddressRegister);
-                        self.data_path.update_left_alu_input(AluInputSelector::Data);
-                        self.data_path.execute_alu(AluOperator::Trl);
-                    }
-                    Order::Right => {
-                        self.data_path
-                            .update_right_data(DataSelector::AddressRegister);
-                        self.data_path
-                            .update_right_alu_input(AluInputSelector::Data);
-                        self.data_path.execute_alu(AluOperator::Trr);
-                    }
-                }
+                self.data_path
+                    .update_left_alu_input(DataSelector::AddressRegister);
+                self.data_path.execute_alu(AluOperator::Trl);
+
                 match operand.mode {
                     Mode::Indirect => {}
                     Mode::IndirectPreDecrement => {
@@ -785,8 +914,6 @@ impl ControlUnit {
                     _ => unreachable!(),
                 }
                 self.data_path.latch_data_address();
-                self.data_path.read_data_memory();
-
                 self.data_path
                     .latch_address_register(operand.main_register, &WordSize::Long);
 
@@ -800,127 +927,71 @@ impl ControlUnit {
                     }
                     _ => unreachable!(),
                 }
+                self.data_path.pre_mode_selector = PreModeSelector::None;
+                self.data_path.post_mode_selector = PostModeSelector::None;
             }
             Mode::IndirectOffset => {
                 self.data_path.read_address_register(operand.main_register);
-                match order {
-                    Order::Left => {
-                        self.data_path
-                            .update_left_data(DataSelector::AddressRegister);
-                    }
-                    Order::Right => {
-                        self.data_path
-                            .update_right_data(DataSelector::AddressRegister);
-                    }
-                }
-
+                self.data_path
+                    .update_left_alu_input(DataSelector::AddressRegister);
                 if operand.offset == 0 {
-                    self.latch_read_data();
+                    self.update_read_data();
+                    self.update_control_unit_output(OutputSelector::Memory);
                     self.latch_pc(PcSelector::NextWord);
-                    self.decoder_output = (self.read_data as i32) as u64;
-                    self.update_control_unit_output();
                     self.data_path.external_selector = ExternalSelector::ControlUnit;
-                    match order {
-                        Order::Left => {
-                            self.data_path.update_right_buffer(BufferSelector::External);
-                        }
-                        Order::Right => {
-                            self.data_path.update_left_buffer(BufferSelector::External);
-                        }
-                    }
-                    self.log += &format!(
-                        "| (A{}:#{}) ",
-                        operand.main_register, self.decoder_output as i64
-                    );
+                    self.data_path.update_right_offset(OffsetSelector::External);
+                    self.log +=
+                        &format!("| (A{}:#{}) ", operand.main_register, self.read_data as i64);
                 } else {
                     let offset_register = operand.offset + 4;
                     self.data_path.read_data_register(offset_register);
-                    match order {
-                        Order::Left => {
-                            self.data_path
-                                .update_right_buffer(BufferSelector::DataRegister);
-                        }
-                        Order::Right => {
-                            self.data_path
-                                .update_left_buffer(BufferSelector::DataRegister);
-                        }
-                    }
+                    self.data_path
+                        .update_right_offset(OffsetSelector::DataRegister);
                     self.log += &format!("| (A{}:D{}) ", operand.main_register, offset_register);
                 }
+                self.data_path
+                    .update_right_alu_input(AluInputSelector::Offset);
 
-                match order {
-                    Order::Left => {
-                        self.data_path.update_left_alu_input(AluInputSelector::Data);
-                        self.data_path
-                            .update_right_alu_input(AluInputSelector::Buffer);
-                    }
-                    Order::Right => {
-                        self.data_path
-                            .update_left_alu_input(AluInputSelector::Buffer);
-                        self.data_path
-                            .update_right_alu_input(AluInputSelector::Data);
-                    }
-                }
                 self.data_path.execute_alu(AluOperator::Add);
                 self.data_path.latch_data_address();
-                self.data_path.read_data_memory();
             }
             Mode::IndirectDirect => {
-                self.latch_read_data();
+                self.update_read_data();
+                self.update_control_unit_output(OutputSelector::Memory);
                 self.latch_pc(PcSelector::NextWord);
-                self.decoder_output = (self.read_data as i32) as u64;
-                self.update_control_unit_output();
-                match order {
-                    Order::Left => {
-                        self.data_path.external_selector = ExternalSelector::ControlUnit;
-                        self.data_path.update_left_data(DataSelector::External);
-                        self.data_path.update_left_alu_input(AluInputSelector::Data);
-                        self.data_path.execute_alu(AluOperator::Trl);
-                    }
-                    Order::Right => {
-                        self.data_path.external_selector = ExternalSelector::ControlUnit;
-                        self.data_path.update_right_data(DataSelector::External);
-                        self.data_path
-                            .update_right_alu_input(AluInputSelector::Data);
-                        self.data_path.execute_alu(AluOperator::Trr);
-                    }
-                }
+                self.data_path.external_selector = ExternalSelector::ControlUnit;
+                self.data_path.update_left_alu_input(DataSelector::External);
+                self.data_path.execute_alu(AluOperator::Trl);
                 self.data_path.latch_data_address();
-                self.data_path.read_data_memory();
 
-                self.log += &format!("| (#{}) ", self.decoder_output as i64);
+                self.log += &format!("| (#{}) ", self.read_data as i64);
             }
         }
-        self.data_path.update_left_alu_input(AluInputSelector::Data);
         self.data_path
             .update_right_alu_input(AluInputSelector::Data);
-        self.data_path.pre_mode_selector = PreModeSelector::None;
-        self.data_path.post_mode_selector = PostModeSelector::None;
     }
 
-    fn prepare_operand_read_data(&mut self, order: Order) {
-        self.data_path.update_memory_output_mmux(&self.word_size);
+    fn prepare_operand_from_memory(&mut self, order: Order) {
+        self.data_path.read_data_memory();
+        self.data_path.update_memory_output_mux(&self.word_size);
         self.data_path
             .update_write_data_mux(WriteDataSelector::Memory);
         self.data_path.latch_write_data();
         match order {
             Order::Left => {
-                self.data_path.update_left_data(DataSelector::Memory);
+                self.data_path.update_left_alu_input(DataSelector::Memory);
             }
             Order::Right => {
-                self.data_path.update_right_data(DataSelector::Memory);
+                self.data_path
+                    .latch_right_data_register(DataSelector::Memory);
             }
         }
         self.log += &format!(
             "| Load (#{}) = {} ",
-            self.data_path.data_address as i64, self.data_path.memory_output_mmux as i64
+            self.data_path.data_address as i64, self.data_path.memory_output_mux as i64
         );
-
-        self.data_path.update_left_alu_input(AluInputSelector::Data);
         self.data_path
             .update_right_alu_input(AluInputSelector::Data);
-        self.data_path.pre_mode_selector = PreModeSelector::None;
-        self.data_path.post_mode_selector = PostModeSelector::None;
     }
 
     fn store_operand(&mut self, operand: Operand) {
@@ -940,15 +1011,17 @@ impl ControlUnit {
             | Mode::IndirectDirect => {
                 self.data_path.update_write_data_mux(WriteDataSelector::Alu);
                 self.data_path.latch_write_data_part(&self.word_size);
-                self.data_path.write_data_memory(WriteSelector::Scalar);
-
-                self.log += &format!(
-                    "| Store (#{}) = {} ",
-                    self.data_path.data_address as i64, self.data_path.alu_output as i64
-                )
             }
             _ => unreachable!(),
         }
+    }
+
+    fn store_operand_in_memory(&mut self) {
+        self.data_path.write_data_memory(WriteSelector::Scalar);
+        self.log += &format!(
+            "| Store (#{}) = {} ",
+            self.data_path.data_address as i64, self.data_path.alu_output as i64
+        )
     }
 }
 
@@ -990,18 +1063,18 @@ impl Default for ControlUnit {
             instruction_parser: InstructionParser::new(),
             data_path: DataPath::default(),
             program_memory: ProgramMemory::new(100000),
-            stack: Stack::new(),
             read_data: 0,
             ir: 0,
             pc: 0,
-            decoder_output: 0,
             word_size: WordSize::Long,
             operator: Operator::Hlt,
             execution_state: ExecutionState::Start,
             interrupt_flag: true,
+            interrupt_processing: false,
             vector_table: HashMap::new(),
             tick: 0,
             log: String::from(""),
+            output_pc_mux: 0,
         }
     }
 }

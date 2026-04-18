@@ -142,59 +142,59 @@ impl AsmTranslator {
                     self.translate_standard_instruction(
                         Operator::VAdd,
                         WordSize::Long,
-                        &left,
                         &right,
+                        &left,
                     );
                 }
                 LirInstruction::VSub { left, right } => {
                     self.translate_standard_instruction(
                         Operator::VSub,
                         WordSize::Long,
-                        &left,
                         &right,
+                        &left,
                     );
                 }
                 LirInstruction::VMul { left, right } => {
                     self.translate_standard_instruction(
                         Operator::VMul,
                         WordSize::Long,
-                        &left,
                         &right,
+                        &left,
                     );
                 }
                 LirInstruction::VDiv { left, right } => {
                     self.translate_standard_instruction(
                         Operator::VDiv,
                         WordSize::Long,
-                        &left,
                         &right,
+                        &left,
                     );
                 }
                 LirInstruction::VRem { left, right } => {
                     self.translate_standard_instruction(
                         Operator::VRem,
                         WordSize::Long,
-                        &left,
                         &right,
+                        &left,
                     );
                 }
                 LirInstruction::VAnd { left, right } => self.translate_standard_instruction(
                     Operator::VAnd,
                     WordSize::Long,
-                    &left,
                     &right,
+                    &left,
                 ),
                 LirInstruction::VOr { left, right } => self.translate_standard_instruction(
                     Operator::VOr,
                     WordSize::Long,
-                    &left,
                     &right,
+                    &left,
                 ),
                 LirInstruction::VXor { left, right } => self.translate_standard_instruction(
                     Operator::VXor,
                     WordSize::Long,
-                    &left,
                     &right,
+                    &left,
                 ),
                 LirInstruction::VEnd { destination } => {
                     self.translate_vector_end(&destination);
@@ -203,39 +203,39 @@ impl AsmTranslator {
                     self.translate_standard_instruction(
                         Operator::VCmpBeq,
                         WordSize::Long,
-                        &left,
                         &right,
+                        &left,
                     );
                 }
                 LirInstruction::VCmpBne { left, right } => self.translate_standard_instruction(
                     Operator::VCmpBne,
                     WordSize::Long,
-                    &left,
                     &right,
+                    &left,
                 ),
                 LirInstruction::VCmpBlt { left, right } => self.translate_standard_instruction(
                     Operator::VCmpBlt,
                     WordSize::Long,
-                    &left,
                     &right,
+                    &left,
                 ),
                 LirInstruction::VCmpBle { left, right } => self.translate_standard_instruction(
                     Operator::VCmpBle,
                     WordSize::Long,
-                    &left,
                     &right,
+                    &left,
                 ),
                 LirInstruction::VCmpBgt { left, right } => self.translate_standard_instruction(
                     Operator::VCmpBgt,
                     WordSize::Long,
-                    &left,
                     &right,
+                    &left,
                 ),
                 LirInstruction::VCmpBge { left, right } => self.translate_standard_instruction(
                     Operator::VCmpBge,
                     WordSize::Long,
-                    &left,
                     &right,
+                    &left,
                 ),
                 LirInstruction::Call { label } => {
                     self.translate_branch(Operator::Call, label);

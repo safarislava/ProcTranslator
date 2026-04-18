@@ -868,7 +868,7 @@ impl LirContext {
                     size: word_size,
                     source: LirOperand::IndirectOffset {
                         base: Box::new(self.frame_pointer.clone()),
-                        offset: Box::new(LirOperand::Direct(offset + 1)),
+                        offset: Box::new(LirOperand::Direct(offset + 2)),
                     },
                     destination: self.lower_operand(destination),
                 });

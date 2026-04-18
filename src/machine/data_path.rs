@@ -30,14 +30,14 @@ pub enum DataSelector {
     External,
 }
 
-pub enum BufferSelector {
+pub enum OffsetSelector {
     DataRegister,
     External,
 }
 
 pub enum AluInputSelector {
     Data,
-    Buffer,
+    Offset,
 }
 
 pub enum PreModeSelector {
@@ -74,6 +74,8 @@ pub enum BranchSelector {
 }
 
 pub struct DataPath {
+    right_data_register: u64,
+    right_offset: u64,
     left_alu_input: u64,
     right_alu_input: u64,
     alu: Alu,
@@ -85,11 +87,6 @@ pub struct DataPath {
     address_registers_mux: u64,
     pub address_registers: [u64; 8],
 
-    left_data: u64,
-    left_buffer: u64,
-    right_data: u64,
-    right_buffer: u64,
-
     pub external_selector: ExternalSelector,
 
     pub pre_mode_selector: PreModeSelector,
@@ -98,7 +95,7 @@ pub struct DataPath {
     pub data_memory: DataMemory,
     pub memory_output: VectorWord,
     pub data_address: u64,
-    pub memory_output_mmux: u64,
+    pub memory_output_mux: u64,
     pub write_data: VectorWord,
     pub write_data_mux: VectorWord,
 
@@ -107,9 +104,10 @@ pub struct DataPath {
 
     vector_alu: VectorAlu,
     pub left_vector_input: VectorWord,
-    pub right_vector_input: VectorWord,
-    pub vector_output: VectorWord,
+    pub right_vector_input_register: VectorWord,
+    pub vector_alu_output: VectorWord,
     pub vector_output_mux: VectorWord,
+    pub vector_output_register: VectorWord,
 }
 
 impl DataPath {
@@ -192,7 +190,7 @@ impl DataPath {
         match selector {
             DataSelector::DataRegister => self.data_registers_mux,
             DataSelector::AddressRegister => self.address_registers_mux,
-            DataSelector::Memory => self.memory_output_mmux,
+            DataSelector::Memory => self.memory_output_mux,
             DataSelector::External => match self.external_selector {
                 ExternalSelector::ControlUnit => self.control_unit_output,
                 ExternalSelector::IO => self.io.output,
@@ -200,43 +198,31 @@ impl DataPath {
         }
     }
 
-    fn update_buffer(&mut self, selector: BufferSelector) -> u64 {
+    fn update_offset(&mut self, selector: OffsetSelector) -> u64 {
         match selector {
-            BufferSelector::DataRegister => self.data_registers_mux,
-            BufferSelector::External => match self.external_selector {
+            OffsetSelector::DataRegister => self.data_registers_mux,
+            OffsetSelector::External => match self.external_selector {
                 ExternalSelector::ControlUnit => self.control_unit_output,
                 ExternalSelector::IO => self.io.output,
             },
         }
     }
-
-    pub fn update_left_data(&mut self, selector: DataSelector) {
-        self.left_data = self.update_data(selector);
+    pub fn update_left_alu_input(&mut self, selector: DataSelector) {
+        self.left_alu_input = self.update_data(selector);
     }
 
-    pub fn update_left_buffer(&mut self, selector: BufferSelector) {
-        self.left_buffer = self.update_buffer(selector);
+    pub fn latch_right_data_register(&mut self, selector: DataSelector) {
+        self.right_data_register = self.update_data(selector);
     }
 
-    pub fn update_left_alu_input(&mut self, selector: AluInputSelector) {
-        self.left_alu_input = match selector {
-            AluInputSelector::Data => self.left_data,
-            AluInputSelector::Buffer => self.left_buffer,
-        }
-    }
-
-    pub fn update_right_data(&mut self, selector: DataSelector) {
-        self.right_data = self.update_data(selector);
-    }
-
-    pub fn update_right_buffer(&mut self, selector: BufferSelector) {
-        self.right_buffer = self.update_buffer(selector);
+    pub fn update_right_offset(&mut self, selector: OffsetSelector) {
+        self.right_offset = self.update_offset(selector);
     }
 
     pub fn update_right_alu_input(&mut self, selector: AluInputSelector) {
         self.right_alu_input = match selector {
-            AluInputSelector::Data => self.right_data,
-            AluInputSelector::Buffer => self.right_buffer,
+            AluInputSelector::Data => self.right_data_register,
+            AluInputSelector::Offset => self.right_offset,
         }
     }
 
@@ -253,27 +239,27 @@ impl DataPath {
         };
     }
 
-    pub fn update_memory_output_mmux(&mut self, word_size: &WordSize) {
+    pub fn update_memory_output_mux(&mut self, word_size: &WordSize) {
         let mask = match word_size {
             WordSize::Byte => 0xFF,
             WordSize::Long => 0xFFFFFFFFFFFFFFFF,
         };
-        self.memory_output_mmux = self.memory_output[(self.data_address % 4) as usize] & mask;
+        self.memory_output_mux = self.memory_output[(self.data_address % 4) as usize] & mask;
     }
 
-    pub fn latch_left_vector_input_register(&mut self) {
+    pub fn update_left_vector_input(&mut self) {
         self.left_vector_input = self.memory_output;
     }
 
     pub fn latch_right_vector_input_register(&mut self) {
-        self.right_vector_input = self.memory_output;
+        self.right_vector_input_register = self.memory_output;
     }
 
     pub fn execute_vector_alu(&mut self, operator: VectorAluOperator) {
-        self.vector_output = self.vector_alu.execute_operator(
+        self.vector_alu_output = self.vector_alu.execute_operator(
             operator,
             self.left_vector_input,
-            self.right_vector_input,
+            self.right_vector_input_register,
         );
     }
 
@@ -285,7 +271,7 @@ impl DataPath {
         for i in 0..4 {
             match mode_selector {
                 VectorModeSelector::Alu => {
-                    self.vector_output_mux[i] = self.vector_output[i];
+                    self.vector_output_mux[i] = self.vector_alu_output[i];
                 }
                 VectorModeSelector::Decoder => {
                     self.vector_output_mux[i] = 0xffffffffffffffff
@@ -324,6 +310,10 @@ impl DataPath {
         }
     }
 
+    pub fn latch_vector_output_register(&mut self) {
+        self.vector_output_register = self.vector_output_mux;
+    }
+
     pub fn set_nzcv_to_alu_output(&mut self) {
         self.alu_output = self.alu.nzcv.to_byte();
     }
@@ -358,25 +348,24 @@ impl Default for DataPath {
             data_registers: [0; 8],
             address_registers_mux: 0,
             address_registers: [0; 8],
-            left_data: 0,
-            left_buffer: 0,
-            right_data: 0,
-            right_buffer: 0,
+            right_data_register: 0,
+            right_offset: 0,
             external_selector: ExternalSelector::ControlUnit,
             pre_mode_selector: PreModeSelector::None,
             post_mode_selector: PostModeSelector::None,
             memory_output: [0; 4],
             data_address: 0,
-            memory_output_mmux: 0,
+            memory_output_mux: 0,
             write_data: [0; 4],
             write_data_mux: [0; 4],
             io: IO::new(),
             control_unit_output: 0,
             vector_alu: VectorAlu::new(),
             left_vector_input: [0; 4],
-            right_vector_input: [0; 4],
-            vector_output: [0; 4],
+            right_vector_input_register: [0; 4],
+            vector_alu_output: [0; 4],
             vector_output_mux: [0; 4],
+            vector_output_register: [0; 4],
         }
     }
 }
