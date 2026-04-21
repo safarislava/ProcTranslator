@@ -5,13 +5,9 @@ use crate::machine::io::IO;
 use crate::machine::nzcv::Nzcv;
 use crate::machine::vector_alu::{VectorAlu, VectorAluOperator};
 
-pub type DataRegisterReadSelector = u8;
+pub type DataRegisterSelector = u8;
 
-pub type DataRegisterWriteSelector = u8;
-
-pub type AddressRegisterReadSelector = u8;
-
-pub type AddressRegisterWriteSelector = u8;
+pub type AddressRegisterSelector = u8;
 
 pub enum WriteSelector {
     Scalar,
@@ -111,13 +107,16 @@ pub struct DataPath {
 }
 
 impl DataPath {
-    pub fn read_data_register(&mut self, selector: DataRegisterReadSelector) {
-        self.data_registers_mux = self.data_registers[selector as usize];
+    pub fn read_data_register(&mut self, selector: DataRegisterSelector, word_size: &WordSize) {
+        self.data_registers_mux = match word_size {
+            WordSize::Byte => self.data_registers[selector as usize] & 0xFF,
+            WordSize::Long => self.data_registers[selector as usize],
+        }
     }
 
     pub fn latch_data_register(
         &mut self,
-        register_selector: DataRegisterWriteSelector,
+        register_selector: DataRegisterSelector,
         word_size_selector: &WordSize,
     ) {
         self.data_registers[register_selector as usize] = match word_size_selector {
@@ -126,14 +125,21 @@ impl DataPath {
         };
     }
 
-    pub fn read_address_register(&mut self, selector: AddressRegisterReadSelector) {
-        self.address_registers_mux = self.address_registers[selector as usize];
+    pub fn read_address_register(
+        &mut self,
+        selector: AddressRegisterSelector,
+        word_size: &WordSize,
+    ) {
+        self.address_registers_mux = match word_size {
+            WordSize::Byte => self.address_registers[selector as usize] & 0xFF,
+            WordSize::Long => self.address_registers[selector as usize],
+        };
     }
 
     pub fn latch_address_register(
         &mut self,
-        register_selector: AddressRegisterWriteSelector,
-        word_size_selector: &WordSize,
+        register_selector: AddressRegisterSelector,
+        word_size: &WordSize,
     ) {
         let decrement = match self.pre_mode_selector {
             PreModeSelector::None => 0,
@@ -145,7 +151,7 @@ impl DataPath {
         };
 
         let input = self.alu_output + increment - decrement;
-        self.address_registers[register_selector as usize] = match word_size_selector {
+        self.address_registers[register_selector as usize] = match word_size {
             WordSize::Byte => input & 0xFF,
             WordSize::Long => input,
         };
@@ -240,11 +246,10 @@ impl DataPath {
     }
 
     pub fn update_memory_output_mux(&mut self, word_size: &WordSize) {
-        let mask = match word_size {
-            WordSize::Byte => 0xFF,
-            WordSize::Long => 0xFFFFFFFFFFFFFFFF,
-        };
-        self.memory_output_mux = self.memory_output[(self.data_address % 4) as usize] & mask;
+        self.memory_output_mux = match word_size {
+            WordSize::Byte => self.memory_output[(self.data_address % 4) as usize] & 0xFF,
+            WordSize::Long => self.memory_output[(self.data_address % 4) as usize],
+        }
     }
 
     pub fn update_left_vector_input(&mut self) {

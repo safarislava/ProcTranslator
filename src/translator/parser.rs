@@ -95,7 +95,7 @@ pub fn parse_syntax_tree(code: &str) -> ResBox<SyntaxTree> {
             let result_type = captures
                 .get(1)
                 .map(|m| m.as_str())
-                .unwrap_or("void")
+                .expect("Function result type expected")
                 .to_string();
             let name = captures
                 .get(2)
@@ -174,9 +174,7 @@ fn get_tokens(code: &str) -> ResBox<Vec<String>> {
                     token = String::new();
                 }
             }
-            _ => {
-                token.push(c);
-            }
+            _ => token.push(c),
         }
     }
 

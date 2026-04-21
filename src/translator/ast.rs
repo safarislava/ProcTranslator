@@ -73,10 +73,10 @@ fn parse_type(s: &str) -> Type {
     if s.ends_with(']')
         && let Some(start) = s.rfind('[')
     {
-        let base_str = &s[..start];
-        let size_str = s[start + 1..s.len() - 1].trim();
-        let size = size_str.parse::<u64>().unwrap();
-        return Type::Array(Box::new(parse_type(base_str)), size);
+        let base = &s[..start];
+        let size = s[start + 1..s.len() - 1].trim();
+        let size = size.parse::<u64>().unwrap();
+        return Type::Array(Box::new(parse_type(base)), size);
     }
 
     match s {
@@ -100,54 +100,54 @@ fn parse_variable(s: &str) -> ResBox<Variable> {
 }
 
 fn parse_arguments(arguments: &str) -> ResBox<Vec<Variable>> {
-    let trimmed_arguments = arguments.trim();
-    if trimmed_arguments.is_empty() {
+    let arguments = arguments.trim();
+    if arguments.is_empty() {
         return Ok(vec![]);
     }
-    trimmed_arguments
+    arguments
         .split(',')
         .map(|s| parse_variable(s.trim()))
         .collect()
 }
 
 fn parse_statement_keyword(value: &str) -> ResBox<Option<RawAbstractSyntaxNode>> {
-    let trimmed_value = value.trim().trim_end_matches(';');
+    let value = value.trim().trim_end_matches(';');
 
-    if trimmed_value == "return" {
+    if value == "return" {
         return Ok(Some(RawAbstractSyntaxNode::Return { value: None }));
     }
-    if let Some(stripped_value) = trimmed_value.strip_prefix("return ") {
-        let expression = parse_expression(stripped_value.trim())?;
+    if let Some(value) = value.strip_prefix("return") {
+        let expression = parse_expression(value.trim())?;
         return Ok(Some(RawAbstractSyntaxNode::Return {
             value: Some(expression),
         }));
     }
-    if trimmed_value == "break" {
+    if value == "break" {
         return Ok(Some(RawAbstractSyntaxNode::Break));
     }
-    if trimmed_value == "continue" {
+    if value == "continue" {
         return Ok(Some(RawAbstractSyntaxNode::Continue));
     }
     Ok(None)
 }
 
-fn parse_declaration(code: &str) -> ResBox<Option<DeclarationInfo>> {
-    let trimmed_code = code.trim();
-    if trimmed_code.is_empty() {
+fn parse_declaration(s: &str) -> ResBox<Option<DeclarationInfo>> {
+    let s = s.trim();
+    if s.is_empty() {
         return Ok(None);
     }
 
-    let parts: Vec<&str> = trimmed_code.splitn(2, ' ').collect();
+    let parts: Vec<&str> = s.splitn(2, ' ').collect();
     if parts.len() < 2 {
         return Ok(None);
     }
 
-    let first = parts[0];
+    let typ = parts[0];
     let rest = parts[1].trim();
 
-    let base_type = match first.find('[') {
-        Some(index) => &first[..index],
-        None => first,
+    let base_type = match typ.find('[') {
+        Some(index) => &typ[..index],
+        None => typ,
     };
 
     let is_primitive = matches!(base_type, "int" | "bool" | "void" | "char");
@@ -168,13 +168,13 @@ fn parse_declaration(code: &str) -> ResBox<Option<DeclarationInfo>> {
         } else {
             Some(parse_expression(expression)?)
         };
-        Ok(Some((first.to_string(), name, value)))
+        Ok(Some((typ.to_string(), name, value)))
     } else {
         let name = rest.trim().to_string();
         if name.contains('(') || name.is_empty() {
             return Ok(None);
         }
-        Ok(Some((first.to_string(), name, None)))
+        Ok(Some((typ.to_string(), name, None)))
     }
 }
 
@@ -229,6 +229,7 @@ pub fn build_ast(tree: SyntaxTree) -> ResBox<RawAbstractSyntaxTree> {
         .into_iter()
         .map(build_ast)
         .collect::<Result<Vec<_>, _>>()?;
+
     let ast = match tree.node {
         SyntaxNode::If { condition } => RawAbstractSyntaxTree::with_children(
             RawAbstractSyntaxNode::If {

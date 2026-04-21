@@ -5,8 +5,7 @@
 «АРХИТЕКТУРА КОМПЬЮТЕРА»
 
 Вариант:  
-alg | cisc | harv | hw | tick | binary  
-trap | port | cstr | prob1 | vector
+alg | cisc | harv | hw | tick | binary | trap | port | cstr | prob1 | vector
 
 **Выполнил:**  
 Софьин Вячеслав Евгеньевич,  
@@ -301,7 +300,7 @@ for-statement ::= "for" "(" [ for-initializer ] ";" [ expression ] ";" [ express
 |------|----------------------|-------------------------------------------------------------------------------------------------------------------------------|-------|
 | 0x00 | HLT                  | Остановка выполнения процессора                                                                                               | 2     |
 | 0x01 | MOV.size from, to    | from := #\* \| D\* \| A\* \| MEMORY<br>to := D\* \| A\* \| MEMORY                                                             | 3-6   |
-| 0x02 | CMP.size that, with  | that, with := #\* \| D\* \| A\* \| MEMORY<br>Обновляет NZCV (that − with)                                                     | 3-6   |
+| 0x02 | CMP.size that, with  | that, with := #\* \| D\* \| A\* \| MEMORY<br>Обновляет NZCV (that − with)                                                     | 3-5   |
 | 0x10 | ADD.size from, to    | from := #\* \| D\* \| A\* \| MEMORY<br>to := D\* \| A\* \| MEMORY<br>Обновляет NZCV                                           | 3-6   |
 | 0x11 | ADC.size from, to    | from := #\* \| D\* \| A\* \| MEMORY<br>to := D\* \| A\* \| MEMORY<br>Обновляет NZCV и учитывает Carry                         | 3-6   |
 | 0x12 | SUB.size from, to    | from := #\* \| D\* \| A\* \| MEMORY<br>to := D\* \| A\* \| MEMORY<br>Обновляет NZCV                                           | 3-6   |

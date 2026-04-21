@@ -253,8 +253,8 @@ impl<'a> Tokenizer<'a> {
                 self.chars.next();
             } else if c.is_alphabetic() || c == '_' {
                 let mut id = String::new();
-                while let Some(&ch) = self.chars.peek() {
-                    if ch.is_alphanumeric() || ch == '_' {
+                while let Some(&c) = self.chars.peek() {
+                    if c.is_alphanumeric() || c == '_' {
                         id.push(self.chars.next().unwrap());
                     } else {
                         break;
@@ -266,48 +266,48 @@ impl<'a> Tokenizer<'a> {
                     _ => tokens.push(Token::Id(id)),
                 }
             } else if c.is_ascii_digit() {
-                let mut num = String::new();
-                while let Some(&ch) = self.chars.peek() {
-                    if ch.is_ascii_digit() {
-                        num.push(self.chars.next().unwrap());
+                let mut n = String::new();
+                while let Some(&c) = self.chars.peek() {
+                    if c.is_ascii_digit() {
+                        n.push(self.chars.next().unwrap());
                     } else {
                         break;
                     }
                 }
-                tokens.push(Token::Number(num.parse()?));
+                tokens.push(Token::Number(n.parse()?));
             } else if c == '"' {
                 self.chars.next();
                 let mut s = String::new();
-                while let Some(ch) = self.chars.next() {
-                    if ch == '\\' {
+                while let Some(c) = self.chars.next() {
+                    if c == '\\' {
                         s.push('\\');
                         if let Some(escaped) = self.chars.next() {
                             s.push(escaped);
                         } else {
                             return Err("Unexpected EOF in string literal escape".into());
                         }
-                    } else if ch == '"' {
+                    } else if c == '"' {
                         break;
                     } else {
-                        s.push(ch);
+                        s.push(c);
                     }
                 }
                 tokens.push(Token::String(s));
             } else if c == '\'' {
                 self.chars.next();
                 let mut s = String::new();
-                while let Some(ch) = self.chars.next() {
-                    if ch == '\\' {
+                while let Some(c) = self.chars.next() {
+                    if c == '\\' {
                         s.push('\\');
                         if let Some(escaped) = self.chars.next() {
                             s.push(escaped);
                         } else {
                             return Err("Unexpected EOF in char literal escape".into());
                         }
-                    } else if ch == '\'' {
+                    } else if c == '\'' {
                         break;
                     } else {
-                        s.push(ch);
+                        s.push(c);
                     }
                 }
                 tokens.push(Token::Char(s));

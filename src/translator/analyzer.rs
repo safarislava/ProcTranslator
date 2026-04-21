@@ -223,11 +223,11 @@ impl SemanticTable {
                 arguments,
             } => {
                 self.scopes.push(HashMap::new());
-                for arg in arguments {
+                for argument in arguments {
                     self.scopes
                         .last_mut()
                         .unwrap()
-                        .insert(arg.name.clone(), arg.typ.clone());
+                        .insert(argument.name.clone(), argument.typ.clone());
                 }
                 let children = self.analyze_children(&ast.children)?;
                 self.scopes.pop();
@@ -475,17 +475,13 @@ impl SemanticTable {
                     && left_type != Type::Array(Box::new(Type::Int), 4)
                     && left_type != Type::Array(Box::new(Type::Int), 0)
                 {
-                    return Err(format!(
-                        "Arithmetic operations can only be applied to type int or array[4], found {:?}",
-                        left_type
-                    )
-                    .into());
+                    return Err(
+                        "Arithmetic operations can only be applied to type int or array[4]".into(),
+                    );
                 }
 
                 if is_logical_binary_op(operator) && left_type != Type::Bool {
-                    return Err(
-                        "Logical operations (&&, ||) can only be applied to type bool".into(),
-                    );
+                    return Err("Logical operations can only be applied to type bool".into());
                 }
 
                 if is_relational_binary_op(operator)
@@ -493,8 +489,7 @@ impl SemanticTable {
                     && left_type != Type::Array(Box::new(Type::Int), 4)
                 {
                     return Err(
-                        "Relational operations (<, >, <=, >=) can only be applied to type int"
-                            .into(),
+                        "Relational operations can only be applied to type int or array[4]".into(),
                     );
                 }
 
@@ -518,13 +513,13 @@ impl SemanticTable {
             Expression::FunctionCall {
                 name, arguments, ..
             } => {
-                let (ret, parameters) = self
+                let (return_type, parameters) = self
                     .functions
                     .get(name)
                     .ok_or(format!("Function {} not found", name))?;
                 let typed_args = self.analyze_arguments(parameters, arguments)?;
                 Ok(Expression::FunctionCall {
-                    typ: ret.clone(),
+                    typ: return_type.clone(),
                     name: name.clone(),
                     arguments: typed_args,
                 })
@@ -538,13 +533,13 @@ impl SemanticTable {
                 let typed_object = self.analyze_expression(object)?;
                 if let Type::Class(class_name) = typed_object.get_type() {
                     let class = self.classes.get(&class_name).ok_or("Class not found")?;
-                    let (ret, parameters) = class
+                    let (return_type, parameters) = class
                         .methods
                         .get(method)
                         .ok_or(format!("Method {} not found in {}", method, class_name))?;
                     let typed_arguments = self.analyze_arguments(parameters, arguments)?;
                     Ok(Expression::MethodCall {
-                        typ: ret.clone(),
+                        typ: return_type.clone(),
                         object: Box::new(typed_object),
                         name: method.clone(),
                         arguments: typed_arguments,
