@@ -20,7 +20,8 @@ pub enum HirOperand {
     Link(HirRegister),
     Constant(String, Type),
     Void,
-    LocalVariable(StackSlot),
+    Variable(StackSlot),
+    Parameter(u64),
     GlobalVariable(GlobalId),
 }
 
@@ -257,13 +258,18 @@ impl Default for ClassInfo {
     }
 }
 
+enum LocalVariable {
+    Variable(StackSlot),
+    Parameter(u64),
+}
+
 struct HirContext {
     pub blocks: Vec<HirBlock>,
     current_block: Option<BlockId>,
     register_counter: u64,
     slot_counter: u64,
     global_counter: usize,
-    scopes: Vec<HashMap<String, StackSlot>>,
+    scopes: Vec<HashMap<String, LocalVariable>>,
     loop_stack: Vec<(BlockId, BlockId)>,
     functions: HashMap<String, BlockId>,
     classes: HashMap<String, ClassInfo>,
@@ -365,14 +371,19 @@ impl HirContext {
         self.emit(HirInstruction::AllocateStack { slot });
 
         let current_scope = self.scopes.last_mut().expect("No scope active");
-        current_scope.insert(name, slot);
+        current_scope.insert(name, LocalVariable::Variable(slot));
         slot
     }
 
-    fn resolve_variable_address(&self, name: &str) -> StackSlot {
+    fn declare_parameter(&mut self, name: String, offset: u64) {
+        let current_scope = self.scopes.last_mut().expect("No scope active");
+        current_scope.insert(name, LocalVariable::Parameter(offset));
+    }
+
+    fn resolve_local_variable_address(&self, name: &str) -> &LocalVariable {
         for scope in self.scopes.iter().rev() {
-            if let Some(&slot) = scope.get(name) {
-                return slot;
+            if let Some(variable) = scope.get(name) {
+                return variable;
             }
         }
         panic!("Variable {} not found", name);
@@ -561,25 +572,14 @@ impl HirContext {
                     self.emit(HirInstruction::CallPrologue);
                 }
 
-                let mut parameter_offset = 0;
+                let mut parameter_offset = 2;
                 if self.current_class.is_some() {
-                    let this_slot = self.declare_variable("this".to_string());
-                    self.emit(HirInstruction::LoadParameter {
-                        destination: HirOperand::LocalVariable(this_slot),
-                        offset: 0,
-                        word_size: WordSize::Long,
-                    });
-                    self.this_register = Some(HirOperand::LocalVariable(this_slot));
-                    parameter_offset = 1;
+                    self.declare_parameter("this".to_string(), parameter_offset);
+                    self.this_register = Some(HirOperand::Parameter(parameter_offset));
+                    parameter_offset += 1;
                 }
-
                 for argument in arguments.iter() {
-                    let slot = self.declare_variable(argument.name.clone());
-                    self.emit(HirInstruction::LoadParameter {
-                        destination: HirOperand::LocalVariable(slot),
-                        offset: parameter_offset,
-                        word_size: self.get_word_size(&argument.typ),
-                    });
+                    self.declare_parameter(argument.name.clone(), parameter_offset);
                     parameter_offset += 1;
                 }
 
@@ -655,8 +655,11 @@ impl HirContext {
             TypedExpression::Variable { name, .. } => {
                 let is_local = self.scopes.iter().any(|scope| scope.contains_key(&name));
                 if is_local {
-                    let slot = self.resolve_variable_address(&name);
-                    HirOperand::LocalVariable(slot)
+                    let variable = self.resolve_local_variable_address(&name);
+                    match variable {
+                        LocalVariable::Variable(slot) => HirOperand::Variable(*slot),
+                        LocalVariable::Parameter(offset) => HirOperand::Parameter(*offset),
+                    }
                 } else if let Some(&id) = self.globals.get(&name) {
                     HirOperand::GlobalVariable(id)
                 } else {
@@ -766,7 +769,11 @@ impl HirContext {
 
                 let is_local = self.scopes.iter().any(|scope| scope.contains_key(&name));
                 if is_local {
-                    let slot = self.resolve_variable_address(&name);
+                    let variable = self.resolve_local_variable_address(&name);
+                    let slot = match variable {
+                        LocalVariable::Variable(slot) => *slot,
+                        LocalVariable::Parameter(_) => panic!("Can't change parameter"),
+                    };
                     self.emit(HirInstruction::StoreStack {
                         slot,
                         value,
@@ -1088,7 +1095,11 @@ impl HirContext {
         match expression {
             TypedExpression::Variable { name, typ } => {
                 let word_size = self.get_word_size(&typ);
-                let slot = self.resolve_variable_address(&name);
+                let variable = self.resolve_local_variable_address(&name);
+                let slot = match variable {
+                    LocalVariable::Variable(slot) => *slot,
+                    LocalVariable::Parameter(_) => panic!("Can't change parameter"),
+                };
                 let old_value = HirOperand::Value(self.new_register());
                 self.emit(HirInstruction::LoadStack {
                     destination: old_value.clone(),

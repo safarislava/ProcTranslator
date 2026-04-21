@@ -412,13 +412,17 @@ impl LirContext {
                 let address = self.get_constant_address(normalized_value, typ);
                 LirOperand::IndirectDirect(address)
             }
-            HirOperand::LocalVariable(slot) => {
+            HirOperand::Variable(slot) => {
                 let offset = *self.stack_offsets.get(&slot).unwrap() as u64;
                 LirOperand::IndirectOffset {
                     base: Box::new(self.frame_pointer.clone()),
                     offset: Box::new(LirOperand::Direct(offset)),
                 }
             }
+            HirOperand::Parameter(offset) => LirOperand::IndirectOffset {
+                base: Box::new(self.frame_pointer.clone()),
+                offset: Box::new(LirOperand::Direct(offset)),
+            },
             HirOperand::GlobalVariable(id) => {
                 let address = self.get_global_address(id);
                 LirOperand::IndirectDirect(address)
