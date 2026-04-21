@@ -362,17 +362,19 @@ for-statement ::= "for" "(" [ for-initializer ] ";" [ expression ] ";" [ express
 
 Транслятор поддерживает 3 режима работы: компиляция, симуляция и объединяющий.
 
-| Режим          | Команда                                    |
-|----------------|--------------------------------------------|
-| Компиляция     | `cargo run -- compile <file>`              |
-| Симуляция      | `cargo run -- simulate <file>`             |
-| Объединяющий   | `cargo run -- all <file>`                  |
+| Режим      | Команда                        |
+|------------|--------------------------------|
+| Компиляция | `cargo run -- compile <file>`  |
+| Симуляция  | `cargo run -- simulate <file>` |
+| Программа  | `cargo run -- program <file>`  |
+| Блок-схемы | `cargo run -- schemes`         |
 
-| Режим        | Входные файлы                                                                                   | Выходные файлы                                                   |
-|--------------|-------------------------------------------------------------------------------------------------|------------------------------------------------------------------|
-| Компиляция   | `examples/<file>.java`                                                                          | `bin/<file>.program`<br>`bin/<file>.data`<br>`bin/<file>.vector` |
-| Симуляция    | `bin/<file>.program`<br>`bin/<file>.data`<br>`bin/<file>.vector`<br>`examples/<file>.interrupt` | `output/<file>.txt`                                              |
-| Объединяющий | `examples/<file>.java`<br>`examples/<file>.interrupt`                                           | `output/<file>.txt`                                              |
+| Режим      | Входные файлы                                                                                   | Выходные файлы                                                   |
+|------------|-------------------------------------------------------------------------------------------------|------------------------------------------------------------------|
+| Компиляция | `examples/<file>.java`                                                                          | `bin/<file>.program`<br>`bin/<file>.data`<br>`bin/<file>.vector` |
+| Симуляция  | `bin/<file>.program`<br>`bin/<file>.data`<br>`bin/<file>.vector`<br>`examples/<file>.interrupt` | `output/<file>.txt`                                              |
+| Программа  | `examples/<file>.java`<br>`examples/<file>.interrupt`                                           | `output/<file>.txt`                                              |
+| Блок-схемы | `examples/*.java`                                                                               | `schemes/*.dot`                                                  |
 
 Выводится в консоль вся информация уровня `info` (информация о такте, об инструкциях, об операндах, об операциях с памятью, о прерываниях).  
 Также ведётся полное логирование в папку `logs`. Дополнительно там хранится состояние регистров после каждой инструкции.

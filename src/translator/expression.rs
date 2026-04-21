@@ -43,6 +43,63 @@ pub enum ExpressionBinaryOperator {
     RightShift,
 }
 
+impl ExpressionBinaryOperator {
+    fn from_str(op: &str) -> ResBox<Self> {
+        match op {
+            "=" => Ok(Self::Assign),
+            "+=" => Ok(Self::AssignAdd),
+            "-=" => Ok(Self::AssignSub),
+            "*=" => Ok(Self::AssignMul),
+            "/=" => Ok(Self::AssignDiv),
+            "||" => Ok(Self::Or),
+            "&&" => Ok(Self::And),
+            "==" => Ok(Self::Equal),
+            "!=" => Ok(Self::NotEqual),
+            "<" => Ok(Self::Less),
+            "<=" => Ok(Self::LessEqual),
+            ">" => Ok(Self::Greater),
+            ">=" => Ok(Self::GreaterEqual),
+            "+" => Ok(Self::Add),
+            "-" => Ok(Self::Sub),
+            "*" => Ok(Self::Multiply),
+            "/" => Ok(Self::Divide),
+            "%" => Ok(Self::Remainder),
+            "<<" => Ok(Self::LeftShift),
+            ">>" => Ok(Self::RightShift),
+            "&" => Ok(Self::BitwiseAnd),
+            "|" => Ok(Self::BitwiseOr),
+            "^" => Ok(Self::BitwiseXor),
+            "&=" => Ok(Self::AssignAnd),
+            "|=" => Ok(Self::AssignOr),
+            "^=" => Ok(Self::AssignXor),
+            _ => Err(format!("Unknown operator: {op}").into()),
+        }
+    }
+
+    fn order(&self) -> (u8, u8) {
+        match self {
+            Self::Assign
+            | Self::AssignAdd
+            | Self::AssignSub
+            | Self::AssignMul
+            | Self::AssignDiv
+            | Self::AssignAnd
+            | Self::AssignOr
+            | Self::AssignXor => (1, 2),
+            Self::Or => (3, 4),
+            Self::And => (5, 6),
+            Self::BitwiseOr => (7, 8),
+            Self::BitwiseXor => (9, 10),
+            Self::BitwiseAnd => (11, 12),
+            Self::Equal | Self::NotEqual => (13, 14),
+            Self::Less | Self::LessEqual | Self::Greater | Self::GreaterEqual => (15, 16),
+            Self::LeftShift | Self::RightShift => (17, 18),
+            Self::Add | Self::Sub => (19, 20),
+            Self::Multiply | Self::Divide | Self::Remainder => (21, 22),
+        }
+    }
+}
+
 pub fn is_arithmetic_binary_op(operator: &ExpressionBinaryOperator) -> bool {
     matches!(
         operator,
@@ -198,27 +255,27 @@ pub enum Expression<T> {
 impl<T: Clone> Expression<T> {
     pub fn get_type(&self) -> T {
         match self {
-            Expression::Literal { typ, .. } => typ.clone(),
-            Expression::Variable { typ, .. } => typ.clone(),
-            Expression::BinaryOperator { typ, .. } => typ.clone(),
-            Expression::FunctionCall { typ, .. } => typ.clone(),
-            Expression::MethodCall { typ, .. } => typ.clone(),
-            Expression::Assign { typ, .. } => typ.clone(),
-            Expression::AssignField { typ, .. } => typ.clone(),
-            Expression::AssignIndex { typ, .. } => typ.clone(),
-            Expression::Increment { typ, .. } => typ.clone(),
-            Expression::Decrement { typ, .. } => typ.clone(),
-            Expression::Negate { typ, .. } => typ.clone(),
-            Expression::Not { typ, .. } => typ.clone(),
-            Expression::New { typ, .. } => typ.clone(),
-            Expression::NewArray { typ, .. } => typ.clone(),
-            Expression::Field { typ, .. } => typ.clone(),
-            Expression::Index { typ, .. } => typ.clone(),
-            Expression::AssignSlice { typ, .. } => typ.clone(),
-            Expression::Slice { typ, .. } => typ.clone(),
-            Expression::This { typ } => typ.clone(),
-            Expression::BitwiseNot { typ, .. } => typ.clone(),
-            Expression::ArrayLiteral { typ, .. } => typ.clone(),
+            Expression::Literal { typ, .. }
+            | Expression::Variable { typ, .. }
+            | Expression::BinaryOperator { typ, .. }
+            | Expression::FunctionCall { typ, .. }
+            | Expression::MethodCall { typ, .. }
+            | Expression::Assign { typ, .. }
+            | Expression::AssignField { typ, .. }
+            | Expression::AssignIndex { typ, .. }
+            | Expression::Increment { typ, .. }
+            | Expression::Decrement { typ, .. }
+            | Expression::Negate { typ, .. }
+            | Expression::Not { typ, .. }
+            | Expression::BitwiseNot { typ, .. }
+            | Expression::New { typ, .. }
+            | Expression::NewArray { typ, .. }
+            | Expression::Field { typ, .. }
+            | Expression::Index { typ, .. }
+            | Expression::AssignSlice { typ, .. }
+            | Expression::Slice { typ, .. }
+            | Expression::This { typ, .. }
+            | Expression::ArrayLiteral { typ, .. } => typ.clone(),
         }
     }
 }
@@ -242,6 +299,16 @@ enum Token {
 
 struct Tokenizer<'a> {
     chars: Peekable<Chars<'a>>,
+}
+
+impl Token {
+    fn postfix_order(&self) -> Option<u8> {
+        match self {
+            Token::LeftBracket | Token::LeftSquareBracket | Token::Dot => Some(25),
+            Token::Operator(op) if op == "++" || op == "--" => Some(25),
+            _ => None,
+        }
+    }
 }
 
 impl<'a> Tokenizer<'a> {
@@ -362,84 +429,12 @@ struct Parser {
 }
 
 impl Parser {
-    fn link_binary_operator(operator: &str) -> ResBox<ExpressionBinaryOperator> {
-        match operator {
-            "=" => Ok(ExpressionBinaryOperator::Assign),
-            "+=" => Ok(ExpressionBinaryOperator::AssignAdd),
-            "-=" => Ok(ExpressionBinaryOperator::AssignSub),
-            "*=" => Ok(ExpressionBinaryOperator::AssignMul),
-            "/=" => Ok(ExpressionBinaryOperator::AssignDiv),
-            "||" => Ok(ExpressionBinaryOperator::Or),
-            "&&" => Ok(ExpressionBinaryOperator::And),
-            "==" => Ok(ExpressionBinaryOperator::Equal),
-            "!=" => Ok(ExpressionBinaryOperator::NotEqual),
-            "<" => Ok(ExpressionBinaryOperator::Less),
-            "<=" => Ok(ExpressionBinaryOperator::LessEqual),
-            ">" => Ok(ExpressionBinaryOperator::Greater),
-            ">=" => Ok(ExpressionBinaryOperator::GreaterEqual),
-            "+" => Ok(ExpressionBinaryOperator::Add),
-            "-" => Ok(ExpressionBinaryOperator::Sub),
-            "*" => Ok(ExpressionBinaryOperator::Multiply),
-            "/" => Ok(ExpressionBinaryOperator::Divide),
-            "%" => Ok(ExpressionBinaryOperator::Remainder),
-            "<<" => Ok(ExpressionBinaryOperator::LeftShift),
-            ">>" => Ok(ExpressionBinaryOperator::RightShift),
-            "&" => Ok(ExpressionBinaryOperator::BitwiseAnd),
-            "|" => Ok(ExpressionBinaryOperator::BitwiseOr),
-            "^" => Ok(ExpressionBinaryOperator::BitwiseXor),
-            "&=" => Ok(ExpressionBinaryOperator::AssignAnd),
-            "|=" => Ok(ExpressionBinaryOperator::AssignOr),
-            "^=" => Ok(ExpressionBinaryOperator::AssignXor),
-            _ => Err(format!("Unknown operator: {operator}").into()),
-        }
-    }
-
-    fn binding_order(operator: &ExpressionBinaryOperator) -> (u8, u8) {
-        match operator {
-            ExpressionBinaryOperator::Assign
-            | ExpressionBinaryOperator::AssignAdd
-            | ExpressionBinaryOperator::AssignSub
-            | ExpressionBinaryOperator::AssignMul
-            | ExpressionBinaryOperator::AssignDiv
-            | ExpressionBinaryOperator::AssignAnd
-            | ExpressionBinaryOperator::AssignOr
-            | ExpressionBinaryOperator::AssignXor => (1, 2),
-            ExpressionBinaryOperator::Or => (3, 4),
-            ExpressionBinaryOperator::And => (5, 6),
-            ExpressionBinaryOperator::BitwiseOr => (7, 8),
-            ExpressionBinaryOperator::BitwiseXor => (9, 10),
-            ExpressionBinaryOperator::BitwiseAnd => (11, 12),
-            ExpressionBinaryOperator::Equal | ExpressionBinaryOperator::NotEqual => (13, 14),
-            ExpressionBinaryOperator::Less
-            | ExpressionBinaryOperator::LessEqual
-            | ExpressionBinaryOperator::Greater
-            | ExpressionBinaryOperator::GreaterEqual => (15, 16),
-            ExpressionBinaryOperator::LeftShift | ExpressionBinaryOperator::RightShift => (17, 18),
-            ExpressionBinaryOperator::Add | ExpressionBinaryOperator::Sub => (19, 20),
-            ExpressionBinaryOperator::Multiply
-            | ExpressionBinaryOperator::Divide
-            | ExpressionBinaryOperator::Remainder => (21, 22),
-        }
-    }
-
-    fn postfix_order(token: &Token) -> Option<(u8, ())> {
-        match token {
-            Token::LeftBracket | Token::LeftSquareBracket | Token::Dot => Some((25, ())),
-            Token::Operator(operator) if operator == "++" || operator == "--" => Some((25, ())),
-            _ => None,
-        }
-    }
-
     fn parse_expression(&mut self, min_order: u8) -> ResBox<RawExpression> {
         let token = self.tokens.next().ok_or("Unexpected EOF")?;
         let mut left = self.parse_prefix(token)?;
 
-        loop {
-            let Some(operator) = self.tokens.peek().cloned() else {
-                break;
-            };
-
-            if let Some((left_order, ())) = Self::postfix_order(&operator) {
+        while let Some(operator) = self.tokens.peek().cloned() {
+            if let Some(left_order) = operator.postfix_order() {
                 if left_order < min_order {
                     break;
                 }
@@ -449,9 +444,9 @@ impl Parser {
             }
 
             if let Token::Operator(ref operator) = operator
-                && let Ok(operator) = Self::link_binary_operator(operator)
+                && let Ok(operator) = ExpressionBinaryOperator::from_str(operator)
             {
-                let (left_order, right_order) = Self::binding_order(&operator);
+                let (left_order, right_order) = operator.order();
                 if left_order < min_order {
                     break;
                 }
@@ -699,7 +694,7 @@ impl Parser {
                 }
             }
             Token::LeftSquareBracket => {
-                let start_or_index = self.parse_expression(0)?;
+                let start = self.parse_expression(0)?;
 
                 if let Some(Token::Colon) = self.tokens.peek() {
                     self.tokens.next();
@@ -712,7 +707,7 @@ impl Parser {
                         Ok(RawExpression::Slice {
                             typ: Default::default(),
                             expression: Box::new(left),
-                            start: Box::new(start_or_index),
+                            start: Box::new(start),
                             size,
                         })
                     } else {
@@ -726,7 +721,7 @@ impl Parser {
                     Ok(RawExpression::Index {
                         typ: Default::default(),
                         expression: Box::new(left),
-                        index: Box::new(start_or_index),
+                        index: Box::new(start),
                     })
                 }
             }
@@ -757,19 +752,15 @@ pub fn parse_expression(code: &str) -> ResBox<RawExpression> {
         chars: code.chars().peekable(),
     };
     let tokens = tokenizer.tokenize()?;
-
     if tokens.is_empty() {
         return Err("Empty expression".into());
     }
-
     let mut parser = Parser {
         tokens: tokens.into_iter().peekable(),
     };
     let expression = parser.parse_expression(0)?;
-
     if parser.tokens.peek().is_some() {
         return Err(format!("Unexpected tokens remaining after parsing expression: {code}").into());
     }
-
     Ok(expression)
 }

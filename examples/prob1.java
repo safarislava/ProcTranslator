@@ -1,7 +1,8 @@
 int len(int n) {
+    int t = n;
     int c = 0;
-    while (n > 0) {
-        n = n / 10;
+    while (t > 0) {
+        t = t / 10;
         c++;
     }
     return c;

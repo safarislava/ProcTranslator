@@ -115,12 +115,6 @@ pub enum HirInstruction {
     CallPrologue,
     InterruptPrologue,
 
-    LoadParameter {
-        destination: HirOperand,
-        offset: u64,
-        word_size: WordSize,
-    },
-
     LoadGlobal {
         destination: HirOperand,
         id: GlobalId,

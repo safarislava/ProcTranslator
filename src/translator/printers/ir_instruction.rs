@@ -31,13 +31,6 @@ impl fmt::Display for HirInstruction {
             HirInstruction::InterruptPrologue => {
                 write!(f, "interrupt prologue")
             }
-            HirInstruction::LoadParameter {
-                destination,
-                offset,
-                ..
-            } => {
-                write!(f, "{} = param[{}]", destination, offset)
-            }
             HirInstruction::AllocateStack { slot, .. } => {
                 write!(f, "alloc {}", slot)
             }

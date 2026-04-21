@@ -863,20 +863,6 @@ impl LirContext {
 
                 out.push(LirInstruction::AllocateStackFrame);
             }
-            HirInstruction::LoadParameter {
-                destination,
-                offset,
-                word_size,
-            } => {
-                out.push(LirInstruction::Mov {
-                    size: word_size,
-                    source: LirOperand::IndirectOffset {
-                        base: Box::new(self.frame_pointer.clone()),
-                        offset: Box::new(LirOperand::Direct(offset + 2)),
-                    },
-                    destination: self.lower_operand(destination),
-                });
-            }
             HirInstruction::AllocateStack { slot } => {
                 let entry = self
                     .current_function

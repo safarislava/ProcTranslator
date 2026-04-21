@@ -3,11 +3,11 @@ digraph CFG {
   node [shape=box, fontname="Courier", style=filled, fillcolor=white, margin="0.2,0.1"];
   edge [fontname="Courier"];
 
-  "B0" [label="B0\l---\lcall prologue\lalloc s0\llocal s0 = param[0]\lr0 = load field local s0[0]\lr1 = r0 Add '2'\llocal s0[0] = r1\lr2 = load field local s0[0]\lreturn r2\l "];
-  "B1" [label="B1\l---\lcall prologue\lalloc s1\llink r3 = new object 1\llink r3[0] = '5'\ls1 = link r3\lr4 = call B0(local s1)\lr5 = call B0(local s1)\lr6 = load field local s1[0]\loutput '4' = r6\lreturn\l "];
-  "B2" [label="B2\l---\lcall prologue\lalloc s2\llocal s2 = param[0]\lreturn '0'\l "];
-  "B3" [label="B3\l---\lcall prologue\lalloc s3\llocal s3 = param[0]\lreturn ''0''\l "];
-  "B4" [label="B4\l---\lcall prologue\lalloc s4\llocal s4 = param[0]\lalloc s5\llocal s5 = param[1]\lreturn\l "];
-  "B5" [label="B5\l---\lcall prologue\lalloc s6\llocal s6 = param[0]\lalloc s7\llocal s7 = param[1]\lreturn\l "];
+  "B0" [label="B0\l---\lcall prologue\lr0 = load field parameter 0[0]\lr1 = r0 Add '2'\lparameter 0[0] = r1\lr2 = load field parameter 0[0]\lreturn r2\l "];
+  "B1" [label="B1\l---\lcall prologue\lalloc s0\llink r3 = new object 1\llink r3[0] = '5'\ls0 = link r3\lr4 = call B0(local s0)\lr5 = call B0(local s0)\lr6 = load field local s0[0]\loutput '4' = r6\lreturn\l "];
+  "B2" [label="B2\l---\lcall prologue\lreturn '0'\l "];
+  "B3" [label="B3\l---\lcall prologue\lreturn ''0''\l "];
+  "B4" [label="B4\l---\lcall prologue\lreturn\l "];
+  "B5" [label="B5\l---\lcall prologue\lreturn\l "];
   "B1" [fillcolor=lightgreen];
 }

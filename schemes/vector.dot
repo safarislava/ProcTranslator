@@ -4,10 +4,10 @@ digraph CFG {
   edge [fontname="Courier"];
 
   "B0" [label="B0\l---\lcall prologue\lalloc s0\llink r0 = new array[4]\llink r0 = copy array [0]\ls0 = link r0\lalloc s1\llink r1 = new array[4]\llink r1 = copy array [1]\ls1 = link r1\lalloc s2\llink r2 = new array[4]\llink r2 = copy array [2]\ls2 = link r2\lalloc s3\llink r3 = local s0 VectorAdd local s1\ls3 = link r3\lalloc s4\llink r4 = local s3 VectorGreaterEqual local s2\llink r5 = link r4 VectorAnd local s3\llink r6 = link r5 VectorMultiply local s0\ls4 = link r6\lalloc s5\ls5 = '0'\ljump B5\l "];
-  "B1" [label="B1\l---\lcall prologue\lalloc s6\llocal s6 = param[0]\lreturn '0'\l "];
-  "B2" [label="B2\l---\lcall prologue\lalloc s7\llocal s7 = param[0]\lreturn ''0''\l "];
-  "B3" [label="B3\l---\lcall prologue\lalloc s8\llocal s8 = param[0]\lalloc s9\llocal s9 = param[1]\lreturn\l "];
-  "B4" [label="B4\l---\lcall prologue\lalloc s10\llocal s10 = param[0]\lalloc s11\llocal s11 = param[1]\lreturn\l "];
+  "B1" [label="B1\l---\lcall prologue\lreturn '0'\l "];
+  "B2" [label="B2\l---\lcall prologue\lreturn ''0''\l "];
+  "B3" [label="B3\l---\lcall prologue\lreturn\l "];
+  "B4" [label="B4\l---\lcall prologue\lreturn\l "];
   "B5" [label="B5\l---\lr7 = local s5 Less '4'\lbranch r7 ? B6 : B7\l "];
   "B6" [label="B6\l---\lr8 = local s4[local s5]\loutput '4' = r8\lr10 = load s5\lr11 = r10 Add '1'\ls5 = r11\ljump B5\l "];
   "B7" [label="B7\l---\lreturn\l "];

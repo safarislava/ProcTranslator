@@ -4,9 +4,9 @@ digraph CFG {
   edge [fontname="Courier"];
 
   "B0" [label="B0\l---\lcall prologue\lalloc s0\ls0 = '1'\lalloc s1\ls1 = '2'\lalloc s2\ls2 = '3'\lalloc s3\lr0 = local s0 Sub local s1\lr1 = r0 Multiply local s2\ls3 = r1\loutput '4' = local s3\lreturn local s3\l "];
-  "B1" [label="B1\l---\lcall prologue\lalloc s4\llocal s4 = param[0]\lreturn '0'\l "];
-  "B2" [label="B2\l---\lcall prologue\lalloc s5\llocal s5 = param[0]\lreturn ''0''\l "];
-  "B3" [label="B3\l---\lcall prologue\lalloc s6\llocal s6 = param[0]\lalloc s7\llocal s7 = param[1]\lreturn\l "];
-  "B4" [label="B4\l---\lcall prologue\lalloc s8\llocal s8 = param[0]\lalloc s9\llocal s9 = param[1]\lreturn\l "];
+  "B1" [label="B1\l---\lcall prologue\lreturn '0'\l "];
+  "B2" [label="B2\l---\lcall prologue\lreturn ''0''\l "];
+  "B3" [label="B3\l---\lcall prologue\lreturn\l "];
+  "B4" [label="B4\l---\lcall prologue\lreturn\l "];
   "B0" [fillcolor=lightgreen];
 }
