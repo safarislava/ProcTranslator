@@ -48,13 +48,16 @@ alg | cisc | harv | hw | tick | binary | trap | port | cstr | prob1 | vector
 
 ```typst
 literal ::= number | string | char | "true" | "false" ;
+
 binary-operator ::= "+" | "-" | "*" | "/" | "%"
           | "<<" | ">>"
           | "&" | "|" | "^"
           | "&&" | "||"
           | "==" | "!=" | "<" | "<=" | ">" | ">=" ;
+          
 assignment-operator ::= "=" | "+=" | "-="
           | "*=" | "/=" | "&=" | "|=" | "^=" ;
+          
 value ::= literal
           | identifier
           | "this"
@@ -62,15 +65,19 @@ value ::= literal
           | "new" identifier "(" ")"
           | "new" identifier "[" number "]"
           | "[" [ literal { "," literal } ] "]" ;
+          
 box ::= identifier
          | value "." identifier
          | value "[" expression "]"
          | value "[" expression ":" number "]" ;
+         
 expression ::= value { postfix-operator }
          | prefix-operator expression
          | expression binary-operator expression
          | box assignment-operator expression ;
+         
 prefix-operator ::= "-" | "!" | "~" | "++" | "--" ;
+
 postfix-operator ::= "++" | "--"
                    | "." identifier [ "(" arguments ")" ]
                    | "[" expression "]"
@@ -87,7 +94,9 @@ type ::= "int" | "bool" | "char" | "void"
     | type "[" number "]" ;
    
 program ::= { declaration | function | class } ;
+
 declaration ::= type identifier [ "=" expression ] ";" ;
+
 statement ::=
       expression ";"
     | declaration ";"
@@ -98,14 +107,21 @@ statement ::=
     | while-statement
     | for-statement
     | "{" { statement } "}" ;
+    
 argument ::= type identifier ;
+
 function ::= type identifier "(" [ argument { "," argument } ] ")" "{" { statement } "}" ;
+
 class ::= "class" identifier "{" { declaration | function } "}" ;
+
 if-statement ::= "if" "(" expression ")" "{" { statement } "}"
       { "else if" "(" expression ")" "{" { statement } "}" }
       [ "else" "{" { statement } "}" ] ;
+      
 while-statement ::= "while" "(" expression ")" "{" { statement } "}" ;
+
 for-initializer ::= declaration | expression ;
+
 for-statement ::= "for" "(" [ for-initializer ] ";" [ expression ] ";" [ expression ] ")" "{" { statement } "}" ;
 ```
 
@@ -277,84 +293,87 @@ for-statement ::= "for" "(" [ for-initializer ] ";" [ expression ] ";" [ express
 - [1:0] — смещение задаётся как: 00 — следующие 32 бита константа, 01 — D5, 10 — D6, 11 — D7
 
 ### Режим операнда
-- 0x0 — #\* — прямая загрузка
-- 0x1 — D\* — регистр данных
-- 0x2 — A\* — адресный регистр
-- 0x3 — (A\*) — косвенная
-- 0x4 — (A\*)+ — косвенная с постинкрементом
-- 0x5 — -(A\*) — косвенная с предекрементом
-- 0x6 — (A:O) — косвенная со смещением
-- 0x7 — (#\*) — косвенная с прямой загрузкой
+| Код | Мнемоника | Описание       | Название                                |
+|-----|-----------|----------------|-----------------------------------------|
+| 0x0 | `#*`      | `#*`           | Прямая загрузка                         |
+| 0x1 | `D*`      | `D*`           | Регистр данных                          |
+| 0x2 | `A*`      | `A*`           | Адресный регистр                        |
+| 0x3 | `(A*)`    | `MEM[A*]`      | Косвенная                               |
+| 0x4 | `(A*)+`   | `MEM[A*++]`    | Косвенная с постинкрементом             |
+| 0x5 | `-(A*)`   | `MEM[--A*]`    | Косвенная с предекрементом              |
+| 0x6 | `(A*:#*)` | `MEM[A* + #*]` | Косвенная со смещением (константа)      |
+| 0x6 | `(A*:D*)` | `MEM[A* + D*]` | Косвенная со смещением (регистр данных) |
+| 0x7 | `(#*)`    | `MEM[#*]`      | Косвенная с прямой загрузкой            |
 
 ### Коды операторов
 
-| Обозначение | Значение                   |
-|-------------|----------------------------|
-| `#*`        | Непосредственное значение  |
-| `D*`        | Регистры данных (D0–D7)    |
-| `A*`        | Адресные регистры (A0–A7)  |
-| `MEMORY`    | Косвенная адресация        |
-| `.size`     | `.b` (байт) / `.l` (слово) |
+| Обозначение     | Значение                   |
+|-----------------|----------------------------|
+| `.<size>`       | `.b` (байт) / `.l` (слово) |
+| `<source>`      | `#* \| D* \| A* \| MEM`    |
+| `<destination>` | `D* \| A* \| MEM`          |  
+| `<address>`     | `A* \| MEM`                |
+| `<port>`        | `#*`                       |
+| `TRUE_MASK`     | `0xFFFFFFFFFFFFFFFF`       |
 
-| Код  | Мнемоника            | Описание                                                                                                                      | Такты |
-|------|----------------------|-------------------------------------------------------------------------------------------------------------------------------|-------|
-| 0x00 | HLT                  | Остановка выполнения процессора                                                                                               | 2     |
-| 0x01 | MOV.size from, to    | from := #\* \| D\* \| A\* \| MEMORY<br>to := D\* \| A\* \| MEMORY                                                             | 3-6   |
-| 0x02 | CMP.size that, with  | that, with := #\* \| D\* \| A\* \| MEMORY<br>Обновляет NZCV (that − with)                                                     | 3-5   |
-| 0x10 | ADD.size from, to    | from := #\* \| D\* \| A\* \| MEMORY<br>to := D\* \| A\* \| MEMORY<br>Обновляет NZCV                                           | 3-6   |
-| 0x11 | ADC.size from, to    | from := #\* \| D\* \| A\* \| MEMORY<br>to := D\* \| A\* \| MEMORY<br>Обновляет NZCV и учитывает Carry                         | 3-6   |
-| 0x12 | SUB.size from, to    | from := #\* \| D\* \| A\* \| MEMORY<br>to := D\* \| A\* \| MEMORY<br>Обновляет NZCV                                           | 3-6   |
-| 0x13 | MUL.size from, to    | from := #\* \| D\* \| A\* \| MEMORY<br>to := D\* \| A\* \| MEMORY<br>Обновляет NZCV                                           | 3-6   |
-| 0x14 | DIV.size from, to    | from := #\* \| D\* \| A\* \| MEMORY<br>to := D\* \| A\* \| MEMORY                                                             | 3-6   |
-| 0x15 | REM.size from, to    | from := #\* \| D\* \| A\* \| MEMORY<br>to := D\* \| A\* \| MEMORY<br>Обновляет NZCV<br>Выставляет Carry, если деление на ноль | 3-6   |
-| 0x16 | AND.size from, to    | from := #\* \| D\* \| A\* \| MEMORY<br>to := D\* \| A\* \| MEMORY                                                             | 3-6   |
-| 0x17 | OR.size from, to     | from := #\* \| D\* \| A\* \| MEMORY<br>to := D\* \| A\* \| MEMORY                                                             | 3-6   |
-| 0x18 | XOR.size from, to    | from := #\* \| D\* \| A\* \| MEMORY<br>to := D\* \| A\* \| MEMORY                                                             | 3-6   |
-| 0x19 | NOT.size from, to    | from := #\* \| D\* \| A\* \| MEMORY<br>to := D\* \| A\* \| MEMORY                                                             | 3-6   |
-| 0x1A | LSL.size count, dest | count := #\* \| D\* \| A\* \| MEMORY<br>dest := #\* \| D\* \| A\* \| MEMORY<br>Выставляет Carry                               | 3-6   |
-| 0x1B | LSR.size count, dest | count := #\* \| D\* \| A\* \| MEMORY<br>dest := #\* \| D\* \| A\* \| MEMORY<br>Выставляет Carry                               | 3-6   |
-| 0x1C | ASL.size count, dest | count := #\* \| D\* \| A\* \| MEMORY<br>dest := #\* \| D\* \| A\* \| MEMORY                                                   | 3-6   |
-| 0x1D | ASR.size count, dest | count := #\* \| D\* \| A\* \| MEMORY<br>dest := #\* \| D\* \| A\* \| MEMORY<br>Работает с сохранением знака                   | 3-6   |
-| 0x20 | JMP label            | PC = label                                                                                                                    | 2     |
-| 0x21 | CALL label           | stack.push(PC + 1)<br>PC = label                                                                                              | 5     |
-| –    | INTERRUPT            | IF = 0<br>stack.push(PC)<br>PC = INT_TABLE[vector]<br>MEM[-(A7)] = NZCV                                                       | 7     |
-| 0x22 | RET                  | PC = stack.pop()                                                                                                              | 3     |
-| 0x23 | INTRET               | PC = stack.pop()<br>NZCV = MEM[(A7)+]<br>IF = 1                                                                               | 4     |
-| 0x30 | BEQ label            | Переход по NZCV (Z=1)                                                                                                         | 2     |
-| 0x31 | BNE label            | Переход по NZCV (Z=0)                                                                                                         | 2     |
-| 0x32 | BGT label            | Переход по NZCV (Z=0 && N=O)                                                                                                  | 2     |
-| 0x33 | BGE label            | Переход по NZCV (N=O)                                                                                                         | 2     |
-| 0x34 | BLT label            | Переход по NZCV (N!=O)                                                                                                        | 2     |
-| 0x35 | BLE label            | Переход по NZCV (Z=1 \|\| N!=O)                                                                                               | 2     |
-| 0x36 | BCS label            | Переход по NZCV (C=1)                                                                                                         | 2     |
-| 0x37 | BCC label            | Переход по NZCV (C=0)                                                                                                         | 2     |
-| 0x38 | BVS label            | Переход по NZCV (O=1)                                                                                                         | 2     |
-| 0x39 | BVC label            | Переход по NZCV (O=0)                                                                                                         | 2     |
-| 0x40 | VADD a, b            | a, b := A\* \| MEMORY                                                                                                         | 6     |
-| 0x42 | VSUB a, b            | a, b := A\* \| MEMORY                                                                                                         | 6     |
-| 0x43 | VMUL a, b            | a, b := A\* \| MEMORY                                                                                                         | 6     |
-| 0x44 | VDIV a, b            | a, b := A\* \| MEMORY                                                                                                         | 6     |
-| 0x45 | VREM a, b            | a, b := A\* \| MEMORY                                                                                                         | 6     |
-| 0x46 | VAND a, b            | a, b := A\* \| MEMORY                                                                                                         | 6     |
-| 0x47 | VOR a, b             | a, b := A\* \| MEMORY                                                                                                         | 6     |
-| 0x48 | VXOR a, b            | a, b := A\* \| MEMORY                                                                                                         | 6     |
-| 0x49 | VEND c               | c := A\*<br>Запись результата векторной операции                                                                              | 4     |
-| 0x50 | IN port, dest        | dest := D\* \| A\* \| MEMORY                                                                                                  | 2-4   |
-| 0x51 | OUT port, source     | source := #\* \| D\* \| A\* \| MEMORY                                                                                         | 2-3   |
-| 0x52 | EI                   | Включает прерывания                                                                                                           | 2     |
-| 0x53 | DI                   | Выключает прерывания                                                                                                          | 2     |
-| 0x60 | VCMPBEQ a, b         | a, b := A\* \| MEMORY<br>Выводит маску из «1»                                                                                 | 6     |
-| 0x61 | VCMPBNE a, b         | a, b := A\* \| MEMORY<br>Выводит маску из «1»                                                                                 | 6     |
-| 0x62 | VCMPBGT a, b         | a, b := A\* \| MEMORY<br>Выводит маску из «1»                                                                                 | 6     |
-| 0x63 | VCMPBGE a, b         | a, b := A\* \| MEMORY<br>Выводит маску из «1»                                                                                 | 6     |
-| 0x64 | VCMPBLT a, b         | a, b := A\* \| MEMORY<br>Выводит маску из «1»                                                                                 | 6     |
-| 0x65 | VCMPBLE a, b         | a, b := A\* \| MEMORY<br>Выводит маску из «1»                                                                                 | 6     |
-| 0x66 | VCMPBCS a, b         | a, b := A\* \| MEMORY<br>Выводит маску из «1»                                                                                 | 6     |
-| 0x67 | VCMPBCC a, b         | a, b := A\* \| MEMORY<br>Выводит маску из «1»                                                                                 | 6     |
-| 0x68 | VCMPBVS a, b         | a, b := A\* \| MEMORY<br>Выводит маску из «1»                                                                                 | 6     |
-| 0x69 | VCMPBVC a, b         | a, b := A\* \| MEMORY<br>Выводит маску из «1»                                                                                 | 6     |
+| Код  | Мнемоника                            | Описание                                                                                                | Такты |
+|------|--------------------------------------|---------------------------------------------------------------------------------------------------------|-------|
+| 0x00 | `HLT`                                | Остановка выполнения процессора                                                                         | 2     |
+| 0x01 | `MOV.<size> <source>, <destination>` | `<destination> <- <source>`                                                                             | 3-6   |
+| 0x02 | `CMP.<size> <source>, <destination>` | Обновляет NZCV по значению`<source> − <destination>`                                                    | 3-5   |
+| 0x10 | `ADD.<size> <source>, <destination>` | `<destination> <- <destination> + <source>`<br>Обновляет NZCV                                           | 3-6   |
+| 0x11 | `ADC.<size> <source>, <destination>` | `<destination> <- <destination> + <source>`<br>Обновляет NZCV и учитывает Carry                         | 3-6   |
+| 0x12 | `SUB.<size> <source>, <destination>` | `<destination> <- <destination> - <source>`<br>Обновляет NZCV                                           | 3-6   |
+| 0x13 | `MUL.<size> <source>, <destination>` | `<destination> <- <destination> * <source>`<br>Обновляет NZCV                                           | 3-6   |
+| 0x14 | `DIV.<size> <source>, <destination>` | `<destination> <- <destination> / <source>`<br>Обновляет NZCV<br>Выставляет Carry, если деление на ноль | 3-6   |
+| 0x15 | `REM.<size> <source>, <destination>` | `<destination> <- <destination> % <source>`<br>Обновляет NZCV<br>Выставляет Carry, если деление на ноль | 3-6   |
+| 0x16 | `AND.<size> <source>, <destination>` | `<destination> <- <destination> & <source>`                                                             | 3-6   |
+| 0x17 | `OR.<size> <source>, <destination>`  | `<destination> <- <destination> \|  <source>`                                                           | 3-6   |
+| 0x18 | `XOR.<size> <source>, <destination>` | `<destination> <- <destination> ^ <source>`                                                             | 3-6   |
+| 0x19 | `NOT.<size> <source>, <destination>` | `<destination> <- !<source>`                                                                            | 3-6   |
+| 0x1A | `LSL.<size> <source>, <destination>` | `<destination> <- <destination> << <source>`<br>Выставляет Carry                                        | 3-6   |
+| 0x1B | `LSR.<size> <source>, <destination>` | `<destination> <- <destination> >> <source>`<br>Выставляет Carry                                        | 3-6   |
+| 0x1C | `ASL.<size> <source>, <destination>` | `<destination> <- <destination> << <source>`                                                            | 3-6   |
+| 0x1D | `ASR.<size> <source>, <destination>` | `<destination> <- <destination> >> <source>`<br>Работает с сохранением знака                            | 3-6   |
+| 0x20 | `JMP <label>`                        | `PC <- <label>`                                                                                         | 2     |
+| 0x21 | `CALL <label>`                       | `MEM[--A7] <- PC + 1`<br>`PC = <label>`                                                                 | 5     |
+| –    | `INTERRUPT`                          | `Int <- 1`<br>`MEM[--A7] <- PC`<br>`PC <- INT_TABLE[<vector>]`<br>`MEM[--A7] <- NZCV`                   | 7     |
+| 0x22 | `RET`                                | `PC <- MEM[A7++]`                                                                                       | 3     |
+| 0x23 | `INTRET`                             | `PC <- MEM[A7++]`<br>`NZCV <- MEM[A7++]`<br>`Int <- 0`                                                  | 4     |
+| 0x30 | `BEQ <label>`                        | `if Z == 1 then PC <- <label>`                                                                          | 2     |
+| 0x31 | `BNE <label>`                        | `if Z == 0 then PC <- <label>`                                                                          | 2     |
+| 0x32 | `BGT <label>`                        | `if Z == 0 and N == O then PC <- <label>`                                                               | 2     |
+| 0x33 | `BGE <label>`                        | `if N == 0 then PC <- <label>`                                                                          | 2     |
+| 0x34 | `BLT <label>`                        | `if N == 1 then PC <- <label>`                                                                          | 2     |
+| 0x35 | `BLE <label>`                        | `if Z == 1 or N == 0 then PC <- <label>`                                                                | 2     |
+| 0x36 | `BCS <label>`                        | `if C == 1 then PC <- <label>`                                                                          | 2     |
+| 0x37 | `BCC <label>`                        | `if C == 0 then PC <- <label>`                                                                          | 2     |
+| 0x38 | `BVS <label>`                        | `if V == 1 then PC <- <label>`                                                                          | 2     |
+| 0x39 | `BVC <label>`                        | `if V == 0 then PC <- <label>`                                                                          | 2     |
+| 0x40 | `VADD <address1>, <address2>`        | `for i in 0..4 do temp[i] <- MEM[<address1> + i] + MEM[<address2> + i]`                                 | 4-6   |
+| 0x42 | `VSUB <address1>, <address2>`        | `for i in 0..4 do temp[i] <- MEM[<address1> + i] - MEM[<address2> + i]`                                 | 4-6   |
+| 0x43 | `VMUL <address1>, <address2>`        | `for i in 0..4 do temp[i] <- MEM[<address1> + i] * MEM[<address2> + i]`                                 | 4-6   |
+| 0x44 | `VDIV <address1>, <address2>`        | `for i in 0..4 do temp[i] <- MEM[<address1> + i] / MEM[<address2> + i]`                                 | 4-6   |
+| 0x46 | `VAND <address1>, <address2>`        | `for i in 0..4 do temp[i] <- MEM[<address1> + i] % MEM[<address2> + i]`                                 | 4-6   |
+| 0x47 | `VOR <address1>, <address2>`         | `for i in 0..4 do temp[i] <- MEM[<address1> + i] & MEM[<address2> + i]`                                 | 4-6   |
+| 0x48 | `VXOR <address1>, <address2>`        | `for i in 0..4 do temp[i] <- MEM[<address1> + i] \| MEM[<address2> + i]`                                | 4-6   |
+| 0x49 | `VEND <address>`                     | `MEM[<address>] <- temp`<br>Запись результата векторной операции                                        | 2-4   |
+| 0x50 | `IN <port>, <destination>`           | `<destination> <- IO[port]`                                                                             | 2-4   |
+| 0x51 | `OUT <port>, <source>`               | `IO[port] <- <source>`                                                                                  | 2-3   |
+| 0x52 | `EI`                                 | `IF <- 1`<br>Включает прерывания                                                                        | 2     |
+| 0x53 | `DI`                                 | `IF <- 0`<br>Выключает прерывания                                                                       | 2     |
+| 0x60 | `VCMPBEQ <address1>, <address2>`     | `for i in 0..4 do`<br>`temp[i] <- MEM[<address1> + i] == MEM[<address2> + i] ? TRUE_MASK : 0x0`         | 4-6   |
+| 0x61 | `VCMPBNE <address1>, <address2>`     | `for i in 0..4 do`<br>`temp[i] <- MEM[<address1> + i] != MEM[<address2> + i] ? TRUE_MASK : 0x0`         | 4-6   |
+| 0x62 | `VCMPBGT <address1>, <address2>`     | `for i in 0..4 do`<br>`temp[i] <- MEM[<address1> + i] > MEM[<address2> + i] ? TRUE_MASK : 0x0`          | 4-6   |
+| 0x63 | `VCMPBGE <address1>, <address2>`     | `for i in 0..4 do`<br>`temp[i] <- MEM[<address1> + i] >= MEM[<address2> + i] ? TRUE_MASK : 0x0`         | 4-6   |
+| 0x64 | `VCMPBLT <address1>, <address2>`     | `for i in 0..4 do`<br>`temp[i] <- MEM[<address1> + i] < MEM[<address2> + i] ? TRUE_MASK : 0x0`          | 4-6   |
+| 0x65 | `VCMPBLE <address1>, <address2>`     | `for i in 0..4 do`<br>`temp[i] <- MEM[<address1> + i] <= MEM[<address2> + i] ? TRUE_MASK : 0x0`         | 4-6   |
+| 0x66 | `VCMPBCS <address1>, <address2>`     | `for i in 0..4 do`<br>`temp[i] <- C == 1 ? TRUE_MASK : 0x0`                                             | 4-6   |
+| 0x67 | `VCMPBCC <address1>, <address2>`     | `for i in 0..4 do`<br>`temp[i] <- C == 0 ? TRUE_MASK : 0x0`                                             | 4-6   |
+| 0x68 | `VCMPBVS <address1>, <address2>`     | `for i in 0..4 do`<br>`temp[i] <- V == 1 ? TRUE_MASK : 0x0`                                             | 4-6   |
+| 0x69 | `VCMPBVC <address1>, <address2>`     | `for i in 0..4 do`<br>`temp[i] <- V == 0 ? TRUE_MASK : 0x0`                                             | 4-6   |
 
-\* Там где не указано точное количество тактов исполнения инструкции, значит что она имеет переменное число тактов. Если левый операнд с косвенной адресацией +1 такт, если правый +2 такта.
+\* Там где не указано точное количество тактов исполнения инструкции, значит что она имеет переменное число тактов. Чтение из памяти +1 такт, запись в память +2 такта.
 
 ---
 
