@@ -135,7 +135,13 @@ pub fn disassemble(program: &[u32]) -> Vec<String> {
                     i += 1;
                 }
             }
-            0x22 | 0x23 | 0x52 | 0x53 | 0x49 => {}
+            0x49 => {
+                let byte = ((ir >> 16) & 0xff) as u8;
+                let (mut destination, destination_needs) = operand_to_string(byte);
+                inline_immediate(program, &mut i, &mut destination, destination_needs);
+                line += &destination.to_string();
+            }
+            0x22 | 0x23 | 0x52 | 0x53 => {}
             0x50 | 0x51 => {
                 let port = ((ir >> 16) & 0xff) as u8;
                 let operand_byte = ((ir >> 8) & 0xff) as u8;
