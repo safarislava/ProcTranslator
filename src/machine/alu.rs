@@ -1,3 +1,4 @@
+use crate::isa::WordSize;
 use crate::machine::nzcv::Nzcv;
 
 #[derive(Clone)]
@@ -29,7 +30,22 @@ impl Alu {
         Self { nzcv }
     }
 
-    pub fn execute_operator(&mut self, operator: AluOperator, a: u64, b: u64) -> u64 {
+    pub fn execute_operator(
+        &mut self,
+        operator: &AluOperator,
+        word_size: &WordSize,
+        a: u64,
+        b: u64,
+    ) -> u64 {
+        let a = match word_size {
+            WordSize::Byte => a & 0xFF,
+            WordSize::Long => a,
+        };
+        let b = match word_size {
+            WordSize::Byte => b & 0xFF,
+            WordSize::Long => b,
+        };
+
         let (result, negative, zero, carry, overflow) = match operator {
             AluOperator::Add => {
                 let (result, carry) = a.overflowing_add(b);

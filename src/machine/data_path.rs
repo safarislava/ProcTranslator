@@ -107,11 +107,8 @@ pub struct DataPath {
 }
 
 impl DataPath {
-    pub fn read_data_register(&mut self, selector: DataRegisterSelector, word_size: &WordSize) {
-        self.data_registers_mux = match word_size {
-            WordSize::Byte => self.data_registers[selector as usize] & 0xFF,
-            WordSize::Long => self.data_registers[selector as usize],
-        }
+    pub fn read_data_register(&mut self, selector: DataRegisterSelector) {
+        self.data_registers_mux = self.data_registers[selector as usize]
     }
 
     pub fn latch_data_register(
@@ -125,15 +122,8 @@ impl DataPath {
         };
     }
 
-    pub fn read_address_register(
-        &mut self,
-        selector: AddressRegisterSelector,
-        word_size: &WordSize,
-    ) {
-        self.address_registers_mux = match word_size {
-            WordSize::Byte => self.address_registers[selector as usize] & 0xFF,
-            WordSize::Long => self.address_registers[selector as usize],
-        };
+    pub fn read_address_register(&mut self, selector: AddressRegisterSelector) {
+        self.address_registers_mux = self.address_registers[selector as usize]
     }
 
     pub fn latch_address_register(
@@ -232,10 +222,13 @@ impl DataPath {
         }
     }
 
-    pub fn execute_alu(&mut self, operator: AluOperator) {
-        self.alu_output =
-            self.alu
-                .execute_operator(operator, self.left_alu_input, self.right_alu_input);
+    pub fn execute_alu(&mut self, operator: &AluOperator, word_size: &WordSize) {
+        self.alu_output = self.alu.execute_operator(
+            operator,
+            word_size,
+            self.left_alu_input,
+            self.right_alu_input,
+        );
     }
 
     pub fn latch_data_address(&mut self) {

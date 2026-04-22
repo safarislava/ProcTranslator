@@ -384,7 +384,7 @@ impl ControlUnit {
                 if Self::is_operand_needed_second_step(&second) {
                     self.execution_state = ExecutionState::Execute(3);
                 } else {
-                    self.data_path.execute_alu(alu_op);
+                    self.data_path.execute_alu(&alu_op, &self.word_size);
                     self.store_operand(second);
                     self.execution_state = ExecutionState::Done;
                 }
@@ -393,7 +393,7 @@ impl ControlUnit {
                 let second = self.parse_data_writable(2);
                 self.load_indirect_operand(AluInput::Left);
 
-                self.data_path.execute_alu(alu_op);
+                self.data_path.execute_alu(&alu_op, &self.word_size);
                 self.store_operand(second);
                 self.execution_state = ExecutionState::Execute(4);
             }
@@ -427,13 +427,15 @@ impl ControlUnit {
                 if Self::is_operand_needed_second_step(&second) {
                     self.execution_state = ExecutionState::Execute(3);
                 } else {
-                    self.data_path.execute_alu(AluOperator::Sub);
+                    self.data_path
+                        .execute_alu(&AluOperator::Sub, &self.word_size);
                     self.execution_state = ExecutionState::Done;
                 }
             }
             3 => {
                 self.load_indirect_operand(AluInput::Left);
-                self.data_path.execute_alu(AluOperator::Sub);
+                self.data_path
+                    .execute_alu(&AluOperator::Sub, &self.word_size);
                 self.execution_state = ExecutionState::Done;
             }
             _ => unreachable!(),
@@ -454,14 +456,16 @@ impl ControlUnit {
                 if Self::is_operand_needed_second_step(&right) {
                     self.execution_state = ExecutionState::Execute(step + 1);
                 } else {
-                    self.data_path.execute_alu(AluOperator::Trl);
+                    self.data_path
+                        .execute_alu(&AluOperator::Trl, &WordSize::Long);
                     self.data_path.latch_data_address();
                     self.execution_state = ExecutionState::Execute(step + 2);
                 }
             }
             1 => {
                 self.load_indirect_operand(AluInput::Left);
-                self.data_path.execute_alu(AluOperator::Trl);
+                self.data_path
+                    .execute_alu(&AluOperator::Trl, &WordSize::Long);
                 self.data_path.latch_data_address();
                 self.execution_state = ExecutionState::Execute(step + 1);
             }
@@ -473,7 +477,8 @@ impl ControlUnit {
                 if Self::is_operand_needed_second_step(&left) {
                     self.execution_state = ExecutionState::Execute(step + 1);
                 } else {
-                    self.data_path.execute_alu(AluOperator::Trl);
+                    self.data_path
+                        .execute_alu(&AluOperator::Trl, &WordSize::Long);
                     self.data_path.latch_data_address();
                     self.data_path.read_data_memory();
                     self.execution_state = ExecutionState::Execute(step + 2);
@@ -481,7 +486,8 @@ impl ControlUnit {
             }
             3 => {
                 self.load_indirect_operand(AluInput::Left);
-                self.data_path.execute_alu(AluOperator::Trl);
+                self.data_path
+                    .execute_alu(&AluOperator::Trl, &WordSize::Long);
                 self.data_path.latch_data_address();
                 self.execution_state = ExecutionState::Execute(step + 1);
             }
@@ -506,13 +512,15 @@ impl ControlUnit {
                 if Self::is_operand_needed_second_step(&destination) {
                     self.execution_state = ExecutionState::Execute(step + 1);
                 } else {
-                    self.data_path.execute_alu(AluOperator::Trl);
+                    self.data_path
+                        .execute_alu(&AluOperator::Trl, &WordSize::Long);
                     self.data_path.latch_data_address();
                     self.execution_state = ExecutionState::Execute(1);
                 }
             }
             1 => {
-                self.data_path.execute_alu(AluOperator::Trl);
+                self.data_path
+                    .execute_alu(&AluOperator::Trl, &WordSize::Long);
                 self.data_path.latch_data_address();
                 self.execution_state = ExecutionState::Execute(2);
             }
@@ -558,7 +566,8 @@ impl ControlUnit {
             2 => {
                 self.data_path
                     .update_right_alu_input(AluInputSelector::Data);
-                self.data_path.execute_alu(AluOperator::Trr);
+                self.data_path
+                    .execute_alu(&AluOperator::Trr, &WordSize::Long);
                 self.data_path.update_write_data_mux(WriteDataSelector::Alu);
                 self.data_path.latch_write_data_part(&WordSize::Long);
                 self.execution_state = ExecutionState::Execute(3);
@@ -581,7 +590,8 @@ impl ControlUnit {
                 self.data_path.read_data_memory();
                 self.data_path.update_memory_output_mux(&WordSize::Long);
                 self.data_path.update_left_alu_input(DataSelector::Memory);
-                self.data_path.execute_alu(AluOperator::Trl);
+                self.data_path
+                    .execute_alu(&AluOperator::Trl, &WordSize::Long);
                 self.latch_pc(PcSelector::ByDataPath);
                 self.execution_state = ExecutionState::Done;
             }
@@ -628,7 +638,8 @@ impl ControlUnit {
             5 => {
                 self.data_path.external_selector = ExternalSelector::ControlUnit;
                 self.data_path.update_left_alu_input(DataSelector::External);
-                self.data_path.execute_alu(AluOperator::Trl);
+                self.data_path
+                    .execute_alu(&AluOperator::Trl, &WordSize::Long);
                 self.data_path.update_write_data_mux(WriteDataSelector::Alu);
                 self.data_path.latch_write_data_part(&WordSize::Long);
                 self.execution_state = ExecutionState::Execute(6);
@@ -652,7 +663,8 @@ impl ControlUnit {
                 self.data_path.read_data_memory();
                 self.data_path.update_memory_output_mux(&WordSize::Long);
                 self.data_path.update_left_alu_input(DataSelector::Memory);
-                self.data_path.execute_alu(AluOperator::Trl);
+                self.data_path
+                    .execute_alu(&AluOperator::Trl, &WordSize::Long);
                 self.latch_pc(PcSelector::ByDataPath);
 
                 self.execution_state = ExecutionState::Execute(2);
@@ -665,7 +677,8 @@ impl ControlUnit {
                 self.data_path.read_data_memory();
                 self.data_path.update_memory_output_mux(&WordSize::Byte);
                 self.data_path.update_left_alu_input(DataSelector::Memory);
-                self.data_path.execute_alu(AluOperator::Trl);
+                self.data_path
+                    .execute_alu(&AluOperator::Trl, &WordSize::Byte);
                 self.data_path.restore_nzcv();
 
                 self.interrupt_flag = true;
@@ -715,7 +728,8 @@ impl ControlUnit {
                     self.data_path.update_right_offset(OffsetSelector::External);
                     self.data_path
                         .update_right_alu_input(AluInputSelector::Offset);
-                    self.data_path.execute_alu(AluOperator::Trr);
+                    self.data_path
+                        .execute_alu(&AluOperator::Trr, &self.word_size);
                     self.store_operand(operand);
                     self.execution_state = ExecutionState::Done;
                 }
@@ -725,7 +739,8 @@ impl ControlUnit {
                 self.load_indirect_operand(AluInput::Left);
                 self.data_path
                     .update_right_alu_input(AluInputSelector::Data);
-                self.data_path.execute_alu(AluOperator::Trr);
+                self.data_path
+                    .execute_alu(&AluOperator::Trr, &self.word_size);
                 self.store_operand(operand);
                 self.execution_state = ExecutionState::Execute(2);
             }
@@ -746,7 +761,8 @@ impl ControlUnit {
                 if Self::is_operand_needed_second_step(&operand) {
                     self.execution_state = ExecutionState::Execute(1);
                 } else {
-                    self.data_path.execute_alu(AluOperator::Trl);
+                    self.data_path
+                        .execute_alu(&AluOperator::Trl, &self.word_size);
                     self.data_path.write_io(port);
                     self.execution_state = ExecutionState::Done;
                 }
@@ -754,7 +770,8 @@ impl ControlUnit {
             1 => {
                 let port = self.parse_port(1);
                 self.load_indirect_operand(AluInput::Left);
-                self.data_path.execute_alu(AluOperator::Trl);
+                self.data_path
+                    .execute_alu(&AluOperator::Trl, &self.word_size);
                 self.data_path.write_io(port);
                 self.execution_state = ExecutionState::Done;
             }
@@ -798,8 +815,7 @@ impl ControlUnit {
                 self.log += &format!("| #{} ", self.read_data as i64);
             }
             Mode::DataRegister => {
-                self.data_path
-                    .read_data_register(operand.main_register, &self.word_size);
+                self.data_path.read_data_register(operand.main_register);
                 match input {
                     AluInput::Left => self
                         .data_path
@@ -811,8 +827,7 @@ impl ControlUnit {
                 self.log += &format!("| D{} ", operand.main_register);
             }
             Mode::AddressRegister => {
-                self.data_path
-                    .read_address_register(operand.main_register, &self.word_size);
+                self.data_path.read_address_register(operand.main_register);
                 match input {
                     AluInput::Left => self
                         .data_path
@@ -824,11 +839,11 @@ impl ControlUnit {
                 self.log += &format!("| A{} ", operand.main_register);
             }
             Mode::Indirect | Mode::IndirectPostIncrement | Mode::IndirectPreDecrement => {
-                self.data_path
-                    .read_address_register(operand.main_register, &WordSize::Long);
+                self.data_path.read_address_register(operand.main_register);
                 self.data_path
                     .update_left_alu_input(DataSelector::AddressRegister);
-                self.data_path.execute_alu(AluOperator::Trl);
+                self.data_path
+                    .execute_alu(&AluOperator::Trl, &WordSize::Long);
 
                 match operand.mode {
                     Mode::Indirect => {}
@@ -858,8 +873,7 @@ impl ControlUnit {
                 self.data_path.post_mode_selector = PostModeSelector::None;
             }
             Mode::IndirectOffset => {
-                self.data_path
-                    .read_address_register(operand.main_register, &WordSize::Long);
+                self.data_path.read_address_register(operand.main_register);
                 self.data_path
                     .update_left_alu_input(DataSelector::AddressRegister);
                 if operand.offset == 0 {
@@ -872,8 +886,7 @@ impl ControlUnit {
                         &format!("| (A{}:#{}) ", operand.main_register, self.read_data as i64);
                 } else {
                     let offset_register = operand.offset + 4;
-                    self.data_path
-                        .read_data_register(offset_register, &WordSize::Long);
+                    self.data_path.read_data_register(offset_register);
                     self.data_path
                         .update_right_offset(OffsetSelector::DataRegister);
                     self.log += &format!("| (A{}:D{}) ", operand.main_register, offset_register);
@@ -881,7 +894,8 @@ impl ControlUnit {
                 self.data_path
                     .update_right_alu_input(AluInputSelector::Offset);
 
-                self.data_path.execute_alu(AluOperator::Add);
+                self.data_path
+                    .execute_alu(&AluOperator::Add, &WordSize::Long);
                 self.data_path.latch_data_address();
             }
             Mode::IndirectDirect => {
@@ -890,7 +904,8 @@ impl ControlUnit {
                 self.latch_pc(PcSelector::NextWord);
                 self.data_path.external_selector = ExternalSelector::ControlUnit;
                 self.data_path.update_left_alu_input(DataSelector::External);
-                self.data_path.execute_alu(AluOperator::Trl);
+                self.data_path
+                    .execute_alu(&AluOperator::Trl, &WordSize::Long);
                 self.data_path.latch_data_address();
                 self.log += &format!("| (#{}) ", self.read_data as i64);
             }
@@ -900,10 +915,11 @@ impl ControlUnit {
     }
 
     fn prepare_stack_with_increment(&mut self) {
-        self.data_path.read_address_register(7, &WordSize::Long);
+        self.data_path.read_address_register(7);
         self.data_path
             .update_left_alu_input(DataSelector::AddressRegister);
-        self.data_path.execute_alu(AluOperator::Trl);
+        self.data_path
+            .execute_alu(&AluOperator::Trl, &WordSize::Long);
         self.data_path.post_mode_selector = PostModeSelector::Increment;
         self.data_path.latch_data_address();
         self.data_path.latch_address_register(7, &WordSize::Long);
@@ -911,10 +927,11 @@ impl ControlUnit {
     }
 
     fn prepare_stack_with_decrement(&mut self) {
-        self.data_path.read_address_register(7, &WordSize::Long);
+        self.data_path.read_address_register(7);
         self.data_path
             .update_left_alu_input(DataSelector::AddressRegister);
-        self.data_path.execute_alu(AluOperator::Trl);
+        self.data_path
+            .execute_alu(&AluOperator::Trl, &WordSize::Long);
         self.data_path.pre_mode_selector = PreModeSelector::Decrement;
         self.data_path.latch_data_address();
         self.data_path.latch_address_register(7, &WordSize::Long);

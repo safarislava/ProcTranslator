@@ -1,3 +1,4 @@
+use crate::isa::WordSize;
 use crate::machine::alu::{Alu, AluOperator};
 use crate::machine::data_memory::VectorWord;
 
@@ -46,7 +47,8 @@ impl VectorAlu {
 
         let mut output = [0; 4];
         for i in 0..4 {
-            output[i] = self.block[i].execute_operator(operator.clone(), left[i], right[i]);
+            output[i] =
+                self.block[i].execute_operator(&operator, &WordSize::Long, left[i], right[i]);
         }
         output
     }
