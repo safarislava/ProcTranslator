@@ -67,52 +67,64 @@ impl LirContext {
                 destination,
                 ..
             }
-            | LirInstruction::Add {
-                source,
-                destination,
-                ..
-            }
-            | LirInstruction::Sub {
-                source,
-                destination,
-                ..
-            }
-            | LirInstruction::Mul {
-                source,
-                destination,
-                ..
-            }
-            | LirInstruction::Div {
-                source,
-                destination,
-                ..
-            }
-            | LirInstruction::Rem {
-                source,
-                destination,
-                ..
-            }
-            | LirInstruction::And {
-                source,
-                destination,
-                ..
-            }
-            | LirInstruction::Or {
-                source,
-                destination,
-                ..
-            }
-            | LirInstruction::Xor {
-                source,
-                destination,
-                ..
-            }
             | LirInstruction::Not {
                 source,
                 destination,
                 ..
             } => {
                 add_interval(source);
+                add_interval(destination);
+            }
+            LirInstruction::Add {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::Sub {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::Mul {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::Div {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::Rem {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::And {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::Or {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::Xor {
+                left,
+                right,
+                destination,
+                ..
+            } => {
+                add_interval(left);
+                add_interval(right);
                 add_interval(destination);
             }
             LirInstruction::Cmp { that, with, .. } => {
@@ -123,24 +135,92 @@ impl LirContext {
             | LirInstruction::In { destination, .. } => {
                 add_interval(destination);
             }
-            LirInstruction::VAdd { left, right, .. }
-            | LirInstruction::VSub { left, right, .. }
-            | LirInstruction::VMul { left, right, .. }
-            | LirInstruction::VDiv { left, right, .. }
-            | LirInstruction::VRem { left, right, .. }
-            | LirInstruction::VAnd { left, right, .. }
-            | LirInstruction::VOr { left, right, .. }
-            | LirInstruction::VXor { left, right, .. }
-            | LirInstruction::VCmpBeq { left, right, .. }
-            | LirInstruction::VCmpBne { left, right, .. }
-            | LirInstruction::VCmpBlt { left, right, .. }
-            | LirInstruction::VCmpBle { left, right, .. }
-            | LirInstruction::VCmpBgt { left, right, .. }
-            | LirInstruction::VCmpBge { left, right, .. } => {
+            LirInstruction::VAdd {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VSub {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VMul {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VDiv {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VRem {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VAnd {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VOr {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VXor {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VCmpBeq {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VCmpBne {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VCmpBlt {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VCmpBle {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VCmpBgt {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VCmpBge {
+                left,
+                right,
+                destination,
+                ..
+            } => {
                 add_interval(left);
                 add_interval(right);
-            }
-            LirInstruction::VEnd { destination, .. } => {
                 add_interval(destination);
             }
             LirInstruction::Out { value, .. } => {
@@ -258,14 +338,14 @@ impl LirContext {
 
                     register_batch.registers[i] = Some((*virtual_register, interval.clone()));
 
-                    let phys_reg = (i + register_batch.offset) as u8;
+                    let physical_register = (i + register_batch.offset) as u8;
 
                     match register_type {
                         RegisterType::Data => {
                             self.allocated_data_registers
                                 .remove(&spilled_virtual_register);
                             self.allocated_data_registers
-                                .insert(*virtual_register, phys_reg);
+                                .insert(*virtual_register, physical_register);
                             self.allocate_spill_register(
                                 spilled_virtual_register,
                                 RegisterType::Data,
@@ -275,7 +355,7 @@ impl LirContext {
                             self.allocated_address_registers
                                 .remove(&spilled_virtual_register);
                             self.allocated_address_registers
-                                .insert(*virtual_register, phys_reg);
+                                .insert(*virtual_register, physical_register);
                             self.allocate_spill_register(
                                 spilled_virtual_register,
                                 RegisterType::Address,
@@ -331,8 +411,8 @@ impl LirContext {
             address_register_life_interval.into_iter().collect();
         address_intervals.sort_by_key(|(_, event)| event.start);
 
-        let mut data_register_batch = RegisterBatch::new(5, 1);
-        let mut address_register_batch = RegisterBatch::new(3, 0);
+        let mut data_register_batch = RegisterBatch::new(4, 1);
+        let mut address_register_batch = RegisterBatch::new(2, 0);
 
         self.process_intervals(
             &data_intervals,
@@ -354,7 +434,8 @@ impl LirContext {
                 if matches!(instruction, LirInstruction::AllocateStackFrame) {
                     *instruction = LirInstruction::Sub {
                         size: WordSize::Long,
-                        source: LirOperand::Direct(frame_size as u64),
+                        left: self.stack_pointer.clone(),
+                        right: LirOperand::Direct(frame_size as u64),
                         destination: self.stack_pointer.clone(),
                     };
                 }
@@ -410,47 +491,56 @@ impl LirContext {
                 allocate_operand(destination, MemorySignal::Write);
             }
             LirInstruction::Add {
-                source,
+                left,
+                right,
                 destination,
                 ..
             }
             | LirInstruction::Sub {
-                source,
+                left,
+                right,
                 destination,
                 ..
             }
             | LirInstruction::Mul {
-                source,
+                left,
+                right,
                 destination,
                 ..
             }
             | LirInstruction::Div {
-                source,
+                left,
+                right,
                 destination,
                 ..
             }
             | LirInstruction::Rem {
-                source,
+                left,
+                right,
                 destination,
                 ..
             }
             | LirInstruction::And {
-                source,
+                left,
+                right,
                 destination,
                 ..
             }
             | LirInstruction::Or {
-                source,
+                left,
+                right,
                 destination,
                 ..
             }
             | LirInstruction::Xor {
-                source,
+                left,
+                right,
                 destination,
                 ..
             } => {
-                allocate_operand(source, MemorySignal::Read);
-                allocate_operand(destination, MemorySignal::ReadWrite);
+                allocate_operand(left, MemorySignal::Read);
+                allocate_operand(right, MemorySignal::Read);
+                allocate_operand(destination, MemorySignal::Write);
             }
             LirInstruction::Not {
                 source,
@@ -464,25 +554,93 @@ impl LirContext {
                 allocate_operand(that, MemorySignal::Read);
                 allocate_operand(with, MemorySignal::Read);
             }
-            LirInstruction::VAdd { left, right, .. }
-            | LirInstruction::VSub { left, right, .. }
-            | LirInstruction::VMul { left, right, .. }
-            | LirInstruction::VDiv { left, right, .. }
-            | LirInstruction::VRem { left, right, .. }
-            | LirInstruction::VAnd { left, right, .. }
-            | LirInstruction::VOr { left, right, .. }
-            | LirInstruction::VXor { left, right, .. }
-            | LirInstruction::VCmpBeq { left, right, .. }
-            | LirInstruction::VCmpBne { left, right, .. }
-            | LirInstruction::VCmpBlt { left, right, .. }
-            | LirInstruction::VCmpBle { left, right, .. }
-            | LirInstruction::VCmpBgt { left, right, .. }
-            | LirInstruction::VCmpBge { left, right, .. } => {
+            LirInstruction::VAdd {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VSub {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VMul {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VDiv {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VRem {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VAnd {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VOr {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VXor {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VCmpBeq {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VCmpBne {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VCmpBlt {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VCmpBle {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VCmpBgt {
+                left,
+                right,
+                destination,
+                ..
+            }
+            | LirInstruction::VCmpBge {
+                left,
+                right,
+                destination,
+                ..
+            } => {
                 allocate_operand(left, MemorySignal::Read);
                 allocate_operand(right, MemorySignal::Read);
-            }
-            LirInstruction::VEnd { destination, .. } => {
-                allocate_operand(destination, MemorySignal::Write);
+                allocate_operand(destination, MemorySignal::Read);
             }
             LirInstruction::SetBool { destination, .. }
             | LirInstruction::In { destination, .. } => {

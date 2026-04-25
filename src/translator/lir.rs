@@ -63,54 +63,64 @@ pub enum LirInstruction {
     },
     Add {
         size: WordSize,
-        source: LirOperand,
+        left: LirOperand,
+        right: LirOperand,
         destination: LirOperand,
     },
     Sub {
         size: WordSize,
-        source: LirOperand,
+        left: LirOperand,
+        right: LirOperand,
         destination: LirOperand,
     },
     Mul {
         size: WordSize,
-        source: LirOperand,
+        left: LirOperand,
+        right: LirOperand,
         destination: LirOperand,
     },
     Div {
         size: WordSize,
-        source: LirOperand,
+        left: LirOperand,
+        right: LirOperand,
         destination: LirOperand,
     },
     Rem {
         size: WordSize,
-        source: LirOperand,
+        left: LirOperand,
+        right: LirOperand,
         destination: LirOperand,
     },
 
     Lsl {
         size: WordSize,
+        source: LirOperand,
         count: LirOperand,
         destination: LirOperand,
     },
     Lsr {
         size: WordSize,
+        source: LirOperand,
         count: LirOperand,
         destination: LirOperand,
     },
 
     And {
         size: WordSize,
-        source: LirOperand,
+        left: LirOperand,
+        right: LirOperand,
         destination: LirOperand,
     },
     Or {
         size: WordSize,
-        source: LirOperand,
+        left: LirOperand,
+        right: LirOperand,
         destination: LirOperand,
     },
     Xor {
         size: WordSize,
-        source: LirOperand,
+        left: LirOperand,
+        right: LirOperand,
         destination: LirOperand,
     },
     Not {
@@ -128,61 +138,72 @@ pub enum LirInstruction {
     VAdd {
         left: LirOperand,
         right: LirOperand,
+        destination: LirOperand,
     },
     VSub {
         left: LirOperand,
         right: LirOperand,
+        destination: LirOperand,
     },
     VMul {
         left: LirOperand,
         right: LirOperand,
+        destination: LirOperand,
     },
     VDiv {
         left: LirOperand,
         right: LirOperand,
+        destination: LirOperand,
     },
     VRem {
         left: LirOperand,
         right: LirOperand,
+        destination: LirOperand,
     },
     VAnd {
         left: LirOperand,
         right: LirOperand,
+        destination: LirOperand,
     },
     VOr {
         left: LirOperand,
         right: LirOperand,
+        destination: LirOperand,
     },
     VXor {
         left: LirOperand,
         right: LirOperand,
-    },
-    VEnd {
         destination: LirOperand,
     },
     VCmpBeq {
         left: LirOperand,
         right: LirOperand,
+        destination: LirOperand,
     },
     VCmpBne {
         left: LirOperand,
         right: LirOperand,
+        destination: LirOperand,
     },
     VCmpBgt {
         left: LirOperand,
         right: LirOperand,
+        destination: LirOperand,
     },
     VCmpBge {
         left: LirOperand,
         right: LirOperand,
+        destination: LirOperand,
     },
     VCmpBlt {
         left: LirOperand,
         right: LirOperand,
+        destination: LirOperand,
     },
     VCmpBle {
         left: LirOperand,
         right: LirOperand,
+        destination: LirOperand,
     },
     Call {
         label: BlockId,
@@ -266,10 +287,12 @@ impl LirContext {
             array_constants: vec![],
             return_registers: LirOperand::Register(0, RegisterType::Data),
             restore_data_registers: vec![
+                LirOperand::Register(5, RegisterType::Data),
                 LirOperand::Register(6, RegisterType::Data),
                 LirOperand::Register(7, RegisterType::Data),
             ],
             restore_address_registers: vec![
+                LirOperand::Register(2, RegisterType::Address),
                 LirOperand::Register(3, RegisterType::Address),
                 LirOperand::Register(4, RegisterType::Address),
             ],
@@ -285,10 +308,8 @@ impl LirContext {
                 LirOperand::Register(2, RegisterType::Data),
                 LirOperand::Register(3, RegisterType::Data),
                 LirOperand::Register(4, RegisterType::Data),
-                LirOperand::Register(5, RegisterType::Data),
                 LirOperand::Register(0, RegisterType::Address),
                 LirOperand::Register(1, RegisterType::Address),
-                LirOperand::Register(2, RegisterType::Address),
             ],
         }
     }
@@ -502,7 +523,7 @@ impl LirContext {
                 word_size,
             } => {
                 let address = self.get_global_address(id);
-                let destination = self.get_virtual_register(destination);
+                let destination = self.lower_operand(destination);
                 out.push(LirInstruction::Mov {
                     size: word_size,
                     source: LirOperand::IndirectDirect(address),
@@ -530,129 +551,89 @@ impl LirContext {
                 right,
                 word_size,
             } => {
-                let destination = self.get_virtual_register(destination);
+                let destination = self.lower_operand(destination);
                 let left = self.lower_operand(left);
                 let right = self.lower_operand(right);
 
                 match &operator {
                     HirBinaryOperator::Assign => {}
                     HirBinaryOperator::Add => {
-                        out.push(LirInstruction::Mov {
-                            size: word_size.clone(),
-                            source: left.clone(),
-                            destination: destination.clone(),
-                        });
                         out.push(LirInstruction::Add {
                             size: word_size,
-                            source: right,
-                            destination: destination.clone(),
+                            left,
+                            right,
+                            destination,
                         });
                     }
                     HirBinaryOperator::Sub => {
-                        out.push(LirInstruction::Mov {
-                            size: word_size.clone(),
-                            source: left.clone(),
-                            destination: destination.clone(),
-                        });
                         out.push(LirInstruction::Sub {
                             size: word_size,
-                            source: right,
-                            destination: destination.clone(),
+                            left,
+                            right,
+                            destination,
                         });
                     }
                     HirBinaryOperator::Multiply => {
-                        out.push(LirInstruction::Mov {
-                            size: word_size.clone(),
-                            source: left.clone(),
-                            destination: destination.clone(),
-                        });
                         out.push(LirInstruction::Mul {
                             size: word_size,
-                            source: right,
-                            destination: destination.clone(),
+                            left,
+                            right,
+                            destination,
                         });
                     }
                     HirBinaryOperator::Divide => {
-                        out.push(LirInstruction::Mov {
-                            size: word_size.clone(),
-                            source: left.clone(),
-                            destination: destination.clone(),
-                        });
                         out.push(LirInstruction::Div {
                             size: word_size,
-                            source: right,
-                            destination: destination.clone(),
+                            left,
+                            right,
+                            destination,
                         });
                     }
                     HirBinaryOperator::Remainder => {
-                        out.push(LirInstruction::Mov {
-                            size: word_size.clone(),
-                            source: left.clone(),
-                            destination: destination.clone(),
-                        });
                         out.push(LirInstruction::Rem {
                             size: word_size,
-                            source: right,
-                            destination: destination.clone(),
+                            left,
+                            right,
+                            destination,
                         });
                     }
                     HirBinaryOperator::BitwiseAnd => {
-                        out.push(LirInstruction::Mov {
-                            size: word_size.clone(),
-                            source: left.clone(),
-                            destination: destination.clone(),
-                        });
                         out.push(LirInstruction::And {
                             size: word_size,
-                            source: right,
-                            destination: destination.clone(),
+                            left,
+                            right,
+                            destination,
                         });
                     }
                     HirBinaryOperator::BitwiseOr => {
-                        out.push(LirInstruction::Mov {
-                            size: word_size.clone(),
-                            source: left.clone(),
-                            destination: destination.clone(),
-                        });
                         out.push(LirInstruction::Or {
                             size: word_size,
-                            source: right,
-                            destination: destination.clone(),
+                            left,
+                            right,
+                            destination,
                         });
                     }
                     HirBinaryOperator::BitwiseXor => {
-                        out.push(LirInstruction::Mov {
-                            size: word_size.clone(),
-                            source: left.clone(),
-                            destination: destination.clone(),
-                        });
                         out.push(LirInstruction::Xor {
                             size: word_size,
-                            source: right,
-                            destination: destination.clone(),
+                            left,
+                            right,
+                            destination,
                         });
                     }
                     HirBinaryOperator::LeftShift => {
-                        out.push(LirInstruction::Mov {
-                            size: word_size.clone(),
-                            source: right,
-                            destination: destination.clone(),
-                        });
                         out.push(LirInstruction::Lsl {
                             size: word_size,
-                            count: left,
+                            source: left,
+                            count: right,
                             destination: destination.clone(),
                         });
                     }
                     HirBinaryOperator::RightShift => {
-                        out.push(LirInstruction::Mov {
-                            size: word_size.clone(),
-                            source: right,
-                            destination: destination.clone(),
-                        });
                         out.push(LirInstruction::Lsr {
                             size: word_size,
-                            count: left,
+                            source: left,
+                            count: right,
                             destination: destination.clone(),
                         });
                     }
@@ -677,78 +658,104 @@ impl LirContext {
                         });
                         out.push(LirInstruction::Add {
                             size: WordSize::Long,
-                            source: LirOperand::Direct(4),
+                            left: self.heap_pointer.clone(),
+                            right: LirOperand::Direct(4),
                             destination: self.heap_pointer.clone(),
                         });
                         match &operator {
-                            HirBinaryOperator::VectorAdd => {
-                                out.push(LirInstruction::VAdd { left, right })
-                            }
-                            HirBinaryOperator::VectorSub => {
-                                out.push(LirInstruction::VSub { left, right })
-                            }
-                            HirBinaryOperator::VectorMultiply => {
-                                out.push(LirInstruction::VMul { left, right })
-                            }
-                            HirBinaryOperator::VectorDivide => {
-                                out.push(LirInstruction::VDiv { left, right })
-                            }
-                            HirBinaryOperator::VectorRemainder => {
-                                out.push(LirInstruction::VRem { left, right })
-                            }
-                            HirBinaryOperator::VectorAnd => {
-                                out.push(LirInstruction::VAnd { left, right })
-                            }
-                            HirBinaryOperator::VectorOr => {
-                                out.push(LirInstruction::VOr { left, right })
-                            }
-                            HirBinaryOperator::VectorXor => {
-                                out.push(LirInstruction::VXor { left, right })
-                            }
-                            HirBinaryOperator::VectorEqual => {
-                                out.push(LirInstruction::VCmpBeq { left, right })
-                            }
+                            HirBinaryOperator::VectorAdd => out.push(LirInstruction::VAdd {
+                                left,
+                                right,
+                                destination,
+                            }),
+                            HirBinaryOperator::VectorSub => out.push(LirInstruction::VSub {
+                                left,
+                                right,
+                                destination,
+                            }),
+                            HirBinaryOperator::VectorMultiply => out.push(LirInstruction::VMul {
+                                left,
+                                right,
+                                destination,
+                            }),
+                            HirBinaryOperator::VectorDivide => out.push(LirInstruction::VDiv {
+                                left,
+                                right,
+                                destination,
+                            }),
+                            HirBinaryOperator::VectorRemainder => out.push(LirInstruction::VRem {
+                                left,
+                                right,
+                                destination,
+                            }),
+                            HirBinaryOperator::VectorAnd => out.push(LirInstruction::VAnd {
+                                left,
+                                right,
+                                destination,
+                            }),
+                            HirBinaryOperator::VectorOr => out.push(LirInstruction::VOr {
+                                left,
+                                right,
+                                destination,
+                            }),
+                            HirBinaryOperator::VectorXor => out.push(LirInstruction::VXor {
+                                left,
+                                right,
+                                destination,
+                            }),
+                            HirBinaryOperator::VectorEqual => out.push(LirInstruction::VCmpBeq {
+                                left,
+                                right,
+                                destination,
+                            }),
                             HirBinaryOperator::VectorNotEqual => {
-                                out.push(LirInstruction::VCmpBne { left, right })
+                                out.push(LirInstruction::VCmpBne {
+                                    left,
+                                    right,
+                                    destination,
+                                })
                             }
-                            HirBinaryOperator::VectorLess => {
-                                out.push(LirInstruction::VCmpBlt { left, right })
-                            }
+                            HirBinaryOperator::VectorLess => out.push(LirInstruction::VCmpBlt {
+                                left,
+                                right,
+                                destination,
+                            }),
                             HirBinaryOperator::VectorLessEqual => {
-                                out.push(LirInstruction::VCmpBle { left, right })
+                                out.push(LirInstruction::VCmpBle {
+                                    left,
+                                    right,
+                                    destination,
+                                })
                             }
-                            HirBinaryOperator::VectorGreater => {
-                                out.push(LirInstruction::VCmpBgt { left, right })
-                            }
+                            HirBinaryOperator::VectorGreater => out.push(LirInstruction::VCmpBgt {
+                                left,
+                                right,
+                                destination,
+                            }),
                             HirBinaryOperator::VectorGreaterEqual => {
-                                out.push(LirInstruction::VCmpBge { left, right })
+                                out.push(LirInstruction::VCmpBge {
+                                    left,
+                                    right,
+                                    destination,
+                                })
                             }
                             _ => unreachable!(),
                         }
-                        out.push(LirInstruction::VEnd { destination })
                     }
                     HirBinaryOperator::And => {
-                        out.push(LirInstruction::Mov {
-                            size: word_size.clone(),
-                            source: left.clone(),
-                            destination: destination.clone(),
-                        });
                         out.push(LirInstruction::And {
                             size: word_size,
-                            source: right,
-                            destination: destination.clone(),
+                            left,
+                            right,
+                            destination,
                         });
                     }
                     HirBinaryOperator::Or => {
-                        out.push(LirInstruction::Mov {
-                            size: word_size.clone(),
-                            source: left.clone(),
-                            destination: destination.clone(),
-                        });
                         out.push(LirInstruction::Or {
                             size: word_size,
-                            source: right,
-                            destination: destination.clone(),
+                            left,
+                            right,
+                            destination,
                         });
                     }
                     HirBinaryOperator::Equal
@@ -806,7 +813,8 @@ impl LirContext {
                 if arguments_count > 0 {
                     out.push(LirInstruction::Add {
                         size: WordSize::Long,
-                        source: LirOperand::Direct(arguments_size),
+                        left: self.stack_pointer.clone(),
+                        right: LirOperand::Direct(arguments_size),
                         destination: self.stack_pointer.clone(),
                     });
                 }
@@ -946,7 +954,8 @@ impl LirContext {
 
                 out.push(LirInstruction::Add {
                     size: WordSize::Long,
-                    source: LirOperand::Direct(size),
+                    left: self.heap_pointer.clone(),
+                    right: LirOperand::Direct(size),
                     destination: self.heap_pointer.clone(),
                 });
             }
@@ -982,7 +991,7 @@ impl LirContext {
                 index,
                 word_size,
             } => {
-                let destination = self.get_virtual_register(destination);
+                let destination = self.lower_operand(destination);
                 let array = self.lower_operand(array);
                 let index = self.lower_operand(index);
 
@@ -1019,16 +1028,18 @@ impl LirContext {
                 })
             }
             HirInstruction::AllocateArray { destination, size } => {
-                let destination = self.get_virtual_register(destination);
+                let destination = self.lower_operand(destination);
 
                 out.push(LirInstruction::Add {
                     size: WordSize::Long,
-                    source: LirOperand::Direct(3),
+                    left: self.heap_pointer.clone(),
+                    right: LirOperand::Direct(3),
                     destination: self.heap_pointer.clone(),
                 });
                 out.push(LirInstruction::And {
                     size: WordSize::Long,
-                    source: LirOperand::Direct(0xFFFFFFFFFFFFFFFC),
+                    left: self.heap_pointer.clone(),
+                    right: LirOperand::Direct(0xFFFFFFFFFFFFFFFC),
                     destination: self.heap_pointer.clone(),
                 });
 
@@ -1039,7 +1050,8 @@ impl LirContext {
                 });
                 out.push(LirInstruction::Add {
                     size: WordSize::Long,
-                    source: LirOperand::Direct(size),
+                    left: self.heap_pointer.clone(),
+                    right: LirOperand::Direct(size),
                     destination: self.heap_pointer.clone(),
                 });
             }
@@ -1055,14 +1067,10 @@ impl LirContext {
                 let start = self.lower_operand(start);
 
                 let destination = self.new_virtual_address_register();
-                out.push(LirInstruction::Mov {
-                    size: WordSize::Long,
-                    source: target,
-                    destination: destination.clone(),
-                });
                 out.push(LirInstruction::Add {
                     size: WordSize::Long,
-                    source: start,
+                    left: target,
+                    right: start,
                     destination: destination.clone(),
                 });
 
@@ -1087,17 +1095,13 @@ impl LirContext {
                 start,
                 ..
             } => {
-                let destination = self.get_virtual_register(destination);
+                let destination = self.lower_operand(destination);
                 let array = self.lower_operand(array);
                 let start = self.lower_operand(start);
-                out.push(LirInstruction::Mov {
-                    size: WordSize::Long,
-                    source: array,
-                    destination: destination.clone(),
-                });
                 out.push(LirInstruction::Add {
                     size: WordSize::Long,
-                    source: start,
+                    left: array,
+                    right: start,
                     destination,
                 })
             }
@@ -1106,7 +1110,7 @@ impl LirContext {
                 operand,
                 word_size,
             } => {
-                let destination = self.get_virtual_register(destination);
+                let destination = self.lower_operand(destination);
                 let operand = self.lower_operand(operand);
 
                 out.push(LirInstruction::Not {
@@ -1120,7 +1124,7 @@ impl LirContext {
                 id,
                 word_size,
             } => {
-                let destination = self.get_virtual_register(destination);
+                let destination = self.lower_operand(destination);
                 let array_const = &self.array_constants[id];
                 let base = array_const.base_address;
                 let size = array_const.values.len() as u64;

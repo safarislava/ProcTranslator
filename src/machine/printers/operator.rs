@@ -47,7 +47,6 @@ impl Display for Operator {
             Operator::VAnd => "VAND",
             Operator::VOr => "VOR",
             Operator::VXor => "VXOR",
-            Operator::VEnd => "VEND",
             Operator::VCmpBeq => "VCMPBEQ",
             Operator::VCmpBne => "VCMPBNE",
             Operator::VCmpBgt => "VCMPBGT",

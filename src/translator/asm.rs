@@ -49,87 +49,167 @@ impl AsmTranslator {
                     source,
                     destination,
                 } => {
-                    self.translate_standard_instruction(Operator::Mov, size, &source, &destination);
+                    self.translate_2_operand_instruction(
+                        Operator::Mov,
+                        size,
+                        &source,
+                        &destination,
+                    );
                 }
                 LirInstruction::Add {
                     size,
-                    source,
+                    left,
+                    right,
                     destination,
                 } => {
-                    self.translate_standard_instruction(Operator::Add, size, &source, &destination);
+                    self.translate_3_operand_instruction(
+                        Operator::Add,
+                        size,
+                        &left,
+                        &right,
+                        &destination,
+                    );
                 }
                 LirInstruction::Sub {
                     size,
-                    source,
+                    left,
+                    right,
                     destination,
                 } => {
-                    self.translate_standard_instruction(Operator::Sub, size, &source, &destination);
+                    self.translate_3_operand_instruction(
+                        Operator::Sub,
+                        size,
+                        &left,
+                        &right,
+                        &destination,
+                    );
                 }
                 LirInstruction::Mul {
                     size,
-                    source,
+                    left,
+                    right,
                     destination,
                 } => {
-                    self.translate_standard_instruction(Operator::Mul, size, &source, &destination);
+                    self.translate_3_operand_instruction(
+                        Operator::Mul,
+                        size,
+                        &left,
+                        &right,
+                        &destination,
+                    );
                 }
                 LirInstruction::Div {
                     size,
-                    source,
+                    left,
+                    right,
                     destination,
                 } => {
-                    self.translate_standard_instruction(Operator::Div, size, &source, &destination);
+                    self.translate_3_operand_instruction(
+                        Operator::Div,
+                        size,
+                        &left,
+                        &right,
+                        &destination,
+                    );
                 }
                 LirInstruction::Rem {
                     size,
-                    source,
+                    left,
+                    right,
                     destination,
                 } => {
-                    self.translate_standard_instruction(Operator::Rem, size, &source, &destination);
+                    self.translate_3_operand_instruction(
+                        Operator::Rem,
+                        size,
+                        &left,
+                        &right,
+                        &destination,
+                    );
                 }
                 LirInstruction::Lsl {
                     size,
+                    source,
                     count,
                     destination,
                 } => {
-                    self.translate_standard_instruction(Operator::Lsl, size, &count, &destination);
+                    self.translate_3_operand_instruction(
+                        Operator::Lsl,
+                        size,
+                        &source,
+                        &count,
+                        &destination,
+                    );
                 }
                 LirInstruction::Lsr {
                     size,
+                    source,
                     count,
                     destination,
                 } => {
-                    self.translate_standard_instruction(Operator::Lsr, size, &count, &destination);
+                    self.translate_3_operand_instruction(
+                        Operator::Lsr,
+                        size,
+                        &source,
+                        &count,
+                        &destination,
+                    );
                 }
                 LirInstruction::And {
                     size,
-                    source,
+                    left,
+                    right,
                     destination,
                 } => {
-                    self.translate_standard_instruction(Operator::And, size, &source, &destination);
+                    self.translate_3_operand_instruction(
+                        Operator::And,
+                        size,
+                        &left,
+                        &right,
+                        &destination,
+                    );
                 }
                 LirInstruction::Or {
                     size,
-                    source,
+                    left,
+                    right,
                     destination,
                 } => {
-                    self.translate_standard_instruction(Operator::Or, size, &source, &destination);
+                    self.translate_3_operand_instruction(
+                        Operator::Or,
+                        size,
+                        &left,
+                        &right,
+                        &destination,
+                    );
                 }
                 LirInstruction::Xor {
                     size,
-                    source,
+                    left,
+                    right,
                     destination,
                 } => {
-                    self.translate_standard_instruction(Operator::Xor, size, &source, &destination);
+                    self.translate_3_operand_instruction(
+                        Operator::Xor,
+                        size,
+                        &left,
+                        &right,
+                        &destination,
+                    );
                 }
                 LirInstruction::Not {
                     size,
                     source,
                     destination,
                 } => {
-                    self.translate_standard_instruction(Operator::Not, size, &source, &destination);
+                    self.translate_2_operand_instruction(
+                        Operator::Not,
+                        size,
+                        &source,
+                        &destination,
+                    );
                 }
                 LirInstruction::Cmp { size, that, with } => {
-                    self.translate_standard_instruction(Operator::Cmp, size, &that, &with);
+                    self.translate_2_operand_instruction(Operator::Cmp, size, &that, &with);
                 }
                 LirInstruction::Jmp { label } => {
                     self.translate_branch(Operator::Jmp, label);
@@ -138,105 +218,188 @@ impl AsmTranslator {
                     let operator = self.condition_to_operator(condition);
                     self.translate_branch(operator, label);
                 }
-                LirInstruction::VAdd { left, right } => {
-                    self.translate_standard_instruction(
+                LirInstruction::VAdd {
+                    left,
+                    right,
+                    destination,
+                } => {
+                    self.translate_3_operand_instruction(
                         Operator::VAdd,
                         WordSize::Long,
-                        &right,
                         &left,
+                        &right,
+                        &destination,
                     );
                 }
-                LirInstruction::VSub { left, right } => {
-                    self.translate_standard_instruction(
+                LirInstruction::VSub {
+                    left,
+                    right,
+                    destination,
+                } => {
+                    self.translate_3_operand_instruction(
                         Operator::VSub,
                         WordSize::Long,
-                        &right,
                         &left,
+                        &right,
+                        &destination,
                     );
                 }
-                LirInstruction::VMul { left, right } => {
-                    self.translate_standard_instruction(
+                LirInstruction::VMul {
+                    left,
+                    right,
+                    destination,
+                } => {
+                    self.translate_3_operand_instruction(
                         Operator::VMul,
                         WordSize::Long,
-                        &right,
                         &left,
+                        &right,
+                        &destination,
                     );
                 }
-                LirInstruction::VDiv { left, right } => {
-                    self.translate_standard_instruction(
+                LirInstruction::VDiv {
+                    left,
+                    right,
+                    destination,
+                } => {
+                    self.translate_3_operand_instruction(
                         Operator::VDiv,
                         WordSize::Long,
-                        &right,
                         &left,
+                        &right,
+                        &destination,
                     );
                 }
-                LirInstruction::VRem { left, right } => {
-                    self.translate_standard_instruction(
+                LirInstruction::VRem {
+                    left,
+                    right,
+                    destination,
+                } => {
+                    self.translate_3_operand_instruction(
                         Operator::VRem,
                         WordSize::Long,
-                        &right,
                         &left,
+                        &right,
+                        &destination,
                     );
                 }
-                LirInstruction::VAnd { left, right } => self.translate_standard_instruction(
-                    Operator::VAnd,
-                    WordSize::Long,
-                    &right,
-                    &left,
-                ),
-                LirInstruction::VOr { left, right } => self.translate_standard_instruction(
-                    Operator::VOr,
-                    WordSize::Long,
-                    &right,
-                    &left,
-                ),
-                LirInstruction::VXor { left, right } => self.translate_standard_instruction(
-                    Operator::VXor,
-                    WordSize::Long,
-                    &right,
-                    &left,
-                ),
-                LirInstruction::VEnd { destination } => {
-                    self.translate_vector_end(&destination);
+                LirInstruction::VAnd {
+                    left,
+                    right,
+                    destination,
+                } => {
+                    self.translate_3_operand_instruction(
+                        Operator::VAnd,
+                        WordSize::Long,
+                        &left,
+                        &right,
+                        &destination,
+                    );
                 }
-                LirInstruction::VCmpBeq { left, right } => {
-                    self.translate_standard_instruction(
+                LirInstruction::VOr {
+                    left,
+                    right,
+                    destination,
+                } => {
+                    self.translate_3_operand_instruction(
+                        Operator::VOr,
+                        WordSize::Long,
+                        &left,
+                        &right,
+                        &destination,
+                    );
+                }
+                LirInstruction::VXor {
+                    left,
+                    right,
+                    destination,
+                } => {
+                    self.translate_3_operand_instruction(
+                        Operator::VXor,
+                        WordSize::Long,
+                        &left,
+                        &right,
+                        &destination,
+                    );
+                }
+                LirInstruction::VCmpBeq {
+                    left,
+                    right,
+                    destination,
+                } => {
+                    self.translate_3_operand_instruction(
                         Operator::VCmpBeq,
                         WordSize::Long,
-                        &right,
                         &left,
+                        &right,
+                        &destination,
                     );
                 }
-                LirInstruction::VCmpBne { left, right } => self.translate_standard_instruction(
-                    Operator::VCmpBne,
-                    WordSize::Long,
-                    &right,
-                    &left,
-                ),
-                LirInstruction::VCmpBlt { left, right } => self.translate_standard_instruction(
-                    Operator::VCmpBlt,
-                    WordSize::Long,
-                    &right,
-                    &left,
-                ),
-                LirInstruction::VCmpBle { left, right } => self.translate_standard_instruction(
-                    Operator::VCmpBle,
-                    WordSize::Long,
-                    &right,
-                    &left,
-                ),
-                LirInstruction::VCmpBgt { left, right } => self.translate_standard_instruction(
-                    Operator::VCmpBgt,
-                    WordSize::Long,
-                    &right,
-                    &left,
-                ),
-                LirInstruction::VCmpBge { left, right } => self.translate_standard_instruction(
-                    Operator::VCmpBge,
-                    WordSize::Long,
-                    &right,
-                    &left,
-                ),
+                LirInstruction::VCmpBne {
+                    left,
+                    right,
+                    destination,
+                } => {
+                    self.translate_3_operand_instruction(
+                        Operator::VCmpBne,
+                        WordSize::Long,
+                        &left,
+                        &right,
+                        &destination,
+                    );
+                }
+                LirInstruction::VCmpBlt {
+                    left,
+                    right,
+                    destination,
+                } => {
+                    self.translate_3_operand_instruction(
+                        Operator::VCmpBlt,
+                        WordSize::Long,
+                        &left,
+                        &right,
+                        &destination,
+                    );
+                }
+                LirInstruction::VCmpBle {
+                    left,
+                    right,
+                    destination,
+                } => {
+                    self.translate_3_operand_instruction(
+                        Operator::VCmpBle,
+                        WordSize::Long,
+                        &left,
+                        &right,
+                        &destination,
+                    );
+                }
+                LirInstruction::VCmpBgt {
+                    left,
+                    right,
+                    destination,
+                } => {
+                    self.translate_3_operand_instruction(
+                        Operator::VCmpBgt,
+                        WordSize::Long,
+                        &left,
+                        &right,
+                        &destination,
+                    );
+                }
+                LirInstruction::VCmpBge {
+                    left,
+                    right,
+                    destination,
+                } => {
+                    self.translate_3_operand_instruction(
+                        Operator::VCmpBge,
+                        WordSize::Long,
+                        &left,
+                        &right,
+                        &destination,
+                    );
+                }
                 LirInstruction::Call { label } => {
                     self.translate_branch(Operator::Call, label);
                 }
@@ -261,7 +424,7 @@ impl AsmTranslator {
                     let true_address = self.data.len();
                     self.data.extend(vec![0; 7]);
 
-                    self.translate_standard_instruction(
+                    self.translate_2_operand_instruction(
                         Operator::Mov,
                         WordSize::Long,
                         &LirOperand::Direct(0),
@@ -277,7 +440,7 @@ impl AsmTranslator {
                     self.data[true_address..true_address + 7]
                         .copy_from_slice(&current_address.to_be_bytes()[1..8]);
 
-                    self.translate_standard_instruction(
+                    self.translate_2_operand_instruction(
                         Operator::Mov,
                         WordSize::Long,
                         &LirOperand::Direct(1),
@@ -378,7 +541,7 @@ impl AsmTranslator {
         }
     }
 
-    fn translate_standard_instruction(
+    fn translate_2_operand_instruction(
         &mut self,
         operator: Operator,
         size: WordSize,
@@ -398,17 +561,28 @@ impl AsmTranslator {
         self.data.extend(source_postcode);
         self.data.extend(destination_postcode);
     }
+    fn translate_3_operand_instruction(
+        &mut self,
+        operator: Operator,
+        size: WordSize,
+        left: &LirOperand,
+        right: &LirOperand,
+        destination: &LirOperand,
+    ) {
+        let operator_code = self.operators[&operator];
+        let size_code = self.word_sizes[&size];
 
-    fn translate_vector_end(&mut self, destination: &LirOperand) {
-        let operator_code = self.operators[&Operator::VEnd];
+        let (left_code, left_postcode) = self.translate_operand(left);
+        let (right_code, right_postcode) = self.translate_operand(right);
+        let (destination_code, destination_postcode) = self.translate_operand(destination);
 
-        let (source_code, source_postcode) = self.translate_operand(destination);
-
-        self.data.push(operator_code << 1 | 1);
-        self.data.push(source_code);
-        self.data.push(0);
-        self.data.push(0);
-        self.data.extend(source_postcode);
+        self.data.push((operator_code << 1) | size_code);
+        self.data.push(left_code);
+        self.data.push(right_code);
+        self.data.push(destination_code);
+        self.data.extend(left_postcode);
+        self.data.extend(right_postcode);
+        self.data.extend(destination_postcode);
     }
 
     fn translate_branch(&mut self, operator: Operator, label: BlockId) {
@@ -561,7 +735,6 @@ impl Default for AsmTranslator {
             (Operator::VAnd, 0x46),
             (Operator::VOr, 0x47),
             (Operator::VXor, 0x48),
-            (Operator::VEnd, 0x49),
             (Operator::In, 0x50),
             (Operator::Out, 0x51),
             (Operator::EI, 0x52),

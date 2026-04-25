@@ -139,12 +139,12 @@ impl Alu {
             AluOperator::Xor => (a ^ b, Some(a ^ b >> 63 == 1), Some(a ^ b == 0), None, None),
             AluOperator::Not => (!a, Some(!a >> 63 == 1), Some(!a == 0), None, None),
             AluOperator::Lsl => {
-                let shift_count = (a & 63) as u32;
+                let shift_count = (b & 63) as u32;
                 if shift_count == 0 {
-                    (b, Some(b >> 63 == 1), Some(b == 0), None, None)
+                    (a, Some(a >> 63 == 1), Some(a == 0), None, None)
                 } else {
-                    let carry = (b >> (64 - shift_count)) & 1 == 1;
-                    let result = b << shift_count;
+                    let carry = (a >> (64 - shift_count)) & 1 == 1;
+                    let result = a << shift_count;
                     (
                         result,
                         Some(result >> 63 == 1),
@@ -155,12 +155,12 @@ impl Alu {
                 }
             }
             AluOperator::Lsr => {
-                let shift_count = (a & 63) as u32;
+                let shift_count = (b & 63) as u32;
                 if shift_count == 0 {
-                    (b, Some(b >> 63 == 1), Some(b == 0), None, None)
+                    (a, Some(a >> 63 == 1), Some(a == 0), None, None)
                 } else {
-                    let carry = (b >> (shift_count - 1)) & 1 == 1;
-                    let result = b >> shift_count;
+                    let carry = (a >> (shift_count - 1)) & 1 == 1;
+                    let result = a >> shift_count;
                     (
                         result,
                         Some(result >> 63 == 1),
@@ -171,18 +171,18 @@ impl Alu {
                 }
             }
             AluOperator::Asl => {
-                let shift_count = (a & 63) as u32;
+                let shift_count = (b & 63) as u32;
                 (
-                    b << shift_count,
-                    Some((b << shift_count) >> 63 == 1),
-                    Some((b << shift_count) == 0),
+                    a << shift_count,
+                    Some((a << shift_count) >> 63 == 1),
+                    Some((a << shift_count) == 0),
                     None,
                     None,
                 )
             }
             AluOperator::Asr => {
-                let shift_count = (a & 63) as u32;
-                let result = ((b as i64) >> shift_count) as u64;
+                let shift_count = (b & 63) as u32;
+                let result = ((a as i64) >> shift_count) as u64;
                 (
                     result,
                     Some(result >> 63 == 1),

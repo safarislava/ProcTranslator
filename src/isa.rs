@@ -52,7 +52,6 @@ pub enum Operator {
     VAnd,
     VOr,
     VXor,
-    VEnd,
     VCmpBeq,
     VCmpBne,
     VCmpBgt,

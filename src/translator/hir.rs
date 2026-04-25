@@ -258,7 +258,7 @@ enum LocalVariable {
 }
 
 struct HirContext {
-    pub blocks: Vec<HirBlock>,
+    blocks: Vec<HirBlock>,
     current_block: Option<BlockId>,
     register_counter: u64,
     slot_counter: u64,
@@ -723,10 +723,8 @@ impl HirContext {
                 let arguments: Vec<_> = arguments
                     .into_iter()
                     .map(|arg| {
-                        (
-                            self.generate_expression(arg.clone()),
-                            self.get_word_size(&arg.get_type()),
-                        )
+                        let word_size = self.get_word_size(&arg.get_type());
+                        (self.generate_expression(arg), word_size)
                     })
                     .collect();
                 let destination = self.new_register();
@@ -1248,7 +1246,7 @@ impl HirContext {
             Type::Char => 1,
             Type::Int => 1,
             Type::Array(_, size) => *size,
-            Type::Class(name) => self.classes[name].fields.iter().len() as u64,
+            Type::Class(name) => self.classes[name].fields.len() as u64,
         }
     }
 

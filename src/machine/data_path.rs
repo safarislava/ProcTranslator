@@ -26,14 +26,9 @@ pub enum DataSelector {
     External,
 }
 
-pub enum OffsetSelector {
-    DataRegister,
-    External,
-}
-
 pub enum AluInputSelector {
-    Data,
-    Offset,
+    Register,
+    Immediate,
 }
 
 pub enum PreModeSelector {
@@ -70,8 +65,10 @@ pub enum BranchSelector {
 }
 
 pub struct DataPath {
+    left_data_mux: u64,
+    right_data_mux: u64,
+    left_data_register: u64,
     right_data_register: u64,
-    right_offset: u64,
     left_alu_input: u64,
     right_alu_input: u64,
     alu: Alu,
@@ -194,31 +191,33 @@ impl DataPath {
         }
     }
 
-    fn update_offset(&mut self, selector: OffsetSelector) -> u64 {
-        match selector {
-            OffsetSelector::DataRegister => self.data_registers_mux,
-            OffsetSelector::External => match self.external_selector {
-                ExternalSelector::ControlUnit => self.control_unit_output,
-                ExternalSelector::IO => self.io.output,
-            },
+    pub fn update_left_data_mux(&mut self, selector: DataSelector) {
+        self.left_data_mux = self.update_data(selector)
+    }
+
+    pub fn latch_left_data_register(&mut self) {
+        self.left_data_register = self.left_data_mux
+    }
+
+    pub fn update_left_alu_input(&mut self, selector: AluInputSelector) {
+        self.left_alu_input = match selector {
+            AluInputSelector::Register => self.left_data_register,
+            AluInputSelector::Immediate => self.left_data_mux,
         }
     }
-    pub fn update_left_alu_input(&mut self, selector: DataSelector) {
-        self.left_alu_input = self.update_data(selector);
+
+    pub fn update_right_data_mux(&mut self, selector: DataSelector) {
+        self.right_data_mux = self.update_data(selector)
     }
 
-    pub fn latch_right_data_register(&mut self, selector: DataSelector) {
-        self.right_data_register = self.update_data(selector);
-    }
-
-    pub fn update_right_offset(&mut self, selector: OffsetSelector) {
-        self.right_offset = self.update_offset(selector);
+    pub fn latch_right_data_register(&mut self) {
+        self.right_data_register = self.right_data_mux
     }
 
     pub fn update_right_alu_input(&mut self, selector: AluInputSelector) {
         self.right_alu_input = match selector {
-            AluInputSelector::Data => self.right_data_register,
-            AluInputSelector::Offset => self.right_offset,
+            AluInputSelector::Register => self.right_data_register,
+            AluInputSelector::Immediate => self.right_data_mux,
         }
     }
 
@@ -337,6 +336,8 @@ impl DataPath {
 impl Default for DataPath {
     fn default() -> Self {
         Self {
+            left_data_mux: 0,
+            right_data_mux: 0,
             data_memory: DataMemory::new(25000),
             left_alu_input: 0,
             right_alu_input: 0,
@@ -346,8 +347,8 @@ impl Default for DataPath {
             data_registers: [0; 8],
             address_registers_mux: 0,
             address_registers: [0; 8],
+            left_data_register: 0,
             right_data_register: 0,
-            right_offset: 0,
             external_selector: ExternalSelector::ControlUnit,
             pre_mode_selector: PreModeSelector::None,
             post_mode_selector: PostModeSelector::None,

@@ -49,7 +49,6 @@ impl InstructionParser {
             (0x46, Operator::VAnd),
             (0x47, Operator::VOr),
             (0x48, Operator::VXor),
-            (0x49, Operator::VEnd),
             (0x50, Operator::In),
             (0x51, Operator::Out),
             (0x52, Operator::EI),
