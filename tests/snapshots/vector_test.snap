@@ -27,7 +27,7 @@ program: |-
       }
       return;
   }
-ticks: 26909
+ticks: 25678
 input: []
 int_output:
 - 3329663154
@@ -283,4 +283,4 @@ machine_code: |-
   0x00FB: 0x03585C00   MOV.w A7, A6
   0x00FC: 0x039C5800   MOV.w A6, (A7)+
   0x00FD: 0x44000000   RET.b
-log: ' INFO TICK 26908 | Result : 0'
+log: ' INFO TICK 25677 | Result : 0'

@@ -39,7 +39,7 @@ program: |-
       }
       return;
   }
-ticks: 49825
+ticks: 47026
 input: []
 int_output:
 - 6712005494740828460
@@ -323,4 +323,4 @@ machine_code: |-
   0x0189: 0x03585C00   MOV.w A7, A6
   0x018A: 0x039C5800   MOV.w A6, (A7)+
   0x018B: 0x44000000   RET.b
-log: ' INFO TICK 49824 | Result : 0'
+log: ' INFO TICK 47025 | Result : 0'

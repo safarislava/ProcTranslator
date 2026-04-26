@@ -84,7 +84,7 @@ program: |-
       name.add(v);
       return;
   }
-ticks: 5930
+ticks: 5738
 input:
 - tick: 200
   value: 115
@@ -430,4 +430,4 @@ machine_code: |-
   0x0198: 0x2124E028   ADD.w (#0x00000000), D1
   0x019A: 0x0328D800   MOV.w (A6:#0xFFFFFFFF), D2
   0x019C: 0x40000000   JMP.b 0x000000000000015E
-log: ' INFO TICK 5929 | Result : 0'
+log: ' INFO TICK 5737 | Result : 0'

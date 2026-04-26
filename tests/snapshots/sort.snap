@@ -79,7 +79,7 @@ program: |-
       }
       return;
   }
-ticks: 7164
+ticks: 6964
 input:
 - tick: 200
   value: 6
@@ -495,4 +495,4 @@ machine_code: |-
   0x025D: 0x039C2800   MOV.w D2, (A7)+
   0x025E: 0x039C2400   MOV.w D1, (A7)+
   0x025F: 0x46000000   INTRET.b
-log: ' INFO TICK 7163 | Result : 0'
+log: ' INFO TICK 6963 | Result : 0'

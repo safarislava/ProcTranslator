@@ -54,7 +54,7 @@ program: |
       }
       return;
   }
-ticks: 1655
+ticks: 1544
 input: []
 int_output: []
 char_output: "aaa\0"
@@ -334,4 +334,4 @@ machine_code: |-
   0x016E: 0x2124E028   ADD.w (#0x00000002), D1
   0x0170: 0x0328D800   MOV.w (A6:#0xFFFFFFFF), D2
   0x0172: 0x40000000   JMP.b 0x0000000000000134
-log: ' INFO TICK 1654 | Result : 0'
+log: ' INFO TICK 1543 | Result : 0'

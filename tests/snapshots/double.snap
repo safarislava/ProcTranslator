@@ -34,7 +34,7 @@ program: |-
       sum(9223372036854775807, -1, 0, 1);
       return;
   }
-ticks: 1081
+ticks: 1016
 input: []
 int_output:
 - 1
@@ -234,4 +234,4 @@ machine_code: |-
   0x0112: 0x40000000   JMP.b 0x0000000000000114
   0x0114: 0x40000000   JMP.b 0x0000000000000116
   0x0116: 0x40000000   JMP.b 0x00000000000000EC
-log: ' INFO TICK 1080 | Result : 0'
+log: ' INFO TICK 1015 | Result : 0'

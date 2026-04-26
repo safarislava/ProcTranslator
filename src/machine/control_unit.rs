@@ -179,22 +179,22 @@ impl ControlUnit {
                 self.execution_state = ExecutionState::Stop;
                 self.log += &format!("| Result : {}", self.data_path.data_registers[0] as i64);
             }
-            Operator::Mov => self.execute_move(step),
+            Operator::Mov => self.execute_2_operand_operator(step, &AluOperator::Trr),
             Operator::Cmp => self.execute_cmp(step),
-            Operator::Add => self.execute_operator(step, AluOperator::Add),
-            Operator::Adc => self.execute_operator(step, AluOperator::Adc),
-            Operator::Sub => self.execute_operator(step, AluOperator::Sub),
-            Operator::Mul => self.execute_operator(step, AluOperator::Mul),
-            Operator::Div => self.execute_operator(step, AluOperator::Div),
-            Operator::Rem => self.execute_operator(step, AluOperator::Rem),
-            Operator::And => self.execute_operator(step, AluOperator::And),
-            Operator::Or => self.execute_operator(step, AluOperator::Or),
-            Operator::Xor => self.execute_operator(step, AluOperator::Xor),
-            Operator::Not => self.execute_operator(step, AluOperator::Not),
-            Operator::Lsl => self.execute_operator(step, AluOperator::Lsl),
-            Operator::Lsr => self.execute_operator(step, AluOperator::Lsr),
-            Operator::Asl => self.execute_operator(step, AluOperator::Asl),
-            Operator::Asr => self.execute_operator(step, AluOperator::Asr),
+            Operator::Add => self.execute_3_operand_operator(step, AluOperator::Add),
+            Operator::Adc => self.execute_3_operand_operator(step, AluOperator::Adc),
+            Operator::Sub => self.execute_3_operand_operator(step, AluOperator::Sub),
+            Operator::Mul => self.execute_3_operand_operator(step, AluOperator::Mul),
+            Operator::Div => self.execute_3_operand_operator(step, AluOperator::Div),
+            Operator::Rem => self.execute_3_operand_operator(step, AluOperator::Rem),
+            Operator::And => self.execute_3_operand_operator(step, AluOperator::And),
+            Operator::Or => self.execute_3_operand_operator(step, AluOperator::Or),
+            Operator::Xor => self.execute_3_operand_operator(step, AluOperator::Xor),
+            Operator::Not => self.execute_2_operand_operator(step, &AluOperator::Not),
+            Operator::Lsl => self.execute_3_operand_operator(step, AluOperator::Lsl),
+            Operator::Lsr => self.execute_3_operand_operator(step, AluOperator::Lsr),
+            Operator::Asl => self.execute_3_operand_operator(step, AluOperator::Asl),
+            Operator::Asr => self.execute_3_operand_operator(step, AluOperator::Asr),
             Operator::Jmp => self.execute_jump(step),
             Operator::Call => self.execute_call(step),
             Operator::Ret => self.execute_return(step),
@@ -366,16 +366,29 @@ impl ControlUnit {
         )
     }
 
-    fn execute_move(&mut self, step: u8) {
+    fn execute_2_operand_operator(&mut self, step: u8, alu_op: &AluOperator) {
         match step {
             0 => {
                 let source = self.parse_data_readable(1);
-                self.prepare_operand(AluInput::Right, &source, PrepareMode::Register);
+                let destination = self.parse_data_writable(2);
 
-                if Self::is_operand_needed_second_step(&source) {
-                    self.execution_state = ExecutionState::Execute(1);
+                if !Self::is_operand_needed_second_step(&source)
+                    && !Self::is_operand_needed_second_step(&destination)
+                {
+                    self.prepare_operand(AluInput::Right, &source, PrepareMode::Immediate);
+                    self.data_path
+                        .update_right_alu_input(AluInputSelector::Immediate);
+                    self.data_path
+                        .execute_alu(&AluOperator::Trr, &self.word_size);
+                    self.store_operand(destination);
+                    self.execution_state = ExecutionState::Done;
                 } else {
-                    self.execution_state = ExecutionState::Execute(2);
+                    self.prepare_operand(AluInput::Right, &source, PrepareMode::Register);
+                    self.execution_state = if Self::is_operand_needed_second_step(&source) {
+                        ExecutionState::Execute(1)
+                    } else {
+                        ExecutionState::Execute(2)
+                    };
                 }
             }
             1 => {
@@ -384,15 +397,13 @@ impl ControlUnit {
             }
             2 => {
                 let destination = self.parse_data_writable(2);
-                self.prepare_operand(AluInput::None, &destination, PrepareMode::Immediate);
-
                 if Self::is_operand_needed_second_step(&destination) {
+                    self.prepare_operand(AluInput::None, &destination, PrepareMode::Immediate);
                     self.execution_state = ExecutionState::Execute(3);
                 } else {
                     self.data_path
                         .update_right_alu_input(AluInputSelector::Register);
-                    self.data_path
-                        .execute_alu(&AluOperator::Trr, &self.word_size);
+                    self.data_path.execute_alu(alu_op, &self.word_size);
                     self.store_operand(destination);
                     self.execution_state = ExecutionState::Done;
                 }
@@ -400,7 +411,6 @@ impl ControlUnit {
             3 => {
                 let destination = self.parse_data_writable(2);
                 self.load_indirect_operand(AluInput::None, PrepareMode::Immediate);
-
                 self.data_path
                     .update_right_alu_input(AluInputSelector::Register);
                 self.data_path
@@ -421,11 +431,11 @@ impl ControlUnit {
             0 => {
                 let first = self.parse_data_readable(1);
                 self.prepare_operand(AluInput::Right, &first, PrepareMode::Register);
-                if Self::is_operand_needed_second_step(&first) {
-                    self.execution_state = ExecutionState::Execute(1);
+                self.execution_state = if Self::is_operand_needed_second_step(&first) {
+                    ExecutionState::Execute(1)
                 } else {
-                    self.execution_state = ExecutionState::Execute(2);
-                }
+                    ExecutionState::Execute(2)
+                };
             }
             1 => {
                 self.load_indirect_operand(AluInput::Right, PrepareMode::Register);
@@ -461,16 +471,33 @@ impl ControlUnit {
         }
     }
 
-    fn execute_operator(&mut self, step: u8, alu_op: AluOperator) {
+    fn execute_3_operand_operator(&mut self, step: u8, alu_op: AluOperator) {
         match step {
             0 => {
                 let left = self.parse_data_readable(1);
-                self.prepare_operand(AluInput::Left, &left, PrepareMode::Register);
+                let right = self.parse_data_readable(2);
+                let destination = self.parse_data_writable(3);
 
-                if Self::is_operand_needed_second_step(&left) {
-                    self.execution_state = ExecutionState::Execute(1);
+                if !Self::is_operand_needed_second_step(&left)
+                    && !Self::is_operand_needed_second_step(&right)
+                    && !Self::is_operand_needed_second_step(&destination)
+                {
+                    self.prepare_operand(AluInput::Left, &left, PrepareMode::Immediate);
+                    self.prepare_operand(AluInput::Right, &right, PrepareMode::Immediate);
+                    self.data_path
+                        .update_left_alu_input(AluInputSelector::Immediate);
+                    self.data_path
+                        .update_right_alu_input(AluInputSelector::Immediate);
+                    self.data_path.execute_alu(&alu_op, &self.word_size);
+                    self.store_operand(destination);
+                    self.execution_state = ExecutionState::Done;
                 } else {
-                    self.execution_state = ExecutionState::Execute(2);
+                    self.prepare_operand(AluInput::Left, &left, PrepareMode::Register);
+                    self.execution_state = if Self::is_operand_needed_second_step(&left) {
+                        ExecutionState::Execute(1)
+                    } else {
+                        ExecutionState::Execute(2)
+                    };
                 }
             }
             1 => {
@@ -479,12 +506,26 @@ impl ControlUnit {
             }
             2 => {
                 let right = self.parse_data_readable(2);
-                self.prepare_operand(AluInput::Right, &right, PrepareMode::Register);
+                let destination = self.parse_data_writable(3);
 
-                if Self::is_operand_needed_second_step(&right) {
-                    self.execution_state = ExecutionState::Execute(3);
+                if !Self::is_operand_needed_second_step(&right)
+                    && !Self::is_operand_needed_second_step(&destination)
+                {
+                    self.prepare_operand(AluInput::Right, &right, PrepareMode::Immediate);
+                    self.data_path
+                        .update_left_alu_input(AluInputSelector::Register);
+                    self.data_path
+                        .update_right_alu_input(AluInputSelector::Immediate);
+                    self.data_path.execute_alu(&alu_op, &self.word_size);
+                    self.store_operand(destination);
+                    self.execution_state = ExecutionState::Done;
                 } else {
-                    self.execution_state = ExecutionState::Execute(4);
+                    self.prepare_operand(AluInput::Right, &right, PrepareMode::Register);
+                    self.execution_state = if Self::is_operand_needed_second_step(&right) {
+                        ExecutionState::Execute(3)
+                    } else {
+                        ExecutionState::Execute(4)
+                    };
                 }
             }
             3 => {
@@ -493,7 +534,6 @@ impl ControlUnit {
             }
             4 => {
                 let destination = self.parse_data_writable(3);
-
                 if Self::is_operand_needed_second_step(&destination) {
                     self.prepare_operand(AluInput::None, &destination, PrepareMode::Immediate);
                     self.execution_state = ExecutionState::Execute(5);
@@ -510,14 +550,12 @@ impl ControlUnit {
             5 => {
                 let destination = self.parse_data_writable(3);
                 self.load_indirect_operand(AluInput::None, PrepareMode::Register);
-
                 self.data_path
                     .update_left_alu_input(AluInputSelector::Register);
                 self.data_path
                     .update_right_alu_input(AluInputSelector::Register);
                 self.data_path.execute_alu(&alu_op, &self.word_size);
                 self.store_operand(destination);
-
                 self.execution_state = ExecutionState::Execute(6);
             }
             6 => {
@@ -540,14 +578,14 @@ impl ControlUnit {
                 let right = self.parse_data_readable(1);
                 self.prepare_operand(AluInput::Left, &right, PrepareMode::Immediate);
                 if Self::is_operand_needed_second_step(&right) {
-                    self.execution_state = ExecutionState::Execute(step + 1);
+                    self.execution_state = ExecutionState::Execute(1);
                 } else {
                     self.data_path
                         .update_left_alu_input(AluInputSelector::Immediate);
                     self.data_path
                         .execute_alu(&AluOperator::Trl, &WordSize::Long);
                     self.data_path.latch_data_address();
-                    self.execution_state = ExecutionState::Execute(step + 2);
+                    self.execution_state = ExecutionState::Execute(2);
                 }
             }
             1 => {
@@ -557,7 +595,7 @@ impl ControlUnit {
                 self.data_path
                     .execute_alu(&AluOperator::Trl, &WordSize::Long);
                 self.data_path.latch_data_address();
-                self.execution_state = ExecutionState::Execute(step + 1);
+                self.execution_state = ExecutionState::Execute(2);
             }
             2 => {
                 self.data_path.read_data_memory();
@@ -565,14 +603,14 @@ impl ControlUnit {
                 let left = self.parse_data_readable(2);
                 self.prepare_operand(AluInput::Left, &left, PrepareMode::Immediate);
                 if Self::is_operand_needed_second_step(&left) {
-                    self.execution_state = ExecutionState::Execute(step + 1);
+                    self.execution_state = ExecutionState::Execute(3);
                 } else {
                     self.data_path
                         .update_left_alu_input(AluInputSelector::Immediate);
                     self.data_path
                         .execute_alu(&AluOperator::Trl, &WordSize::Long);
                     self.data_path.latch_data_address();
-                    self.execution_state = ExecutionState::Execute(step + 2);
+                    self.execution_state = ExecutionState::Execute(4);
                 }
             }
             3 => {
@@ -582,7 +620,7 @@ impl ControlUnit {
                 self.data_path
                     .execute_alu(&AluOperator::Trl, &WordSize::Long);
                 self.data_path.latch_data_address();
-                self.execution_state = ExecutionState::Execute(step + 1);
+                self.execution_state = ExecutionState::Execute(4);
             }
             4 => {
                 self.data_path.read_data_memory();
@@ -595,14 +633,14 @@ impl ControlUnit {
                 let destination = self.parse_data_readable(3);
                 self.prepare_operand(AluInput::Left, &destination, PrepareMode::Immediate);
                 if Self::is_operand_needed_second_step(&destination) {
-                    self.execution_state = ExecutionState::Execute(step + 1);
+                    self.execution_state = ExecutionState::Execute(5);
                 } else {
                     self.data_path
                         .update_left_alu_input(AluInputSelector::Immediate);
                     self.data_path
                         .execute_alu(&AluOperator::Trl, &WordSize::Long);
                     self.data_path.latch_data_address();
-                    self.execution_state = ExecutionState::Execute(step + 2);
+                    self.execution_state = ExecutionState::Execute(6);
                 }
             }
             5 => {
@@ -612,7 +650,7 @@ impl ControlUnit {
                 self.data_path
                     .execute_alu(&AluOperator::Trl, &WordSize::Long);
                 self.data_path.latch_data_address();
-                self.execution_state = ExecutionState::Execute(step + 1);
+                self.execution_state = ExecutionState::Execute(6);
             }
             6 => {
                 self.data_path.write_data_memory(WriteSelector::Vector);
@@ -762,7 +800,6 @@ impl ControlUnit {
                 self.data_path
                     .execute_alu(&AluOperator::Trl, &WordSize::Long);
                 self.latch_pc(PcSelector::ByDataPath);
-
                 self.execution_state = ExecutionState::Execute(2);
             }
             2 => {
@@ -799,7 +836,7 @@ impl ControlUnit {
                 if condition {
                     self.latch_pc(PcSelector::ByAddress);
                 } else {
-                    self.latch_pc(PcSelector::NextWord)
+                    self.latch_pc(PcSelector::NextWord);
                 }
                 self.execution_state = ExecutionState::Done;
             }

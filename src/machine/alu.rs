@@ -137,7 +137,7 @@ impl Alu {
             AluOperator::And => (a & b, Some(a & b >> 63 == 1), Some(a & b == 0), None, None),
             AluOperator::Or => (a | b, Some(a | b >> 63 == 1), Some(a | b == 0), None, None),
             AluOperator::Xor => (a ^ b, Some(a ^ b >> 63 == 1), Some(a ^ b == 0), None, None),
-            AluOperator::Not => (!a, Some(!a >> 63 == 1), Some(!a == 0), None, None),
+            AluOperator::Not => (!b, Some(!b >> 63 == 1), Some(!b == 0), None, None),
             AluOperator::Lsl => {
                 let shift_count = (b & 63) as u32;
                 if shift_count == 0 {

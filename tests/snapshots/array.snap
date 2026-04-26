@@ -37,7 +37,7 @@ program: |-
 
       return a[0];
   }
-ticks: 2247
+ticks: 2114
 input: []
 int_output: []
 char_output: cdeab
@@ -235,4 +235,4 @@ machine_code: |-
   0x0127: 0x03585C00   MOV.w A7, A6
   0x0128: 0x039C5800   MOV.w A6, (A7)+
   0x0129: 0x44000000   RET.b
-log: ' INFO TICK 2246 | Result : 97'
+log: ' INFO TICK 2113 | Result : 97'

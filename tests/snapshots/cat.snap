@@ -18,7 +18,7 @@ program: |-
       while (flag) {}
       return;
   }
-ticks: 2141
+ticks: 2137
 input:
 - tick: 200
   value: 72
@@ -116,4 +116,4 @@ machine_code: |-
   0x0069: 0x03585C00   MOV.w A7, A6
   0x006A: 0x039C5800   MOV.w A6, (A7)+
   0x006B: 0x44000000   RET.b
-log: ' INFO TICK 2140 | Result : 0'
+log: ' INFO TICK 2136 | Result : 0'
