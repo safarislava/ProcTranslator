@@ -1269,7 +1269,7 @@ impl ControlUnit {
                 self.data_path
                     .latch_data_register(operand.main_register, &self.word_size);
                 self.log_event(&format!(
-                    "Write to D{}: Value = {}",
+                    "Write: D{} = {}",
                     operand.main_register, self.data_path.alu_output as i64
                 ));
             }
@@ -1277,7 +1277,7 @@ impl ControlUnit {
                 self.data_path
                     .latch_address_register(operand.main_register, &self.word_size);
                 self.log_event(&format!(
-                    "Write to A{}: Value = {}",
+                    "Write: A{} = {}",
                     operand.main_register, self.data_path.alu_output as i64
                 ));
             }

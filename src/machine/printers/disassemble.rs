@@ -185,11 +185,9 @@ pub fn disassemble(program: &[u32]) -> Vec<String> {
                 let port_byte = ((ir >> 16) & 0xff) as u8;
                 let operand_byte = ((ir >> 8) & 0xff) as u8;
 
-                // Порт передаётся напрямую, а не как режим операнда
                 let port_m = format!("#{}", port_byte);
                 let port_d = format!("{}", port_byte);
 
-                // А вот данные/источник парсим обычным способом
                 let (op_m, op_d) = parse_operand(operand_byte, program, &mut i);
 
                 args_m.push(port_m);
@@ -227,7 +225,7 @@ pub fn disassemble(program: &[u32]) -> Vec<String> {
         };
 
         let desc_str = match operator_code {
-            0x00 => "Остановка выполнения процессора".to_string(),
+            0x00 => "Остановка".to_string(),
             0x01 => format!("{} <- {}", args_d[1], args_d[0]),
             0x02 => format!("NZCV <- {} - {}", args_d[0], args_d[1]),
             0x10 => format!("{} <- {} + {}", args_d[2], args_d[0], args_d[1]),

@@ -37,7 +37,7 @@ machine_code: |-
   0x0000 | 03005C00 0001869F                   | MOV.l #99999, A7                    | A7 <- 99999
   0x0002 | 03005400 000003E8                   | MOV.l #1000, A5                     | A5 <- 1000
   0x0004 | 42000000 00000007                   | CALL 0x7                            | MEM[--A7] <- PC + 1; PC <- 0x7
-  0x0006 | 00000000                            | HLT                                 | Остановка выполнения процессора
+  0x0006 | 00000000                            | HLT                                 | Остановка
   0x0007 | 0358BC00                            | MOV.l A6, -(A7)                     | MEM[--A7] <- A6
   0x0008 | 035C5800                            | MOV.l A7, A6                        | A6 <- A7
   0x0009 | 255C005C 00000002                   | SUB.l A7, #2, A7                    | A7 <- A7 - 2
@@ -110,10 +110,10 @@ machine_code: |-
   0x0085 | 44000000                            | RET                                 | PC <- MEM[A7++]
 log: |2-
    INFO [PC: 0   ] MOV.l #99999, A7          (Ticks: 1 -> 2)
-   INFO   └─ [T2] Write to A7: Value = 99999
+   INFO   └─ [T2] Write: A7 = 99999
   DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 0, 0, 99999]]
    INFO [PC: 2   ] MOV.l #1000, A5           (Ticks: 3 -> 4)
-   INFO   └─ [T4] Write to A5: Value = 1000
+   INFO   └─ [T4] Write: A5 = 1000
   DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 0, 99999]]
    INFO [PC: 4   ] CALL.b 7                  (Ticks: 5 -> 9)
    INFO   └─ [T9] Write: MEM[99998] = 6
@@ -123,22 +123,22 @@ log: |2-
    INFO   └─ [T14] Write: MEM[99997] = 0
   DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 0, 99997]]
    INFO [PC: 8   ] MOV.l A7, A6              (Ticks: 15 -> 16)
-   INFO   └─ [T16] Write to A6: Value = 99997
+   INFO   └─ [T16] Write: A6 = 99997
   DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 99997, 99997]]
    INFO [PC: 9   ] SUB.l A7, #2, A7          (Ticks: 17 -> 18)
-   INFO   └─ [T18] Write to A7: Value = 99995
+   INFO   └─ [T18] Write: A7 = 99995
   DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 99997, 99995]]
    INFO [PC: 11  ] ADD.l A5, #3, A5          (Ticks: 19 -> 20)
-   INFO   └─ [T20] Write to A5: Value = 1003
+   INFO   └─ [T20] Write: A5 = 1003
   DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1003, 99997, 99995]]
    INFO [PC: 13  ] AND.l A5, #-4, A5         (Ticks: 21 -> 22)
-   INFO   └─ [T22] Write to A5: Value = 1000
+   INFO   └─ [T22] Write: A5 = 1000
   DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 99997, 99995]]
    INFO [PC: 15  ] MOV.l A5, A0              (Ticks: 23 -> 24)
-   INFO   └─ [T24] Write to A0: Value = 1000
+   INFO   └─ [T24] Write: A0 = 1000
   DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1000, 99997, 99995]]
    INFO [PC: 16  ] ADD.l A5, #14, A5         (Ticks: 25 -> 26)
-   INFO   └─ [T26] Write to A5: Value = 1014
+   INFO   └─ [T26] Write: A5 = 1014
   DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 18  ] MOV.b (0), (A0, #0)       (Ticks: 27 -> 32)
    INFO   └─ [T29] Read: MEM[0] = 72
@@ -229,7 +229,7 @@ log: |2-
    INFO   └─ [T130] Branch taken
   DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 131 -> 132)
-   INFO   └─ [T132] Write to D1: Value = 1
+   INFO   └─ [T132] Write: D1 = 1
   DEBUG D: [[0, 1, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 133 -> 135)
   DEBUG D: [[0, 1, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
@@ -238,29 +238,29 @@ log: |2-
   DEBUG D: [[0, 1, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 138 -> 141)
    INFO   └─ [T140] Read: MEM[99996] = 1000
-   INFO   └─ [T141] Write to A0: Value = 1000
+   INFO   └─ [T141] Write: A0 = 1000
   DEBUG D: [[0, 1, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 142 -> 145)
    INFO   └─ [T144] Read: MEM[99995] = 0
-   INFO   └─ [T145] Write to D1: Value = 0
+   INFO   └─ [T145] Write: D1 = 0
   DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 146 -> 147)
-   INFO   └─ [T147] Write to D5: Value = 0
+   INFO   └─ [T147] Write: D5 = 0
   DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 148 -> 151)
    INFO   └─ [T150] Read: MEM[1000] = 72
-   INFO   └─ [T151] Write to D2: Value = 72
+   INFO   └─ [T151] Write: D2 = 72
   DEBUG D: [[0, 0, 72, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 152 -> 153)
    INFO   └─ [T153] OUT to port #5: Value = 72
   DEBUG D: [[0, 0, 72, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 154 -> 157)
    INFO   └─ [T156] Read: MEM[99995] = 0
-   INFO   └─ [T157] Write to D1: Value = 0
+   INFO   └─ [T157] Write: D1 = 0
   DEBUG D: [[0, 0, 72, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 158 -> 162)
    INFO   └─ [T161] Read: MEM[17] = 1
-   INFO   └─ [T162] Write to D2: Value = 1
+   INFO   └─ [T162] Write: D2 = 1
   DEBUG D: [[0, 0, 1, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 163 -> 167)
    INFO   └─ [T166] Read: MEM[99995] = 0
@@ -276,7 +276,7 @@ log: |2-
    INFO   └─ [T176] Branch taken
   DEBUG D: [[0, 0, 1, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 177 -> 178)
-   INFO   └─ [T178] Write to D1: Value = 1
+   INFO   └─ [T178] Write: D1 = 1
   DEBUG D: [[0, 1, 1, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 179 -> 181)
   DEBUG D: [[0, 1, 1, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
@@ -285,29 +285,29 @@ log: |2-
   DEBUG D: [[0, 1, 1, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 184 -> 187)
    INFO   └─ [T186] Read: MEM[99996] = 1000
-   INFO   └─ [T187] Write to A0: Value = 1000
+   INFO   └─ [T187] Write: A0 = 1000
   DEBUG D: [[0, 1, 1, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 188 -> 191)
    INFO   └─ [T190] Read: MEM[99995] = 1
-   INFO   └─ [T191] Write to D1: Value = 1
+   INFO   └─ [T191] Write: D1 = 1
   DEBUG D: [[0, 1, 1, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 192 -> 193)
-   INFO   └─ [T193] Write to D5: Value = 1
+   INFO   └─ [T193] Write: D5 = 1
   DEBUG D: [[0, 1, 1, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 194 -> 197)
    INFO   └─ [T196] Read: MEM[1001] = 101
-   INFO   └─ [T197] Write to D2: Value = 101
+   INFO   └─ [T197] Write: D2 = 101
   DEBUG D: [[0, 1, 101, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 198 -> 199)
    INFO   └─ [T199] OUT to port #5: Value = 101
   DEBUG D: [[0, 1, 101, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 200 -> 203)
    INFO   └─ [T202] Read: MEM[99995] = 1
-   INFO   └─ [T203] Write to D1: Value = 1
+   INFO   └─ [T203] Write: D1 = 1
   DEBUG D: [[0, 1, 101, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 204 -> 208)
    INFO   └─ [T207] Read: MEM[17] = 1
-   INFO   └─ [T208] Write to D2: Value = 2
+   INFO   └─ [T208] Write: D2 = 2
   DEBUG D: [[0, 1, 2, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 209 -> 213)
    INFO   └─ [T212] Read: MEM[99995] = 1
@@ -323,7 +323,7 @@ log: |2-
    INFO   └─ [T222] Branch taken
   DEBUG D: [[0, 1, 2, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 223 -> 224)
-   INFO   └─ [T224] Write to D1: Value = 1
+   INFO   └─ [T224] Write: D1 = 1
   DEBUG D: [[0, 1, 2, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 225 -> 227)
   DEBUG D: [[0, 1, 2, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
@@ -332,29 +332,29 @@ log: |2-
   DEBUG D: [[0, 1, 2, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 230 -> 233)
    INFO   └─ [T232] Read: MEM[99996] = 1000
-   INFO   └─ [T233] Write to A0: Value = 1000
+   INFO   └─ [T233] Write: A0 = 1000
   DEBUG D: [[0, 1, 2, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 234 -> 237)
    INFO   └─ [T236] Read: MEM[99995] = 2
-   INFO   └─ [T237] Write to D1: Value = 2
+   INFO   └─ [T237] Write: D1 = 2
   DEBUG D: [[0, 2, 2, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 238 -> 239)
-   INFO   └─ [T239] Write to D5: Value = 2
+   INFO   └─ [T239] Write: D5 = 2
   DEBUG D: [[0, 2, 2, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 240 -> 243)
    INFO   └─ [T242] Read: MEM[1002] = 108
-   INFO   └─ [T243] Write to D2: Value = 108
+   INFO   └─ [T243] Write: D2 = 108
   DEBUG D: [[0, 2, 108, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 244 -> 245)
    INFO   └─ [T245] OUT to port #5: Value = 108
   DEBUG D: [[0, 2, 108, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 246 -> 249)
    INFO   └─ [T248] Read: MEM[99995] = 2
-   INFO   └─ [T249] Write to D1: Value = 2
+   INFO   └─ [T249] Write: D1 = 2
   DEBUG D: [[0, 2, 108, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 250 -> 254)
    INFO   └─ [T253] Read: MEM[17] = 1
-   INFO   └─ [T254] Write to D2: Value = 3
+   INFO   └─ [T254] Write: D2 = 3
   DEBUG D: [[0, 2, 3, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 255 -> 259)
    INFO   └─ [T258] Read: MEM[99995] = 2
@@ -370,7 +370,7 @@ log: |2-
    INFO   └─ [T268] Branch taken
   DEBUG D: [[0, 2, 3, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 269 -> 270)
-   INFO   └─ [T270] Write to D1: Value = 1
+   INFO   └─ [T270] Write: D1 = 1
   DEBUG D: [[0, 1, 3, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 271 -> 273)
   DEBUG D: [[0, 1, 3, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
@@ -379,29 +379,29 @@ log: |2-
   DEBUG D: [[0, 1, 3, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 276 -> 279)
    INFO   └─ [T278] Read: MEM[99996] = 1000
-   INFO   └─ [T279] Write to A0: Value = 1000
+   INFO   └─ [T279] Write: A0 = 1000
   DEBUG D: [[0, 1, 3, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 280 -> 283)
    INFO   └─ [T282] Read: MEM[99995] = 3
-   INFO   └─ [T283] Write to D1: Value = 3
+   INFO   └─ [T283] Write: D1 = 3
   DEBUG D: [[0, 3, 3, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 284 -> 285)
-   INFO   └─ [T285] Write to D5: Value = 3
+   INFO   └─ [T285] Write: D5 = 3
   DEBUG D: [[0, 3, 3, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 286 -> 289)
    INFO   └─ [T288] Read: MEM[1003] = 108
-   INFO   └─ [T289] Write to D2: Value = 108
+   INFO   └─ [T289] Write: D2 = 108
   DEBUG D: [[0, 3, 108, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 290 -> 291)
    INFO   └─ [T291] OUT to port #5: Value = 108
   DEBUG D: [[0, 3, 108, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 292 -> 295)
    INFO   └─ [T294] Read: MEM[99995] = 3
-   INFO   └─ [T295] Write to D1: Value = 3
+   INFO   └─ [T295] Write: D1 = 3
   DEBUG D: [[0, 3, 108, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 296 -> 300)
    INFO   └─ [T299] Read: MEM[17] = 1
-   INFO   └─ [T300] Write to D2: Value = 4
+   INFO   └─ [T300] Write: D2 = 4
   DEBUG D: [[0, 3, 4, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 301 -> 305)
    INFO   └─ [T304] Read: MEM[99995] = 3
@@ -417,7 +417,7 @@ log: |2-
    INFO   └─ [T314] Branch taken
   DEBUG D: [[0, 3, 4, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 315 -> 316)
-   INFO   └─ [T316] Write to D1: Value = 1
+   INFO   └─ [T316] Write: D1 = 1
   DEBUG D: [[0, 1, 4, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 317 -> 319)
   DEBUG D: [[0, 1, 4, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
@@ -426,29 +426,29 @@ log: |2-
   DEBUG D: [[0, 1, 4, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 322 -> 325)
    INFO   └─ [T324] Read: MEM[99996] = 1000
-   INFO   └─ [T325] Write to A0: Value = 1000
+   INFO   └─ [T325] Write: A0 = 1000
   DEBUG D: [[0, 1, 4, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 326 -> 329)
    INFO   └─ [T328] Read: MEM[99995] = 4
-   INFO   └─ [T329] Write to D1: Value = 4
+   INFO   └─ [T329] Write: D1 = 4
   DEBUG D: [[0, 4, 4, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 330 -> 331)
-   INFO   └─ [T331] Write to D5: Value = 4
+   INFO   └─ [T331] Write: D5 = 4
   DEBUG D: [[0, 4, 4, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 332 -> 335)
    INFO   └─ [T334] Read: MEM[1004] = 111
-   INFO   └─ [T335] Write to D2: Value = 111
+   INFO   └─ [T335] Write: D2 = 111
   DEBUG D: [[0, 4, 111, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 336 -> 337)
    INFO   └─ [T337] OUT to port #5: Value = 111
   DEBUG D: [[0, 4, 111, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 338 -> 341)
    INFO   └─ [T340] Read: MEM[99995] = 4
-   INFO   └─ [T341] Write to D1: Value = 4
+   INFO   └─ [T341] Write: D1 = 4
   DEBUG D: [[0, 4, 111, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 342 -> 346)
    INFO   └─ [T345] Read: MEM[17] = 1
-   INFO   └─ [T346] Write to D2: Value = 5
+   INFO   └─ [T346] Write: D2 = 5
   DEBUG D: [[0, 4, 5, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 347 -> 351)
    INFO   └─ [T350] Read: MEM[99995] = 4
@@ -464,7 +464,7 @@ log: |2-
    INFO   └─ [T360] Branch taken
   DEBUG D: [[0, 4, 5, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 361 -> 362)
-   INFO   └─ [T362] Write to D1: Value = 1
+   INFO   └─ [T362] Write: D1 = 1
   DEBUG D: [[0, 1, 5, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 363 -> 365)
   DEBUG D: [[0, 1, 5, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
@@ -473,29 +473,29 @@ log: |2-
   DEBUG D: [[0, 1, 5, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 368 -> 371)
    INFO   └─ [T370] Read: MEM[99996] = 1000
-   INFO   └─ [T371] Write to A0: Value = 1000
+   INFO   └─ [T371] Write: A0 = 1000
   DEBUG D: [[0, 1, 5, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 372 -> 375)
    INFO   └─ [T374] Read: MEM[99995] = 5
-   INFO   └─ [T375] Write to D1: Value = 5
+   INFO   └─ [T375] Write: D1 = 5
   DEBUG D: [[0, 5, 5, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 376 -> 377)
-   INFO   └─ [T377] Write to D5: Value = 5
+   INFO   └─ [T377] Write: D5 = 5
   DEBUG D: [[0, 5, 5, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 378 -> 381)
    INFO   └─ [T380] Read: MEM[1005] = 44
-   INFO   └─ [T381] Write to D2: Value = 44
+   INFO   └─ [T381] Write: D2 = 44
   DEBUG D: [[0, 5, 44, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 382 -> 383)
    INFO   └─ [T383] OUT to port #5: Value = 44
   DEBUG D: [[0, 5, 44, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 384 -> 387)
    INFO   └─ [T386] Read: MEM[99995] = 5
-   INFO   └─ [T387] Write to D1: Value = 5
+   INFO   └─ [T387] Write: D1 = 5
   DEBUG D: [[0, 5, 44, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 388 -> 392)
    INFO   └─ [T391] Read: MEM[17] = 1
-   INFO   └─ [T392] Write to D2: Value = 6
+   INFO   └─ [T392] Write: D2 = 6
   DEBUG D: [[0, 5, 6, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 393 -> 397)
    INFO   └─ [T396] Read: MEM[99995] = 5
@@ -511,7 +511,7 @@ log: |2-
    INFO   └─ [T406] Branch taken
   DEBUG D: [[0, 5, 6, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 407 -> 408)
-   INFO   └─ [T408] Write to D1: Value = 1
+   INFO   └─ [T408] Write: D1 = 1
   DEBUG D: [[0, 1, 6, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 409 -> 411)
   DEBUG D: [[0, 1, 6, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
@@ -520,29 +520,29 @@ log: |2-
   DEBUG D: [[0, 1, 6, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 414 -> 417)
    INFO   └─ [T416] Read: MEM[99996] = 1000
-   INFO   └─ [T417] Write to A0: Value = 1000
+   INFO   └─ [T417] Write: A0 = 1000
   DEBUG D: [[0, 1, 6, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 418 -> 421)
    INFO   └─ [T420] Read: MEM[99995] = 6
-   INFO   └─ [T421] Write to D1: Value = 6
+   INFO   └─ [T421] Write: D1 = 6
   DEBUG D: [[0, 6, 6, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 422 -> 423)
-   INFO   └─ [T423] Write to D5: Value = 6
+   INFO   └─ [T423] Write: D5 = 6
   DEBUG D: [[0, 6, 6, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 424 -> 427)
    INFO   └─ [T426] Read: MEM[1006] = 32
-   INFO   └─ [T427] Write to D2: Value = 32
+   INFO   └─ [T427] Write: D2 = 32
   DEBUG D: [[0, 6, 32, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 428 -> 429)
    INFO   └─ [T429] OUT to port #5: Value = 32
   DEBUG D: [[0, 6, 32, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 430 -> 433)
    INFO   └─ [T432] Read: MEM[99995] = 6
-   INFO   └─ [T433] Write to D1: Value = 6
+   INFO   └─ [T433] Write: D1 = 6
   DEBUG D: [[0, 6, 32, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 434 -> 438)
    INFO   └─ [T437] Read: MEM[17] = 1
-   INFO   └─ [T438] Write to D2: Value = 7
+   INFO   └─ [T438] Write: D2 = 7
   DEBUG D: [[0, 6, 7, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 439 -> 443)
    INFO   └─ [T442] Read: MEM[99995] = 6
@@ -558,7 +558,7 @@ log: |2-
    INFO   └─ [T452] Branch taken
   DEBUG D: [[0, 6, 7, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 453 -> 454)
-   INFO   └─ [T454] Write to D1: Value = 1
+   INFO   └─ [T454] Write: D1 = 1
   DEBUG D: [[0, 1, 7, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 455 -> 457)
   DEBUG D: [[0, 1, 7, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
@@ -567,29 +567,29 @@ log: |2-
   DEBUG D: [[0, 1, 7, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 460 -> 463)
    INFO   └─ [T462] Read: MEM[99996] = 1000
-   INFO   └─ [T463] Write to A0: Value = 1000
+   INFO   └─ [T463] Write: A0 = 1000
   DEBUG D: [[0, 1, 7, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 464 -> 467)
    INFO   └─ [T466] Read: MEM[99995] = 7
-   INFO   └─ [T467] Write to D1: Value = 7
+   INFO   └─ [T467] Write: D1 = 7
   DEBUG D: [[0, 7, 7, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 468 -> 469)
-   INFO   └─ [T469] Write to D5: Value = 7
+   INFO   └─ [T469] Write: D5 = 7
   DEBUG D: [[0, 7, 7, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 470 -> 473)
    INFO   └─ [T472] Read: MEM[1007] = 87
-   INFO   └─ [T473] Write to D2: Value = 87
+   INFO   └─ [T473] Write: D2 = 87
   DEBUG D: [[0, 7, 87, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 474 -> 475)
    INFO   └─ [T475] OUT to port #5: Value = 87
   DEBUG D: [[0, 7, 87, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 476 -> 479)
    INFO   └─ [T478] Read: MEM[99995] = 7
-   INFO   └─ [T479] Write to D1: Value = 7
+   INFO   └─ [T479] Write: D1 = 7
   DEBUG D: [[0, 7, 87, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 480 -> 484)
    INFO   └─ [T483] Read: MEM[17] = 1
-   INFO   └─ [T484] Write to D2: Value = 8
+   INFO   └─ [T484] Write: D2 = 8
   DEBUG D: [[0, 7, 8, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 485 -> 489)
    INFO   └─ [T488] Read: MEM[99995] = 7
@@ -605,7 +605,7 @@ log: |2-
    INFO   └─ [T498] Branch taken
   DEBUG D: [[0, 7, 8, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 499 -> 500)
-   INFO   └─ [T500] Write to D1: Value = 1
+   INFO   └─ [T500] Write: D1 = 1
   DEBUG D: [[0, 1, 8, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 501 -> 503)
   DEBUG D: [[0, 1, 8, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
@@ -614,29 +614,29 @@ log: |2-
   DEBUG D: [[0, 1, 8, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 506 -> 509)
    INFO   └─ [T508] Read: MEM[99996] = 1000
-   INFO   └─ [T509] Write to A0: Value = 1000
+   INFO   └─ [T509] Write: A0 = 1000
   DEBUG D: [[0, 1, 8, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 510 -> 513)
    INFO   └─ [T512] Read: MEM[99995] = 8
-   INFO   └─ [T513] Write to D1: Value = 8
+   INFO   └─ [T513] Write: D1 = 8
   DEBUG D: [[0, 8, 8, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 514 -> 515)
-   INFO   └─ [T515] Write to D5: Value = 8
+   INFO   └─ [T515] Write: D5 = 8
   DEBUG D: [[0, 8, 8, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 516 -> 519)
    INFO   └─ [T518] Read: MEM[1008] = 111
-   INFO   └─ [T519] Write to D2: Value = 111
+   INFO   └─ [T519] Write: D2 = 111
   DEBUG D: [[0, 8, 111, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 520 -> 521)
    INFO   └─ [T521] OUT to port #5: Value = 111
   DEBUG D: [[0, 8, 111, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 522 -> 525)
    INFO   └─ [T524] Read: MEM[99995] = 8
-   INFO   └─ [T525] Write to D1: Value = 8
+   INFO   └─ [T525] Write: D1 = 8
   DEBUG D: [[0, 8, 111, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 526 -> 530)
    INFO   └─ [T529] Read: MEM[17] = 1
-   INFO   └─ [T530] Write to D2: Value = 9
+   INFO   └─ [T530] Write: D2 = 9
   DEBUG D: [[0, 8, 9, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 531 -> 535)
    INFO   └─ [T534] Read: MEM[99995] = 8
@@ -652,7 +652,7 @@ log: |2-
    INFO   └─ [T544] Branch taken
   DEBUG D: [[0, 8, 9, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 545 -> 546)
-   INFO   └─ [T546] Write to D1: Value = 1
+   INFO   └─ [T546] Write: D1 = 1
   DEBUG D: [[0, 1, 9, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 547 -> 549)
   DEBUG D: [[0, 1, 9, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
@@ -661,29 +661,29 @@ log: |2-
   DEBUG D: [[0, 1, 9, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 552 -> 555)
    INFO   └─ [T554] Read: MEM[99996] = 1000
-   INFO   └─ [T555] Write to A0: Value = 1000
+   INFO   └─ [T555] Write: A0 = 1000
   DEBUG D: [[0, 1, 9, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 556 -> 559)
    INFO   └─ [T558] Read: MEM[99995] = 9
-   INFO   └─ [T559] Write to D1: Value = 9
+   INFO   └─ [T559] Write: D1 = 9
   DEBUG D: [[0, 9, 9, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 560 -> 561)
-   INFO   └─ [T561] Write to D5: Value = 9
+   INFO   └─ [T561] Write: D5 = 9
   DEBUG D: [[0, 9, 9, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 562 -> 565)
    INFO   └─ [T564] Read: MEM[1009] = 114
-   INFO   └─ [T565] Write to D2: Value = 114
+   INFO   └─ [T565] Write: D2 = 114
   DEBUG D: [[0, 9, 114, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 566 -> 567)
    INFO   └─ [T567] OUT to port #5: Value = 114
   DEBUG D: [[0, 9, 114, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 568 -> 571)
    INFO   └─ [T570] Read: MEM[99995] = 9
-   INFO   └─ [T571] Write to D1: Value = 9
+   INFO   └─ [T571] Write: D1 = 9
   DEBUG D: [[0, 9, 114, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 572 -> 576)
    INFO   └─ [T575] Read: MEM[17] = 1
-   INFO   └─ [T576] Write to D2: Value = 10
+   INFO   └─ [T576] Write: D2 = 10
   DEBUG D: [[0, 9, 10, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 577 -> 581)
    INFO   └─ [T580] Read: MEM[99995] = 9
@@ -699,7 +699,7 @@ log: |2-
    INFO   └─ [T590] Branch taken
   DEBUG D: [[0, 9, 10, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 591 -> 592)
-   INFO   └─ [T592] Write to D1: Value = 1
+   INFO   └─ [T592] Write: D1 = 1
   DEBUG D: [[0, 1, 10, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 593 -> 595)
   DEBUG D: [[0, 1, 10, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
@@ -708,29 +708,29 @@ log: |2-
   DEBUG D: [[0, 1, 10, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 598 -> 601)
    INFO   └─ [T600] Read: MEM[99996] = 1000
-   INFO   └─ [T601] Write to A0: Value = 1000
+   INFO   └─ [T601] Write: A0 = 1000
   DEBUG D: [[0, 1, 10, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 602 -> 605)
    INFO   └─ [T604] Read: MEM[99995] = 10
-   INFO   └─ [T605] Write to D1: Value = 10
+   INFO   └─ [T605] Write: D1 = 10
   DEBUG D: [[0, 10, 10, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 606 -> 607)
-   INFO   └─ [T607] Write to D5: Value = 10
+   INFO   └─ [T607] Write: D5 = 10
   DEBUG D: [[0, 10, 10, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 608 -> 611)
    INFO   └─ [T610] Read: MEM[1010] = 108
-   INFO   └─ [T611] Write to D2: Value = 108
+   INFO   └─ [T611] Write: D2 = 108
   DEBUG D: [[0, 10, 108, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 612 -> 613)
    INFO   └─ [T613] OUT to port #5: Value = 108
   DEBUG D: [[0, 10, 108, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 614 -> 617)
    INFO   └─ [T616] Read: MEM[99995] = 10
-   INFO   └─ [T617] Write to D1: Value = 10
+   INFO   └─ [T617] Write: D1 = 10
   DEBUG D: [[0, 10, 108, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 618 -> 622)
    INFO   └─ [T621] Read: MEM[17] = 1
-   INFO   └─ [T622] Write to D2: Value = 11
+   INFO   └─ [T622] Write: D2 = 11
   DEBUG D: [[0, 10, 11, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 623 -> 627)
    INFO   └─ [T626] Read: MEM[99995] = 10
@@ -746,7 +746,7 @@ log: |2-
    INFO   └─ [T636] Branch taken
   DEBUG D: [[0, 10, 11, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 637 -> 638)
-   INFO   └─ [T638] Write to D1: Value = 1
+   INFO   └─ [T638] Write: D1 = 1
   DEBUG D: [[0, 1, 11, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 639 -> 641)
   DEBUG D: [[0, 1, 11, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
@@ -755,29 +755,29 @@ log: |2-
   DEBUG D: [[0, 1, 11, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 644 -> 647)
    INFO   └─ [T646] Read: MEM[99996] = 1000
-   INFO   └─ [T647] Write to A0: Value = 1000
+   INFO   └─ [T647] Write: A0 = 1000
   DEBUG D: [[0, 1, 11, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 648 -> 651)
    INFO   └─ [T650] Read: MEM[99995] = 11
-   INFO   └─ [T651] Write to D1: Value = 11
+   INFO   └─ [T651] Write: D1 = 11
   DEBUG D: [[0, 11, 11, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 652 -> 653)
-   INFO   └─ [T653] Write to D5: Value = 11
+   INFO   └─ [T653] Write: D5 = 11
   DEBUG D: [[0, 11, 11, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 654 -> 657)
    INFO   └─ [T656] Read: MEM[1011] = 100
-   INFO   └─ [T657] Write to D2: Value = 100
+   INFO   └─ [T657] Write: D2 = 100
   DEBUG D: [[0, 11, 100, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 658 -> 659)
    INFO   └─ [T659] OUT to port #5: Value = 100
   DEBUG D: [[0, 11, 100, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 660 -> 663)
    INFO   └─ [T662] Read: MEM[99995] = 11
-   INFO   └─ [T663] Write to D1: Value = 11
+   INFO   └─ [T663] Write: D1 = 11
   DEBUG D: [[0, 11, 100, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 664 -> 668)
    INFO   └─ [T667] Read: MEM[17] = 1
-   INFO   └─ [T668] Write to D2: Value = 12
+   INFO   └─ [T668] Write: D2 = 12
   DEBUG D: [[0, 11, 12, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 669 -> 673)
    INFO   └─ [T672] Read: MEM[99995] = 11
@@ -793,7 +793,7 @@ log: |2-
    INFO   └─ [T682] Branch taken
   DEBUG D: [[0, 11, 12, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 683 -> 684)
-   INFO   └─ [T684] Write to D1: Value = 1
+   INFO   └─ [T684] Write: D1 = 1
   DEBUG D: [[0, 1, 12, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 685 -> 687)
   DEBUG D: [[0, 1, 12, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
@@ -802,29 +802,29 @@ log: |2-
   DEBUG D: [[0, 1, 12, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 690 -> 693)
    INFO   └─ [T692] Read: MEM[99996] = 1000
-   INFO   └─ [T693] Write to A0: Value = 1000
+   INFO   └─ [T693] Write: A0 = 1000
   DEBUG D: [[0, 1, 12, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 694 -> 697)
    INFO   └─ [T696] Read: MEM[99995] = 12
-   INFO   └─ [T697] Write to D1: Value = 12
+   INFO   └─ [T697] Write: D1 = 12
   DEBUG D: [[0, 12, 12, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 698 -> 699)
-   INFO   └─ [T699] Write to D5: Value = 12
+   INFO   └─ [T699] Write: D5 = 12
   DEBUG D: [[0, 12, 12, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 700 -> 703)
    INFO   └─ [T702] Read: MEM[1012] = 33
-   INFO   └─ [T703] Write to D2: Value = 33
+   INFO   └─ [T703] Write: D2 = 33
   DEBUG D: [[0, 12, 33, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 704 -> 705)
    INFO   └─ [T705] OUT to port #5: Value = 33
   DEBUG D: [[0, 12, 33, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 706 -> 709)
    INFO   └─ [T708] Read: MEM[99995] = 12
-   INFO   └─ [T709] Write to D1: Value = 12
+   INFO   └─ [T709] Write: D1 = 12
   DEBUG D: [[0, 12, 33, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 710 -> 714)
    INFO   └─ [T713] Read: MEM[17] = 1
-   INFO   └─ [T714] Write to D2: Value = 13
+   INFO   └─ [T714] Write: D2 = 13
   DEBUG D: [[0, 12, 13, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 715 -> 719)
    INFO   └─ [T718] Read: MEM[99995] = 12
@@ -840,7 +840,7 @@ log: |2-
    INFO   └─ [T728] Branch taken
   DEBUG D: [[0, 12, 13, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 729 -> 730)
-   INFO   └─ [T730] Write to D1: Value = 1
+   INFO   └─ [T730] Write: D1 = 1
   DEBUG D: [[0, 1, 13, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 731 -> 733)
   DEBUG D: [[0, 1, 13, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
@@ -849,29 +849,29 @@ log: |2-
   DEBUG D: [[0, 1, 13, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 736 -> 739)
    INFO   └─ [T738] Read: MEM[99996] = 1000
-   INFO   └─ [T739] Write to A0: Value = 1000
+   INFO   └─ [T739] Write: A0 = 1000
   DEBUG D: [[0, 1, 13, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 740 -> 743)
    INFO   └─ [T742] Read: MEM[99995] = 13
-   INFO   └─ [T743] Write to D1: Value = 13
+   INFO   └─ [T743] Write: D1 = 13
   DEBUG D: [[0, 13, 13, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 744 -> 745)
-   INFO   └─ [T745] Write to D5: Value = 13
+   INFO   └─ [T745] Write: D5 = 13
   DEBUG D: [[0, 13, 13, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 746 -> 749)
    INFO   └─ [T748] Read: MEM[1013] = 0
-   INFO   └─ [T749] Write to D2: Value = 0
+   INFO   └─ [T749] Write: D2 = 0
   DEBUG D: [[0, 13, 0, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 750 -> 751)
    INFO   └─ [T751] OUT to port #5: Value = 0
   DEBUG D: [[0, 13, 0, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 752 -> 755)
    INFO   └─ [T754] Read: MEM[99995] = 13
-   INFO   └─ [T755] Write to D1: Value = 13
+   INFO   └─ [T755] Write: D1 = 13
   DEBUG D: [[0, 13, 0, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 756 -> 760)
    INFO   └─ [T759] Read: MEM[17] = 1
-   INFO   └─ [T760] Write to D2: Value = 14
+   INFO   └─ [T760] Write: D2 = 14
   DEBUG D: [[0, 13, 14, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 761 -> 765)
    INFO   └─ [T764] Read: MEM[99995] = 13
@@ -887,7 +887,7 @@ log: |2-
    INFO   └─ [T774] Branch skipped
   DEBUG D: [[0, 13, 14, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 104 ] MOV.l #0, D1              (Ticks: 775 -> 776)
-   INFO   └─ [T776] Write to D1: Value = 0
+   INFO   └─ [T776] Write: D1 = 0
   DEBUG D: [[0, 0, 14, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 106 ] JMP.b 110                 (Ticks: 777 -> 778)
   DEBUG D: [[0, 0, 14, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
@@ -899,11 +899,11 @@ log: |2-
    INFO [PC: 114 ] JMP.b 131                 (Ticks: 784 -> 785)
   DEBUG D: [[0, 0, 14, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
    INFO [PC: 131 ] MOV.l A6, A7              (Ticks: 786 -> 787)
-   INFO   └─ [T787] Write to A7: Value = 99997
+   INFO   └─ [T787] Write: A7 = 99997
   DEBUG D: [[0, 0, 14, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99997]]
    INFO [PC: 132 ] MOV.l (A7)+, A6           (Ticks: 788 -> 791)
    INFO   └─ [T790] Read: MEM[99997] = 0
-   INFO   └─ [T791] Write to A6: Value = 0
+   INFO   └─ [T791] Write: A6 = 0
   DEBUG D: [[0, 0, 14, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 0, 99998]]
    INFO [PC: 133 ] RET.b                     (Ticks: 792 -> 794)
    INFO   └─ [T794] Read: MEM[99998] = 6

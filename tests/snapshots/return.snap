@@ -30,7 +30,7 @@ machine_code: |-
   0x0000 | 03005C00 0001869F                   | MOV.l #99999, A7                    | A7 <- 99999
   0x0002 | 03005400 000003E8                   | MOV.l #1000, A5                     | A5 <- 1000
   0x0004 | 42000000 00000007                   | CALL 0x7                            | MEM[--A7] <- PC + 1; PC <- 0x7
-  0x0006 | 00000000                            | HLT                                 | Остановка выполнения процессора
+  0x0006 | 00000000                            | HLT                                 | Остановка
   0x0007 | 0358BC00                            | MOV.l A6, -(A7)                     | MEM[--A7] <- A6
   0x0008 | 035C5800                            | MOV.l A7, A6                        | A6 <- A7
   0x0009 | 255C005C 00000000                   | SUB.l A7, #0, A7                    | A7 <- A7 - 0
@@ -80,10 +80,10 @@ machine_code: |-
   0x0047 | 44000000                            | RET                                 | PC <- MEM[A7++]
 log: |2-
    INFO [PC: 0   ] MOV.l #99999, A7          (Ticks: 1 -> 2)
-   INFO   └─ [T2] Write to A7: Value = 99999
+   INFO   └─ [T2] Write: A7 = 99999
   DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 0, 0, 99999]]
    INFO [PC: 2   ] MOV.l #1000, A5           (Ticks: 3 -> 4)
-   INFO   └─ [T4] Write to A5: Value = 1000
+   INFO   └─ [T4] Write: A5 = 1000
   DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 0, 99999]]
    INFO [PC: 4   ] CALL.b 7                  (Ticks: 5 -> 9)
    INFO   └─ [T9] Write: MEM[99998] = 6
@@ -93,10 +93,10 @@ log: |2-
    INFO   └─ [T14] Write: MEM[99997] = 0
   DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 0, 99997]]
    INFO [PC: 8   ] MOV.l A7, A6              (Ticks: 15 -> 16)
-   INFO   └─ [T16] Write to A6: Value = 99997
+   INFO   └─ [T16] Write: A6 = 99997
   DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 99997, 99997]]
    INFO [PC: 9   ] SUB.l A7, #0, A7          (Ticks: 17 -> 18)
-   INFO   └─ [T18] Write to A7: Value = 99997
+   INFO   └─ [T18] Write: A7 = 99997
   DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 99997, 99997]]
    INFO [PC: 11  ] CMP.b (0), #1             (Ticks: 19 -> 22)
    INFO   └─ [T21] Read: MEM[0] = 0
@@ -114,14 +114,14 @@ log: |2-
   DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 99997, 99997]]
    INFO [PC: 62  ] MOV.l (5), D0             (Ticks: 33 -> 36)
    INFO   └─ [T35] Read: MEM[5] = 2
-   INFO   └─ [T36] Write to D0: Value = 2
+   INFO   └─ [T36] Write: D0 = 2
   DEBUG D: [[2, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 99997, 99997]]
    INFO [PC: 64  ] MOV.l A6, A7              (Ticks: 37 -> 38)
-   INFO   └─ [T38] Write to A7: Value = 99997
+   INFO   └─ [T38] Write: A7 = 99997
   DEBUG D: [[2, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 99997, 99997]]
    INFO [PC: 65  ] MOV.l (A7)+, A6           (Ticks: 39 -> 42)
    INFO   └─ [T41] Read: MEM[99997] = 0
-   INFO   └─ [T42] Write to A6: Value = 0
+   INFO   └─ [T42] Write: A6 = 0
   DEBUG D: [[2, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 0, 99998]]
    INFO [PC: 66  ] RET.b                     (Ticks: 43 -> 45)
    INFO   └─ [T45] Read: MEM[99998] = 6
