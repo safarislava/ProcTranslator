@@ -356,9 +356,10 @@ for-statement ::= "for" "(" [ for-initializer ] ";" [ expression ] ";" [ express
 | 0x42 | `VSUB <address1>, <address2>, <address3>`        | `for i in 0..4 do`<br>`MEM[<address3> + i] <- MEM[<address1> + i] - MEM[<address2> + i]`                    | 6-8   |
 | 0x43 | `VMUL <address1>, <address2>, <address3>`        | `for i in 0..4 do`<br>`MEM[<address3> + i] <- MEM[<address1> + i] * MEM[<address2> + i]`                    | 6-8   |
 | 0x44 | `VDIV <address1>, <address2>, <address3>`        | `for i in 0..4 do`<br>`MEM[<address3> + i] <- MEM[<address1> + i] / MEM[<address2> + i]`                    | 6-8   |
-| 0x46 | `VAND <address1>, <address2>, <address3>`        | `for i in 0..4 do`<br>`MEM[<address3> + i] <- MEM[<address1> + i] % MEM[<address2> + i]`                    | 6-8   |
-| 0x47 | `VOR <address1>, <address2>, <address3>`         | `for i in 0..4 do`<br>`MEM[<address3> + i] <- MEM[<address1> + i] & MEM[<address2> + i]`                    | 6-8   |
-| 0x48 | `VXOR <address1>, <address2>, <address3>`        | `for i in 0..4 do`<br>`MEM[<address3> + i] <- MEM[<address1> + i] \| MEM[<address2> + i]`                   | 6-8   |
+| 0x45 | `VREM <address1>, <address2>, <address3>`        | `for i in 0..4 do`<br>`MEM[<address3> + i] <- MEM[<address1> + i] % MEM[<address2> + i]`                    | 6-8   |
+| 0x46 | `VAND <address1>, <address2>, <address3>`        | `for i in 0..4 do`<br>`MEM[<address3> + i] <- MEM[<address1> + i] & MEM[<address2> + i]`                    | 6-8   |
+| 0x47 | `VOR <address1>, <address2>, <address3>`         | `for i in 0..4 do`<br>`MEM[<address3> + i] <- MEM[<address1> + i] \| MEM[<address2> + i]`                   | 6-8   |
+| 0x48 | `VXOR <address1>, <address2>, <address3>`        | `for i in 0..4 do`<br>`MEM[<address3> + i] <- MEM[<address1> + i] ^ MEM[<address2> + i]`                    | 6-8   |
 | 0x50 | `IN <port>, <destination>`                       | `<destination> <- IO[port]`                                                                                 | 2-4   |
 | 0x51 | `OUT <port>, <source>`                           | `IO[port] <- <source>`                                                                                      | 2-3   |
 | 0x52 | `EI`                                             | `IF <- 1`<br>Включает прерывания                                                                            | 2     |

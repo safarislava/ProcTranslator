@@ -68,7 +68,7 @@ pub struct DataPath {
     left_data_mux: u64,
     right_data_mux: u64,
     left_data_register: u64,
-    right_data_register: u64,
+    pub(crate) right_data_register: u64,
     left_alu_input: u64,
     right_alu_input: u64,
     alu: Alu,

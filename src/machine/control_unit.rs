@@ -46,6 +46,32 @@ enum PrepareMode {
     Immediate,
 }
 
+pub struct InstructionTrace {
+    start_tick: u64,
+    end_tick: u64,
+    pc: Address,
+    opcode: String,
+    operands: Vec<String>,
+    events: Vec<String>,
+}
+
+impl InstructionTrace {
+    pub fn new(tick: u64, pc: Address, opcode: String) -> Self {
+        Self {
+            start_tick: tick,
+            end_tick: tick,
+            pc,
+            opcode,
+            operands: Vec::new(),
+            events: Vec::new(),
+        }
+    }
+
+    pub fn finish(&mut self, tick: u64) {
+        self.end_tick = tick;
+    }
+}
+
 pub struct ControlUnit {
     instruction_parser: InstructionParser,
     pub data_path: DataPath,
@@ -61,13 +87,29 @@ pub struct ControlUnit {
     interrupt_processing: bool,
     vector_table: HashMap<u8, Address>,
     pub tick: u64,
-    log: String,
+    current_trace: Option<InstructionTrace>,
 }
 
 impl ControlUnit {
-    fn tick(&mut self) {
-        self.log = format!("TICK {} ", self.tick);
-        self.tick += 1;
+    fn log_operand(&mut self, op: &str) {
+        if let Some(trace) = &mut self.current_trace {
+            trace.operands.push(op.to_string());
+        }
+    }
+
+    fn log_simple_operand(&mut self, operand: &Operand) {
+        let op_str = match operand.mode {
+            Mode::DataRegister => format!("D{}", operand.main_register),
+            Mode::AddressRegister => format!("A{}", operand.main_register),
+            _ => return,
+        };
+        self.log_operand(&op_str);
+    }
+
+    fn log_event(&mut self, event: &str) {
+        if let Some(trace) = &mut self.current_trace {
+            trace.events.push(format!("[T{}] {}", self.tick, event));
+        }
     }
 
     fn latch_pc(&mut self, signal: PcSelector) {
@@ -112,40 +154,62 @@ impl ControlUnit {
                     return false;
                 }
                 self.fetch();
-                info!("{}", self.log);
                 false
             }
             ExecutionState::Execute(step) => {
                 self.execute_step(step);
-                info!("{}", self.log);
                 false
             }
             ExecutionState::Done => {
+                if let Some(mut trace) = self.current_trace.take() {
+                    trace.finish(self.tick);
+
+                    let ops_str = trace.operands.join(", ");
+                    let full_instruction = if ops_str.is_empty() {
+                        trace.opcode.clone()
+                    } else {
+                        format!("{} {}", trace.opcode, ops_str)
+                    };
+
+                    info!(
+                        target: "trace",
+                        "[PC: {:<4}] {:<25} (Ticks: {} -> {})",
+                        trace.pc,
+                        full_instruction,
+                        trace.start_tick,
+                        trace.end_tick,
+                    );
+
+                    if !trace.events.is_empty() {
+                        for event in trace.events {
+                            info!(target: "trace", "  └─ {}", event);
+                        }
+                    }
+                }
+
                 debug!(
-                    "D {:?}",
-                    self.data_path
-                        .data_registers
-                        .iter()
-                        .map(|v| *v as i64)
-                        .collect::<Vec<_>>()
+                    target: "registers",
+                    "D: [{:?}] | A: [{:?}]",
+                    self.data_path.data_registers.map(|r| r as i64),
+                    self.data_path.address_registers.map(|r| r as i64),
                 );
-                debug!(
-                    "A {:?}",
-                    self.data_path
-                        .address_registers
-                        .iter()
-                        .map(|v| *v as i64)
-                        .collect::<Vec<_>>()
-                );
+
                 self.execution_state = ExecutionState::Start;
                 false
             }
-            ExecutionState::Stop => true,
+            ExecutionState::Stop => {
+                info!(
+                    target: "trace",
+                    "Result: D0 = {}",
+                    self.data_path.data_registers[0] as i64
+                );
+                true
+            }
         }
     }
 
     fn fetch(&mut self) {
-        self.tick();
+        self.tick += 1;
         self.update_read_data();
         self.latch_ir();
 
@@ -153,21 +217,22 @@ impl ControlUnit {
         self.word_size = word_size;
         self.operator = operator;
 
-        self.log += &format!(
-            "| PC={} | {}.{} ",
-            self.pc,
+        let instr_str = format!(
+            "{}.{}",
             self.operator,
             match self.word_size {
                 WordSize::Byte => "b",
-                WordSize::Long => "w",
+                WordSize::Long => "l",
             }
         );
+        self.current_trace = Some(InstructionTrace::new(self.tick, self.pc, instr_str));
+
         self.latch_pc(PcSelector::NextWord);
         self.execution_state = ExecutionState::Execute(0);
     }
 
     fn execute_step(&mut self, step: u8) {
-        self.tick();
+        self.tick += 1;
 
         if self.interrupt_processing {
             self.execute_interrupt(step);
@@ -177,7 +242,6 @@ impl ControlUnit {
         match self.operator {
             Operator::Hlt => {
                 self.execution_state = ExecutionState::Stop;
-                self.log += &format!("| Result : {}", self.data_path.data_registers[0] as i64);
             }
             Operator::Mov => self.execute_2_operand_operator(step, &AluOperator::Trr),
             Operator::Cmp => self.execute_cmp(step),
@@ -376,6 +440,7 @@ impl ControlUnit {
                     && !Self::is_operand_needed_second_step(&destination)
                 {
                     self.prepare_operand(AluInput::Right, &source, PrepareMode::Immediate);
+                    self.log_simple_operand(&destination);
                     self.data_path
                         .update_right_alu_input(AluInputSelector::Immediate);
                     self.data_path
@@ -401,6 +466,7 @@ impl ControlUnit {
                     self.prepare_operand(AluInput::None, &destination, PrepareMode::Immediate);
                     self.execution_state = ExecutionState::Execute(3);
                 } else {
+                    self.log_simple_operand(&destination);
                     self.data_path
                         .update_right_alu_input(AluInputSelector::Register);
                     self.data_path.execute_alu(alu_op, &self.word_size);
@@ -484,6 +550,7 @@ impl ControlUnit {
                 {
                     self.prepare_operand(AluInput::Left, &left, PrepareMode::Immediate);
                     self.prepare_operand(AluInput::Right, &right, PrepareMode::Immediate);
+                    self.log_simple_operand(&destination);
                     self.data_path
                         .update_left_alu_input(AluInputSelector::Immediate);
                     self.data_path
@@ -512,6 +579,7 @@ impl ControlUnit {
                     && !Self::is_operand_needed_second_step(&destination)
                 {
                     self.prepare_operand(AluInput::Right, &right, PrepareMode::Immediate);
+                    self.log_simple_operand(&destination);
                     self.data_path
                         .update_left_alu_input(AluInputSelector::Register);
                     self.data_path
@@ -538,6 +606,7 @@ impl ControlUnit {
                     self.prepare_operand(AluInput::None, &destination, PrepareMode::Immediate);
                     self.execution_state = ExecutionState::Execute(5);
                 } else {
+                    self.log_simple_operand(&destination);
                     self.data_path
                         .update_left_alu_input(AluInputSelector::Register);
                     self.data_path
@@ -665,6 +734,7 @@ impl ControlUnit {
             0 => {
                 self.update_read_data();
                 self.latch_pc(PcSelector::ByAddress);
+                self.log_operand(&format!("{}", self.pc));
                 self.execution_state = ExecutionState::Done;
             }
             _ => unreachable!(),
@@ -681,6 +751,7 @@ impl ControlUnit {
                 self.data_path.update_right_data_mux(DataSelector::External);
                 self.data_path.latch_right_data_register();
                 self.latch_pc(PcSelector::ByAddress);
+                self.log_operand(&format!("{}", self.pc));
                 self.prepare_stack_with_decrement();
                 self.execution_state = ExecutionState::Execute(1);
             }
@@ -702,6 +773,10 @@ impl ControlUnit {
             }
             3 => {
                 self.data_path.write_data_memory(WriteSelector::Scalar);
+                self.log_event(&format!(
+                    "Write: MEM[{}] = {}",
+                    self.data_path.data_address, self.data_path.right_data_register
+                ));
                 self.execution_state = ExecutionState::Done;
             }
             _ => unreachable!(),
@@ -717,12 +792,17 @@ impl ControlUnit {
             1 => {
                 self.data_path.read_data_memory();
                 self.data_path.update_memory_output_mux(&WordSize::Long);
+                self.log_event(&format!(
+                    "Read: MEM[{}] = {}",
+                    self.data_path.data_address, self.data_path.memory_output_mux as i64
+                ));
                 self.data_path.update_left_data_mux(DataSelector::Memory);
                 self.data_path
                     .update_left_alu_input(AluInputSelector::Immediate);
                 self.data_path
                     .execute_alu(&AluOperator::Trl, &WordSize::Long);
                 self.latch_pc(PcSelector::ByDataPath);
+                self.log_event(&format!("Returning to {}", self.pc));
                 self.execution_state = ExecutionState::Done;
             }
             _ => unreachable!(),
@@ -732,11 +812,12 @@ impl ControlUnit {
     fn execute_interrupt(&mut self, step: u8) {
         match step {
             0 => {
-                self.log += "| INTERRUPT ";
+                self.log_event("INTERRUPT received");
                 self.interrupt_flag = false;
                 self.update_output_pc_mux(OutputPcSelector::Current);
                 self.update_control_unit_output(OutputSelector::PC);
                 self.latch_pc(PcSelector::ByInterrupt);
+                self.log_event(&format!("Interrupt jump to {}", self.pc));
                 self.prepare_stack_with_decrement();
                 self.execution_state = ExecutionState::Execute(1);
             }
@@ -755,6 +836,10 @@ impl ControlUnit {
             }
             3 => {
                 self.data_path.write_data_memory(WriteSelector::Scalar);
+                self.log_event(&format!(
+                    "Write: MEM[{}] = {}",
+                    self.data_path.data_address, self.data_path.alu_output as i64
+                ));
                 self.prepare_stack_with_decrement();
                 self.execution_state = ExecutionState::Execute(4);
             }
@@ -778,6 +863,10 @@ impl ControlUnit {
             }
             6 => {
                 self.data_path.write_data_memory(WriteSelector::Scalar);
+                self.log_event(&format!(
+                    "Write: MEM[{}] = {}",
+                    self.data_path.data_address, self.data_path.alu_output as i64
+                ));
                 self.interrupt_processing = false;
                 self.execution_state = ExecutionState::Done;
             }
@@ -794,6 +883,10 @@ impl ControlUnit {
             1 => {
                 self.data_path.read_data_memory();
                 self.data_path.update_memory_output_mux(&WordSize::Long);
+                self.log_event(&format!(
+                    "Read: MEM[{}] = {}",
+                    self.data_path.data_address, self.data_path.memory_output_mux as i64
+                ));
                 self.data_path.update_left_data_mux(DataSelector::Memory);
                 self.data_path
                     .update_left_alu_input(AluInputSelector::Immediate);
@@ -809,12 +902,17 @@ impl ControlUnit {
             3 => {
                 self.data_path.read_data_memory();
                 self.data_path.update_memory_output_mux(&WordSize::Byte);
+                self.log_event(&format!(
+                    "Read: MEM[{}] = {}",
+                    self.data_path.data_address, self.data_path.memory_output_mux as i64
+                ));
                 self.data_path.update_left_data_mux(DataSelector::Memory);
                 self.data_path
                     .update_left_alu_input(AluInputSelector::Immediate);
                 self.data_path
                     .execute_alu(&AluOperator::Trl, &WordSize::Byte);
                 self.data_path.restore_nzcv();
+                self.log_event("Restored NZCV flags");
 
                 self.interrupt_flag = true;
                 self.execution_state = ExecutionState::Done;
@@ -833,9 +931,12 @@ impl ControlUnit {
         match step {
             0 => {
                 self.update_read_data();
+                self.log_operand(&format!("{}", self.assemble_branch_address()));
                 if condition {
+                    self.log_event("Branch taken");
                     self.latch_pc(PcSelector::ByAddress);
                 } else {
+                    self.log_event("Branch skipped");
                     self.latch_pc(PcSelector::NextWord);
                 }
                 self.execution_state = ExecutionState::Done;
@@ -851,7 +952,11 @@ impl ControlUnit {
                 self.data_path.read_io(port);
                 self.data_path.io.update_interrupt_vector();
                 self.data_path.external_selector = ExternalSelector::IO;
-                self.log += &format!("| IN #{} ", self.data_path.io.output as i64);
+                self.log_event(&format!(
+                    "IN from port #{}: Value = {}",
+                    port, self.data_path.io.output as i64
+                ));
+                self.log_operand(&format!("#{}", port));
 
                 let operand = self.parse_data_writable(2);
                 self.prepare_operand(AluInput::Left, &operand, PrepareMode::Immediate);
@@ -892,6 +997,7 @@ impl ControlUnit {
             0 => {
                 let port = self.parse_port(1);
                 let operand = self.parse_data_readable(2);
+                self.log_operand(&format!("#{}", port));
                 self.prepare_operand(AluInput::Left, &operand, PrepareMode::Immediate);
                 if Self::is_operand_needed_second_step(&operand) {
                     self.execution_state = ExecutionState::Execute(1);
@@ -901,6 +1007,10 @@ impl ControlUnit {
                     self.data_path
                         .execute_alu(&AluOperator::Trl, &self.word_size);
                     self.data_path.write_io(port);
+                    self.log_event(&format!(
+                        "OUT to port #{}: Value = {}",
+                        port, self.data_path.alu_output as i64
+                    ));
                     self.execution_state = ExecutionState::Done;
                 }
             }
@@ -912,6 +1022,10 @@ impl ControlUnit {
                 self.data_path
                     .execute_alu(&AluOperator::Trl, &self.word_size);
                 self.data_path.write_io(port);
+                self.log_event(&format!(
+                    "OUT to port #{}: Value = {}",
+                    port, self.data_path.alu_output as i64
+                ));
                 self.execution_state = ExecutionState::Done;
             }
             _ => unreachable!(),
@@ -922,6 +1036,7 @@ impl ControlUnit {
         match step {
             0 => {
                 self.interrupt_flag = true;
+                self.log_event("Interrupts ENABLED");
                 self.execution_state = ExecutionState::Done;
             }
             _ => unreachable!(),
@@ -932,6 +1047,7 @@ impl ControlUnit {
         match step {
             0 => {
                 self.interrupt_flag = false;
+                self.log_event("Interrupts DISABLED");
                 self.execution_state = ExecutionState::Done;
             }
             _ => unreachable!(),
@@ -961,7 +1077,6 @@ impl ControlUnit {
             Mode::Direct => {
                 self.update_read_data();
                 self.update_control_unit_output(OutputSelector::Memory);
-
                 self.latch_pc(PcSelector::NextWord);
                 self.data_path.external_selector = ExternalSelector::ControlUnit;
                 match input {
@@ -975,7 +1090,7 @@ impl ControlUnit {
                     }
                     AluInput::None => {}
                 }
-                self.log += &format!("| #{} ", self.read_data as i64);
+                self.log_operand(&format!("#{}", self.read_data as i32));
             }
             Mode::DataRegister => {
                 self.data_path.read_data_register(operand.main_register);
@@ -992,7 +1107,7 @@ impl ControlUnit {
                     }
                     AluInput::None => {}
                 }
-                self.log += &format!("| D{} ", operand.main_register);
+                self.log_operand(&format!("D{}", operand.main_register));
             }
             Mode::AddressRegister => {
                 self.data_path.read_address_register(operand.main_register);
@@ -1009,7 +1124,7 @@ impl ControlUnit {
                     }
                     AluInput::None => {}
                 }
-                self.log += &format!("| A{} ", operand.main_register);
+                self.log_operand(&format!("A{}", operand.main_register));
             }
             Mode::Indirect | Mode::IndirectPostIncrement | Mode::IndirectPreDecrement => {
                 self.data_path.read_address_register(operand.main_register);
@@ -1023,10 +1138,10 @@ impl ControlUnit {
                 match operand.mode {
                     Mode::Indirect => {}
                     Mode::IndirectPreDecrement => {
-                        self.data_path.pre_mode_selector = PreModeSelector::Decrement;
+                        self.data_path.pre_mode_selector = PreModeSelector::Decrement
                     }
                     Mode::IndirectPostIncrement => {
-                        self.data_path.post_mode_selector = PostModeSelector::Increment;
+                        self.data_path.post_mode_selector = PostModeSelector::Increment
                     }
                     _ => unreachable!(),
                 }
@@ -1035,12 +1150,12 @@ impl ControlUnit {
                     .latch_address_register(operand.main_register, &WordSize::Long);
 
                 match operand.mode {
-                    Mode::Indirect => self.log += &format!("| (A{}) ", operand.main_register),
+                    Mode::Indirect => self.log_operand(&format!("(A{})", operand.main_register)),
                     Mode::IndirectPreDecrement => {
-                        self.log += &format!("| -(A{}) ", operand.main_register)
+                        self.log_operand(&format!("-(A{})", operand.main_register))
                     }
                     Mode::IndirectPostIncrement => {
-                        self.log += &format!("| (A{})+ ", operand.main_register)
+                        self.log_operand(&format!("(A{})+", operand.main_register))
                     }
                     _ => unreachable!(),
                 }
@@ -1061,8 +1176,10 @@ impl ControlUnit {
                     self.data_path.update_right_data_mux(DataSelector::External);
                     self.data_path
                         .update_right_alu_input(AluInputSelector::Immediate);
-                    self.log +=
-                        &format!("| (A{}:#{}) ", operand.main_register, self.read_data as i64);
+                    self.log_operand(&format!(
+                        "(A{}, #{})",
+                        operand.main_register, self.read_data as i32
+                    ));
                 } else {
                     let offset_register = operand.offset + 4;
                     self.data_path.read_data_register(offset_register);
@@ -1070,7 +1187,10 @@ impl ControlUnit {
                         .update_right_data_mux(DataSelector::DataRegister);
                     self.data_path
                         .update_right_alu_input(AluInputSelector::Immediate);
-                    self.log += &format!("| (A{}:D{}) ", operand.main_register, offset_register);
+                    self.log_operand(&format!(
+                        "(A{}, D{})",
+                        operand.main_register, offset_register
+                    ));
                 }
                 self.data_path
                     .execute_alu(&AluOperator::Add, &WordSize::Long);
@@ -1087,7 +1207,7 @@ impl ControlUnit {
                 self.data_path
                     .execute_alu(&AluOperator::Trl, &WordSize::Long);
                 self.data_path.latch_data_address();
-                self.log += &format!("| (#{}) ", self.read_data as i64);
+                self.log_operand(&format!("({})", self.read_data));
             }
         }
     }
@@ -1137,10 +1257,10 @@ impl ControlUnit {
             }
             AluInput::None => {}
         }
-        self.log += &format!(
-            "| Load (#{}) = {} ",
-            self.data_path.data_address as i64, self.data_path.memory_output_mux as i64
-        );
+        self.log_event(&format!(
+            "Read: MEM[{}] = {}",
+            self.data_path.data_address, self.data_path.memory_output_mux as i64
+        ));
     }
 
     fn store_operand(&mut self, operand: Operand) {
@@ -1148,10 +1268,18 @@ impl ControlUnit {
             Mode::DataRegister => {
                 self.data_path
                     .latch_data_register(operand.main_register, &self.word_size);
+                self.log_event(&format!(
+                    "Write to D{}: Value = {}",
+                    operand.main_register, self.data_path.alu_output as i64
+                ));
             }
             Mode::AddressRegister => {
                 self.data_path
                     .latch_address_register(operand.main_register, &self.word_size);
+                self.log_event(&format!(
+                    "Write to A{}: Value = {}",
+                    operand.main_register, self.data_path.alu_output as i64
+                ));
             }
             Mode::Indirect
             | Mode::IndirectPostIncrement
@@ -1167,10 +1295,10 @@ impl ControlUnit {
 
     fn store_indirect_operand(&mut self) {
         self.data_path.write_data_memory(WriteSelector::Scalar);
-        self.log += &format!(
-            "| Store (#{}) = {} ",
-            self.data_path.data_address as i64, self.data_path.alu_output as i64
-        )
+        self.log_event(&format!(
+            "Write: MEM[{}] = {}",
+            self.data_path.data_address, self.data_path.alu_output as i64
+        ));
     }
 }
 
@@ -1222,7 +1350,7 @@ impl Default for ControlUnit {
             interrupt_processing: false,
             vector_table: HashMap::new(),
             tick: 0,
-            log: String::from(""),
+            current_trace: None,
             output_pc_mux: 0,
         }
     }

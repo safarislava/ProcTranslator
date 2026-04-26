@@ -58,180 +58,180 @@ data_section:
 - 9223372036854775807
 - 48
 machine_code: |-
-  0x0000: 0x03005C00   MOV.w A7, #0x0001869F
-  0x0002: 0x03005400   MOV.w A5, #0x000003E8
-  0x0004: 0x42000000   CALL.b 0x000000000000003F
-  0x0006: 0x00000000   HLT.b
-  0x0007: 0x0358BC00   MOV.w -(A7), A6
-  0x0008: 0x035C5800   MOV.w A6, A7
-  0x0009: 0x255C005C   SUB.w #0x00000006, A7
-  0x000B: 0x21D8D824   ADD.w (A6:#0x00000005), (A6:#0x00000003)
-  0x000E: 0x0324D800   MOV.w (A6:#0xFFFFFFFF), D1
-  0x0010: 0x37D8E024   LSR.w (#0x00000000), (A6:#0x00000003)
-  0x0013: 0x0324D800   MOV.w (A6:#0xFFFFFFFE), D1
-  0x0015: 0x37D8E024   LSR.w (#0x00000000), (A6:#0x00000005)
-  0x0018: 0x0324D800   MOV.w (A6:#0xFFFFFFFD), D1
-  0x001A: 0x37D8E024   LSR.w (#0x00000000), (A6:#0xFFFFFFFF)
-  0x001D: 0x0324D800   MOV.w (A6:#0xFFFFFFFC), D1
-  0x001F: 0x03E0D800   MOV.w (A6:#0xFFFFFFFB), (#0x00000001)
-  0x0022: 0x05E0D800   CMP.w (A6:#0xFFFFFFFE), (#0x00000002)
-  0x0025: 0x60000000   BEQ.b 0x000000000000002B
-  0x0027: 0x03002400   MOV.w D1, #0x00000000
-  0x0029: 0x40000000   JMP.b 0x000000000000002D
-  0x002B: 0x03002400   MOV.w D1, #0x00000001
-  0x002D: 0x05E0D800   CMP.w (A6:#0xFFFFFFFD), (#0x00000002)
-  0x0030: 0x60000000   BEQ.b 0x0000000000000036
-  0x0032: 0x03002800   MOV.w D2, #0x00000000
-  0x0034: 0x40000000   JMP.b 0x0000000000000038
-  0x0036: 0x03002800   MOV.w D2, #0x00000001
-  0x0038: 0x2C24282C   AND.b D2, D1
-  0x0039: 0x042C0000   CMP.b #0x00000001, D3
-  0x003B: 0x60000000   BEQ.b 0x00000000000000CA
-  0x003D: 0x40000000   JMP.b 0x00000000000000CF
-  0x003F: 0x0358BC00   MOV.w -(A7), A6
-  0x0040: 0x035C5800   MOV.w A6, A7
-  0x0041: 0x255C005C   SUB.w #0x00000000, A7
-  0x0043: 0x0324BC00   MOV.w -(A7), D1
-  0x0044: 0x0328BC00   MOV.w -(A7), D2
-  0x0045: 0x032CBC00   MOV.w -(A7), D3
-  0x0046: 0x0330BC00   MOV.w -(A7), D4
-  0x0047: 0x0340BC00   MOV.w -(A7), A0
-  0x0048: 0x0344BC00   MOV.w -(A7), A1
-  0x0049: 0x03E0BC00   MOV.w -(A7), (#0x00000002)
-  0x004B: 0x03E0BC00   MOV.w -(A7), (#0x00000001)
-  0x004D: 0x03E0BC00   MOV.w -(A7), (#0x00000003)
-  0x004F: 0x03E0BC00   MOV.w -(A7), (#0x00000001)
-  0x0051: 0x42000000   CALL.b 0x0000000000000007
-  0x0053: 0x215C005C   ADD.w #0x00000004, A7
-  0x0055: 0x039C4400   MOV.w A1, (A7)+
-  0x0056: 0x039C4000   MOV.w A0, (A7)+
-  0x0057: 0x039C3000   MOV.w D4, (A7)+
-  0x0058: 0x039C2C00   MOV.w D3, (A7)+
-  0x0059: 0x039C2800   MOV.w D2, (A7)+
-  0x005A: 0x039C2400   MOV.w D1, (A7)+
-  0x005B: 0x03202400   MOV.w D1, D0
-  0x005C: 0x0324BC00   MOV.w -(A7), D1
-  0x005D: 0x0328BC00   MOV.w -(A7), D2
-  0x005E: 0x032CBC00   MOV.w -(A7), D3
-  0x005F: 0x0330BC00   MOV.w -(A7), D4
-  0x0060: 0x0340BC00   MOV.w -(A7), A0
-  0x0061: 0x0344BC00   MOV.w -(A7), A1
-  0x0062: 0x03E0BC00   MOV.w -(A7), (#0x00000004)
-  0x0064: 0x03E0BC00   MOV.w -(A7), (#0x00000001)
-  0x0066: 0x03E0BC00   MOV.w -(A7), (#0x00000005)
-  0x0068: 0x03E0BC00   MOV.w -(A7), (#0x00000004)
-  0x006A: 0x42000000   CALL.b 0x0000000000000007
-  0x006C: 0x215C005C   ADD.w #0x00000004, A7
-  0x006E: 0x039C4400   MOV.w A1, (A7)+
-  0x006F: 0x039C4000   MOV.w A0, (A7)+
-  0x0070: 0x039C3000   MOV.w D4, (A7)+
-  0x0071: 0x039C2C00   MOV.w D3, (A7)+
-  0x0072: 0x039C2800   MOV.w D2, (A7)+
-  0x0073: 0x039C2400   MOV.w D1, (A7)+
-  0x0074: 0x03202400   MOV.w D1, D0
-  0x0075: 0x0324BC00   MOV.w -(A7), D1
-  0x0076: 0x0328BC00   MOV.w -(A7), D2
-  0x0077: 0x032CBC00   MOV.w -(A7), D3
-  0x0078: 0x0330BC00   MOV.w -(A7), D4
-  0x0079: 0x0340BC00   MOV.w -(A7), A0
-  0x007A: 0x0344BC00   MOV.w -(A7), A1
-  0x007B: 0x03E0BC00   MOV.w -(A7), (#0x00000006)
-  0x007D: 0x03E0BC00   MOV.w -(A7), (#0x00000007)
-  0x007F: 0x03E0BC00   MOV.w -(A7), (#0x00000006)
-  0x0081: 0x03E0BC00   MOV.w -(A7), (#0x00000007)
-  0x0083: 0x42000000   CALL.b 0x0000000000000007
-  0x0085: 0x215C005C   ADD.w #0x00000004, A7
-  0x0087: 0x039C4400   MOV.w A1, (A7)+
-  0x0088: 0x039C4000   MOV.w A0, (A7)+
-  0x0089: 0x039C3000   MOV.w D4, (A7)+
-  0x008A: 0x039C2C00   MOV.w D3, (A7)+
-  0x008B: 0x039C2800   MOV.w D2, (A7)+
-  0x008C: 0x039C2400   MOV.w D1, (A7)+
-  0x008D: 0x03202400   MOV.w D1, D0
-  0x008E: 0x0324BC00   MOV.w -(A7), D1
-  0x008F: 0x0328BC00   MOV.w -(A7), D2
-  0x0090: 0x032CBC00   MOV.w -(A7), D3
-  0x0091: 0x0330BC00   MOV.w -(A7), D4
-  0x0092: 0x0340BC00   MOV.w -(A7), A0
-  0x0093: 0x0344BC00   MOV.w -(A7), A1
-  0x0094: 0x03E0BC00   MOV.w -(A7), (#0x00000002)
-  0x0096: 0x03E0BC00   MOV.w -(A7), (#0x00000001)
-  0x0098: 0x03E0BC00   MOV.w -(A7), (#0x00000003)
-  0x009A: 0x03E0BC00   MOV.w -(A7), (#0x00000008)
-  0x009C: 0x42000000   CALL.b 0x0000000000000007
-  0x009E: 0x215C005C   ADD.w #0x00000004, A7
-  0x00A0: 0x039C4400   MOV.w A1, (A7)+
-  0x00A1: 0x039C4000   MOV.w A0, (A7)+
-  0x00A2: 0x039C3000   MOV.w D4, (A7)+
-  0x00A3: 0x039C2C00   MOV.w D3, (A7)+
-  0x00A4: 0x039C2800   MOV.w D2, (A7)+
-  0x00A5: 0x039C2400   MOV.w D1, (A7)+
-  0x00A6: 0x03202400   MOV.w D1, D0
-  0x00A7: 0x03585C00   MOV.w A7, A6
-  0x00A8: 0x039C5800   MOV.w A6, (A7)+
-  0x00A9: 0x44000000   RET.b
-  0x00AA: 0x0358BC00   MOV.w -(A7), A6
-  0x00AB: 0x035C5800   MOV.w A6, A7
-  0x00AC: 0x255C005C   SUB.w #0x00000000, A7
-  0x00AE: 0x03E02000   MOV.w D0, (#0x00000001)
-  0x00B0: 0x03585C00   MOV.w A7, A6
-  0x00B1: 0x039C5800   MOV.w A6, (A7)+
-  0x00B2: 0x44000000   RET.b
-  0x00B3: 0x0358BC00   MOV.w -(A7), A6
-  0x00B4: 0x035C5800   MOV.w A6, A7
-  0x00B5: 0x255C005C   SUB.w #0x00000000, A7
-  0x00B7: 0x02E02000   MOV.b D0, (#0x00000009)
-  0x00B9: 0x03585C00   MOV.w A7, A6
-  0x00BA: 0x039C5800   MOV.w A6, (A7)+
-  0x00BB: 0x44000000   RET.b
-  0x00BC: 0x0358BC00   MOV.w -(A7), A6
-  0x00BD: 0x035C5800   MOV.w A6, A7
-  0x00BE: 0x255C005C   SUB.w #0x00000000, A7
-  0x00C0: 0x03585C00   MOV.w A7, A6
-  0x00C1: 0x039C5800   MOV.w A6, (A7)+
-  0x00C2: 0x44000000   RET.b
-  0x00C3: 0x0358BC00   MOV.w -(A7), A6
-  0x00C4: 0x035C5800   MOV.w A6, A7
-  0x00C5: 0x255C005C   SUB.w #0x00000000, A7
-  0x00C7: 0x03585C00   MOV.w A7, A6
-  0x00C8: 0x039C5800   MOV.w A6, (A7)+
-  0x00C9: 0x44000000   RET.b
-  0x00CA: 0x03E0D800   MOV.w (A6:#0xFFFFFFFB), (#0x00000002)
-  0x00CD: 0x40000000   JMP.b 0x00000000000000EC
-  0x00CF: 0x05E0D800   CMP.w (A6:#0xFFFFFFFE), (#0x00000002)
-  0x00D2: 0x60000000   BEQ.b 0x00000000000000D8
-  0x00D4: 0x03002400   MOV.w D1, #0x00000000
-  0x00D6: 0x40000000   JMP.b 0x00000000000000DA
-  0x00D8: 0x03002400   MOV.w D1, #0x00000001
-  0x00DA: 0x05E0D800   CMP.w (A6:#0xFFFFFFFD), (#0x00000002)
-  0x00DD: 0x60000000   BEQ.b 0x00000000000000E3
-  0x00DF: 0x03002800   MOV.w D2, #0x00000000
-  0x00E1: 0x40000000   JMP.b 0x00000000000000E5
-  0x00E3: 0x03002800   MOV.w D2, #0x00000001
-  0x00E5: 0x2E24282C   OR.b D2, D1
-  0x00E6: 0x042C0000   CMP.b #0x00000001, D3
-  0x00E8: 0x60000000   BEQ.b 0x00000000000000FA
-  0x00EA: 0x40000000   JMP.b 0x000000000000010B
-  0x00EC: 0x21D8D824   ADD.w (A6:#0x00000004), (A6:#0x00000002)
-  0x00EF: 0x2124D828   ADD.w (A6:#0xFFFFFFFB), D1
-  0x00F1: 0x0328D800   MOV.w (A6:#0xFFFFFFFA), D2
-  0x00F3: 0xA304D800   OUT.w #4, (A6:#0xFFFFFFFA)
-  0x00F5: 0xA304D800   OUT.w #4, (A6:#0xFFFFFFFF)
-  0x00F7: 0x03585C00   MOV.w A7, A6
-  0x00F8: 0x039C5800   MOV.w A6, (A7)+
-  0x00F9: 0x44000000   RET.b
-  0x00FA: 0x05E0D800   CMP.w (A6:#0xFFFFFFFC), (#0x00000001)
-  0x00FD: 0x60000000   BEQ.b 0x0000000000000103
-  0x00FF: 0x03002400   MOV.w D1, #0x00000000
-  0x0101: 0x40000000   JMP.b 0x0000000000000105
-  0x0103: 0x03002400   MOV.w D1, #0x00000001
-  0x0105: 0x04240000   CMP.b #0x00000001, D1
-  0x0107: 0x60000000   BEQ.b 0x000000000000010D
-  0x0109: 0x40000000   JMP.b 0x0000000000000112
-  0x010B: 0x40000000   JMP.b 0x0000000000000116
-  0x010D: 0x03E0D800   MOV.w (A6:#0xFFFFFFFB), (#0x00000002)
-  0x0110: 0x40000000   JMP.b 0x0000000000000114
-  0x0112: 0x40000000   JMP.b 0x0000000000000114
-  0x0114: 0x40000000   JMP.b 0x0000000000000116
-  0x0116: 0x40000000   JMP.b 0x00000000000000EC
-log: ' INFO TICK 1015 | Result : 0'
+  0x0000 | 03005C00 0001869F                   | MOV.l #99999, A7                    | A7 <- 99999
+  0x0002 | 03005400 000003E8                   | MOV.l #1000, A5                     | A5 <- 1000
+  0x0004 | 42000000 0000003F                   | CALL 0x3F                           | MEM[--A7] <- PC + 1; PC <- 0x3F
+  0x0006 | 00000000                            | HLT                                 | Остановка выполнения процессора
+  0x0007 | 0358BC00                            | MOV.l A6, -(A7)                     | MEM[--A7] <- A6
+  0x0008 | 035C5800                            | MOV.l A7, A6                        | A6 <- A7
+  0x0009 | 255C005C 00000006                   | SUB.l A7, #6, A7                    | A7 <- A7 - 6
+  0x000B | 21D8D824 00000003 00000005          | ADD.l (A6:#3), (A6:#5), D1          | D1 <- MEM[A6 + 3] + MEM[A6 + 5]
+  0x000E | 0324D800 FFFFFFFF                   | MOV.l D1, (A6:#-1)                  | MEM[A6 + -1] <- D1
+  0x0010 | 37D8E024 00000003 00000000          | LSR.l (A6:#3), (#0), D1             | D1 <- MEM[A6 + 3] >> MEM[0]
+  0x0013 | 0324D800 FFFFFFFE                   | MOV.l D1, (A6:#-2)                  | MEM[A6 + -2] <- D1
+  0x0015 | 37D8E024 00000005 00000000          | LSR.l (A6:#5), (#0), D1             | D1 <- MEM[A6 + 5] >> MEM[0]
+  0x0018 | 0324D800 FFFFFFFD                   | MOV.l D1, (A6:#-3)                  | MEM[A6 + -3] <- D1
+  0x001A | 37D8E024 FFFFFFFF 00000000          | LSR.l (A6:#-1), (#0), D1            | D1 <- MEM[A6 + -1] >> MEM[0]
+  0x001D | 0324D800 FFFFFFFC                   | MOV.l D1, (A6:#-4)                  | MEM[A6 + -4] <- D1
+  0x001F | 03E0D800 00000001 FFFFFFFB          | MOV.l (#1), (A6:#-5)                | MEM[A6 + -5] <- MEM[1]
+  0x0022 | 05E0D800 00000002 FFFFFFFE          | CMP.l (#2), (A6:#-2)                | NZCV <- MEM[2] - MEM[A6 + -2]
+  0x0025 | 60000000 0000002B                   | BEQ 0x2B                            | if Z == 1 then PC <- 0x2B
+  0x0027 | 03002400 00000000                   | MOV.l #0, D1                        | D1 <- 0
+  0x0029 | 40000000 0000002D                   | JMP 0x2D                            | PC <- 0x2D
+  0x002B | 03002400 00000001                   | MOV.l #1, D1                        | D1 <- 1
+  0x002D | 05E0D800 00000002 FFFFFFFD          | CMP.l (#2), (A6:#-3)                | NZCV <- MEM[2] - MEM[A6 + -3]
+  0x0030 | 60000000 00000036                   | BEQ 0x36                            | if Z == 1 then PC <- 0x36
+  0x0032 | 03002800 00000000                   | MOV.l #0, D2                        | D2 <- 0
+  0x0034 | 40000000 00000038                   | JMP 0x38                            | PC <- 0x38
+  0x0036 | 03002800 00000001                   | MOV.l #1, D2                        | D2 <- 1
+  0x0038 | 2C24282C                            | AND.b D1, D2, D3                    | D3 <- D1 & D2
+  0x0039 | 042C0000 00000001                   | CMP.b D3, #1                        | NZCV <- D3 - 1
+  0x003B | 60000000 000000CA                   | BEQ 0xCA                            | if Z == 1 then PC <- 0xCA
+  0x003D | 40000000 000000CF                   | JMP 0xCF                            | PC <- 0xCF
+  0x003F | 0358BC00                            | MOV.l A6, -(A7)                     | MEM[--A7] <- A6
+  0x0040 | 035C5800                            | MOV.l A7, A6                        | A6 <- A7
+  0x0041 | 255C005C 00000000                   | SUB.l A7, #0, A7                    | A7 <- A7 - 0
+  0x0043 | 0324BC00                            | MOV.l D1, -(A7)                     | MEM[--A7] <- D1
+  0x0044 | 0328BC00                            | MOV.l D2, -(A7)                     | MEM[--A7] <- D2
+  0x0045 | 032CBC00                            | MOV.l D3, -(A7)                     | MEM[--A7] <- D3
+  0x0046 | 0330BC00                            | MOV.l D4, -(A7)                     | MEM[--A7] <- D4
+  0x0047 | 0340BC00                            | MOV.l A0, -(A7)                     | MEM[--A7] <- A0
+  0x0048 | 0344BC00                            | MOV.l A1, -(A7)                     | MEM[--A7] <- A1
+  0x0049 | 03E0BC00 00000002                   | MOV.l (#2), -(A7)                   | MEM[--A7] <- MEM[2]
+  0x004B | 03E0BC00 00000001                   | MOV.l (#1), -(A7)                   | MEM[--A7] <- MEM[1]
+  0x004D | 03E0BC00 00000003                   | MOV.l (#3), -(A7)                   | MEM[--A7] <- MEM[3]
+  0x004F | 03E0BC00 00000001                   | MOV.l (#1), -(A7)                   | MEM[--A7] <- MEM[1]
+  0x0051 | 42000000 00000007                   | CALL 0x7                            | MEM[--A7] <- PC + 1; PC <- 0x7
+  0x0053 | 215C005C 00000004                   | ADD.l A7, #4, A7                    | A7 <- A7 + 4
+  0x0055 | 039C4400                            | MOV.l (A7)+, A1                     | A1 <- MEM[A7++]
+  0x0056 | 039C4000                            | MOV.l (A7)+, A0                     | A0 <- MEM[A7++]
+  0x0057 | 039C3000                            | MOV.l (A7)+, D4                     | D4 <- MEM[A7++]
+  0x0058 | 039C2C00                            | MOV.l (A7)+, D3                     | D3 <- MEM[A7++]
+  0x0059 | 039C2800                            | MOV.l (A7)+, D2                     | D2 <- MEM[A7++]
+  0x005A | 039C2400                            | MOV.l (A7)+, D1                     | D1 <- MEM[A7++]
+  0x005B | 03202400                            | MOV.l D0, D1                        | D1 <- D0
+  0x005C | 0324BC00                            | MOV.l D1, -(A7)                     | MEM[--A7] <- D1
+  0x005D | 0328BC00                            | MOV.l D2, -(A7)                     | MEM[--A7] <- D2
+  0x005E | 032CBC00                            | MOV.l D3, -(A7)                     | MEM[--A7] <- D3
+  0x005F | 0330BC00                            | MOV.l D4, -(A7)                     | MEM[--A7] <- D4
+  0x0060 | 0340BC00                            | MOV.l A0, -(A7)                     | MEM[--A7] <- A0
+  0x0061 | 0344BC00                            | MOV.l A1, -(A7)                     | MEM[--A7] <- A1
+  0x0062 | 03E0BC00 00000004                   | MOV.l (#4), -(A7)                   | MEM[--A7] <- MEM[4]
+  0x0064 | 03E0BC00 00000001                   | MOV.l (#1), -(A7)                   | MEM[--A7] <- MEM[1]
+  0x0066 | 03E0BC00 00000005                   | MOV.l (#5), -(A7)                   | MEM[--A7] <- MEM[5]
+  0x0068 | 03E0BC00 00000004                   | MOV.l (#4), -(A7)                   | MEM[--A7] <- MEM[4]
+  0x006A | 42000000 00000007                   | CALL 0x7                            | MEM[--A7] <- PC + 1; PC <- 0x7
+  0x006C | 215C005C 00000004                   | ADD.l A7, #4, A7                    | A7 <- A7 + 4
+  0x006E | 039C4400                            | MOV.l (A7)+, A1                     | A1 <- MEM[A7++]
+  0x006F | 039C4000                            | MOV.l (A7)+, A0                     | A0 <- MEM[A7++]
+  0x0070 | 039C3000                            | MOV.l (A7)+, D4                     | D4 <- MEM[A7++]
+  0x0071 | 039C2C00                            | MOV.l (A7)+, D3                     | D3 <- MEM[A7++]
+  0x0072 | 039C2800                            | MOV.l (A7)+, D2                     | D2 <- MEM[A7++]
+  0x0073 | 039C2400                            | MOV.l (A7)+, D1                     | D1 <- MEM[A7++]
+  0x0074 | 03202400                            | MOV.l D0, D1                        | D1 <- D0
+  0x0075 | 0324BC00                            | MOV.l D1, -(A7)                     | MEM[--A7] <- D1
+  0x0076 | 0328BC00                            | MOV.l D2, -(A7)                     | MEM[--A7] <- D2
+  0x0077 | 032CBC00                            | MOV.l D3, -(A7)                     | MEM[--A7] <- D3
+  0x0078 | 0330BC00                            | MOV.l D4, -(A7)                     | MEM[--A7] <- D4
+  0x0079 | 0340BC00                            | MOV.l A0, -(A7)                     | MEM[--A7] <- A0
+  0x007A | 0344BC00                            | MOV.l A1, -(A7)                     | MEM[--A7] <- A1
+  0x007B | 03E0BC00 00000006                   | MOV.l (#6), -(A7)                   | MEM[--A7] <- MEM[6]
+  0x007D | 03E0BC00 00000007                   | MOV.l (#7), -(A7)                   | MEM[--A7] <- MEM[7]
+  0x007F | 03E0BC00 00000006                   | MOV.l (#6), -(A7)                   | MEM[--A7] <- MEM[6]
+  0x0081 | 03E0BC00 00000007                   | MOV.l (#7), -(A7)                   | MEM[--A7] <- MEM[7]
+  0x0083 | 42000000 00000007                   | CALL 0x7                            | MEM[--A7] <- PC + 1; PC <- 0x7
+  0x0085 | 215C005C 00000004                   | ADD.l A7, #4, A7                    | A7 <- A7 + 4
+  0x0087 | 039C4400                            | MOV.l (A7)+, A1                     | A1 <- MEM[A7++]
+  0x0088 | 039C4000                            | MOV.l (A7)+, A0                     | A0 <- MEM[A7++]
+  0x0089 | 039C3000                            | MOV.l (A7)+, D4                     | D4 <- MEM[A7++]
+  0x008A | 039C2C00                            | MOV.l (A7)+, D3                     | D3 <- MEM[A7++]
+  0x008B | 039C2800                            | MOV.l (A7)+, D2                     | D2 <- MEM[A7++]
+  0x008C | 039C2400                            | MOV.l (A7)+, D1                     | D1 <- MEM[A7++]
+  0x008D | 03202400                            | MOV.l D0, D1                        | D1 <- D0
+  0x008E | 0324BC00                            | MOV.l D1, -(A7)                     | MEM[--A7] <- D1
+  0x008F | 0328BC00                            | MOV.l D2, -(A7)                     | MEM[--A7] <- D2
+  0x0090 | 032CBC00                            | MOV.l D3, -(A7)                     | MEM[--A7] <- D3
+  0x0091 | 0330BC00                            | MOV.l D4, -(A7)                     | MEM[--A7] <- D4
+  0x0092 | 0340BC00                            | MOV.l A0, -(A7)                     | MEM[--A7] <- A0
+  0x0093 | 0344BC00                            | MOV.l A1, -(A7)                     | MEM[--A7] <- A1
+  0x0094 | 03E0BC00 00000002                   | MOV.l (#2), -(A7)                   | MEM[--A7] <- MEM[2]
+  0x0096 | 03E0BC00 00000001                   | MOV.l (#1), -(A7)                   | MEM[--A7] <- MEM[1]
+  0x0098 | 03E0BC00 00000003                   | MOV.l (#3), -(A7)                   | MEM[--A7] <- MEM[3]
+  0x009A | 03E0BC00 00000008                   | MOV.l (#8), -(A7)                   | MEM[--A7] <- MEM[8]
+  0x009C | 42000000 00000007                   | CALL 0x7                            | MEM[--A7] <- PC + 1; PC <- 0x7
+  0x009E | 215C005C 00000004                   | ADD.l A7, #4, A7                    | A7 <- A7 + 4
+  0x00A0 | 039C4400                            | MOV.l (A7)+, A1                     | A1 <- MEM[A7++]
+  0x00A1 | 039C4000                            | MOV.l (A7)+, A0                     | A0 <- MEM[A7++]
+  0x00A2 | 039C3000                            | MOV.l (A7)+, D4                     | D4 <- MEM[A7++]
+  0x00A3 | 039C2C00                            | MOV.l (A7)+, D3                     | D3 <- MEM[A7++]
+  0x00A4 | 039C2800                            | MOV.l (A7)+, D2                     | D2 <- MEM[A7++]
+  0x00A5 | 039C2400                            | MOV.l (A7)+, D1                     | D1 <- MEM[A7++]
+  0x00A6 | 03202400                            | MOV.l D0, D1                        | D1 <- D0
+  0x00A7 | 03585C00                            | MOV.l A6, A7                        | A7 <- A6
+  0x00A8 | 039C5800                            | MOV.l (A7)+, A6                     | A6 <- MEM[A7++]
+  0x00A9 | 44000000                            | RET                                 | PC <- MEM[A7++]
+  0x00AA | 0358BC00                            | MOV.l A6, -(A7)                     | MEM[--A7] <- A6
+  0x00AB | 035C5800                            | MOV.l A7, A6                        | A6 <- A7
+  0x00AC | 255C005C 00000000                   | SUB.l A7, #0, A7                    | A7 <- A7 - 0
+  0x00AE | 03E02000 00000001                   | MOV.l (#1), D0                      | D0 <- MEM[1]
+  0x00B0 | 03585C00                            | MOV.l A6, A7                        | A7 <- A6
+  0x00B1 | 039C5800                            | MOV.l (A7)+, A6                     | A6 <- MEM[A7++]
+  0x00B2 | 44000000                            | RET                                 | PC <- MEM[A7++]
+  0x00B3 | 0358BC00                            | MOV.l A6, -(A7)                     | MEM[--A7] <- A6
+  0x00B4 | 035C5800                            | MOV.l A7, A6                        | A6 <- A7
+  0x00B5 | 255C005C 00000000                   | SUB.l A7, #0, A7                    | A7 <- A7 - 0
+  0x00B7 | 02E02000 00000009                   | MOV.b (#9), D0                      | D0 <- MEM[9]
+  0x00B9 | 03585C00                            | MOV.l A6, A7                        | A7 <- A6
+  0x00BA | 039C5800                            | MOV.l (A7)+, A6                     | A6 <- MEM[A7++]
+  0x00BB | 44000000                            | RET                                 | PC <- MEM[A7++]
+  0x00BC | 0358BC00                            | MOV.l A6, -(A7)                     | MEM[--A7] <- A6
+  0x00BD | 035C5800                            | MOV.l A7, A6                        | A6 <- A7
+  0x00BE | 255C005C 00000000                   | SUB.l A7, #0, A7                    | A7 <- A7 - 0
+  0x00C0 | 03585C00                            | MOV.l A6, A7                        | A7 <- A6
+  0x00C1 | 039C5800                            | MOV.l (A7)+, A6                     | A6 <- MEM[A7++]
+  0x00C2 | 44000000                            | RET                                 | PC <- MEM[A7++]
+  0x00C3 | 0358BC00                            | MOV.l A6, -(A7)                     | MEM[--A7] <- A6
+  0x00C4 | 035C5800                            | MOV.l A7, A6                        | A6 <- A7
+  0x00C5 | 255C005C 00000000                   | SUB.l A7, #0, A7                    | A7 <- A7 - 0
+  0x00C7 | 03585C00                            | MOV.l A6, A7                        | A7 <- A6
+  0x00C8 | 039C5800                            | MOV.l (A7)+, A6                     | A6 <- MEM[A7++]
+  0x00C9 | 44000000                            | RET                                 | PC <- MEM[A7++]
+  0x00CA | 03E0D800 00000002 FFFFFFFB          | MOV.l (#2), (A6:#-5)                | MEM[A6 + -5] <- MEM[2]
+  0x00CD | 40000000 000000EC                   | JMP 0xEC                            | PC <- 0xEC
+  0x00CF | 05E0D800 00000002 FFFFFFFE          | CMP.l (#2), (A6:#-2)                | NZCV <- MEM[2] - MEM[A6 + -2]
+  0x00D2 | 60000000 000000D8                   | BEQ 0xD8                            | if Z == 1 then PC <- 0xD8
+  0x00D4 | 03002400 00000000                   | MOV.l #0, D1                        | D1 <- 0
+  0x00D6 | 40000000 000000DA                   | JMP 0xDA                            | PC <- 0xDA
+  0x00D8 | 03002400 00000001                   | MOV.l #1, D1                        | D1 <- 1
+  0x00DA | 05E0D800 00000002 FFFFFFFD          | CMP.l (#2), (A6:#-3)                | NZCV <- MEM[2] - MEM[A6 + -3]
+  0x00DD | 60000000 000000E3                   | BEQ 0xE3                            | if Z == 1 then PC <- 0xE3
+  0x00DF | 03002800 00000000                   | MOV.l #0, D2                        | D2 <- 0
+  0x00E1 | 40000000 000000E5                   | JMP 0xE5                            | PC <- 0xE5
+  0x00E3 | 03002800 00000001                   | MOV.l #1, D2                        | D2 <- 1
+  0x00E5 | 2E24282C                            | OR.b D1, D2, D3                     | D3 <- D1 | D2
+  0x00E6 | 042C0000 00000001                   | CMP.b D3, #1                        | NZCV <- D3 - 1
+  0x00E8 | 60000000 000000FA                   | BEQ 0xFA                            | if Z == 1 then PC <- 0xFA
+  0x00EA | 40000000 0000010B                   | JMP 0x10B                           | PC <- 0x10B
+  0x00EC | 21D8D824 00000002 00000004          | ADD.l (A6:#2), (A6:#4), D1          | D1 <- MEM[A6 + 2] + MEM[A6 + 4]
+  0x00EF | 2124D828 FFFFFFFB                   | ADD.l D1, (A6:#-5), D2              | D2 <- D1 + MEM[A6 + -5]
+  0x00F1 | 0328D800 FFFFFFFA                   | MOV.l D2, (A6:#-6)                  | MEM[A6 + -6] <- D2
+  0x00F3 | A304D800 FFFFFFFA                   | OUT #4, (A6:#-6)                    | IO[4] <- MEM[A6 + -6]
+  0x00F5 | A304D800 FFFFFFFF                   | OUT #4, (A6:#-1)                    | IO[4] <- MEM[A6 + -1]
+  0x00F7 | 03585C00                            | MOV.l A6, A7                        | A7 <- A6
+  0x00F8 | 039C5800                            | MOV.l (A7)+, A6                     | A6 <- MEM[A7++]
+  0x00F9 | 44000000                            | RET                                 | PC <- MEM[A7++]
+  0x00FA | 05E0D800 00000001 FFFFFFFC          | CMP.l (#1), (A6:#-4)                | NZCV <- MEM[1] - MEM[A6 + -4]
+  0x00FD | 60000000 00000103                   | BEQ 0x103                           | if Z == 1 then PC <- 0x103
+  0x00FF | 03002400 00000000                   | MOV.l #0, D1                        | D1 <- 0
+  0x0101 | 40000000 00000105                   | JMP 0x105                           | PC <- 0x105
+  0x0103 | 03002400 00000001                   | MOV.l #1, D1                        | D1 <- 1
+  0x0105 | 04240000 00000001                   | CMP.b D1, #1                        | NZCV <- D1 - 1
+  0x0107 | 60000000 0000010D                   | BEQ 0x10D                           | if Z == 1 then PC <- 0x10D
+  0x0109 | 40000000 00000112                   | JMP 0x112                           | PC <- 0x112
+  0x010B | 40000000 00000116                   | JMP 0x116                           | PC <- 0x116
+  0x010D | 03E0D800 00000002 FFFFFFFB          | MOV.l (#2), (A6:#-5)                | MEM[A6 + -5] <- MEM[2]
+  0x0110 | 40000000 00000114                   | JMP 0x114                           | PC <- 0x114
+  0x0112 | 40000000 00000114                   | JMP 0x114                           | PC <- 0x114
+  0x0114 | 40000000 00000116                   | JMP 0x116                           | PC <- 0x116
+  0x0116 | 40000000 000000EC                   | JMP 0xEC                            | PC <- 0xEC
+log: ' INFO Result: D0 = 0'

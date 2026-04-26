@@ -34,1340 +34,879 @@ data_section:
 - 14
 - 1
 machine_code: |-
-  0x0000: 0x03005C00   MOV.w A7, #0x0001869F
-  0x0002: 0x03005400   MOV.w A5, #0x000003E8
-  0x0004: 0x42000000   CALL.b 0x0000000000000007
-  0x0006: 0x00000000   HLT.b
-  0x0007: 0x0358BC00   MOV.w -(A7), A6
-  0x0008: 0x035C5800   MOV.w A6, A7
-  0x0009: 0x255C005C   SUB.w #0x00000002, A7
-  0x000B: 0x21540054   ADD.w #0x00000003, A5
-  0x000D: 0x2D540054   AND.w #0xFFFFFFFC, A5
-  0x000F: 0x03544000   MOV.w A0, A5
-  0x0010: 0x21540054   ADD.w #0x0000000E, A5
-  0x0012: 0x02E0C000   MOV.b (A0:#0x00000000), (#0x00000000)
-  0x0015: 0x02E0C000   MOV.b (A0:#0x00000001), (#0x00000001)
-  0x0018: 0x02E0C000   MOV.b (A0:#0x00000002), (#0x00000002)
-  0x001B: 0x02E0C000   MOV.b (A0:#0x00000003), (#0x00000003)
-  0x001E: 0x02E0C000   MOV.b (A0:#0x00000004), (#0x00000004)
-  0x0021: 0x02E0C000   MOV.b (A0:#0x00000005), (#0x00000005)
-  0x0024: 0x02E0C000   MOV.b (A0:#0x00000006), (#0x00000006)
-  0x0027: 0x02E0C000   MOV.b (A0:#0x00000007), (#0x00000007)
-  0x002A: 0x02E0C000   MOV.b (A0:#0x00000008), (#0x00000008)
-  0x002D: 0x02E0C000   MOV.b (A0:#0x00000009), (#0x00000009)
-  0x0030: 0x02E0C000   MOV.b (A0:#0x0000000A), (#0x0000000A)
-  0x0033: 0x02E0C000   MOV.b (A0:#0x0000000B), (#0x0000000B)
-  0x0036: 0x02E0C000   MOV.b (A0:#0x0000000C), (#0x0000000C)
-  0x0039: 0x02E0C000   MOV.b (A0:#0x0000000D), (#0x0000000D)
-  0x003C: 0x0340D800   MOV.w (A6:#0xFFFFFFFF), A0
-  0x003E: 0x03E0D800   MOV.w (A6:#0xFFFFFFFE), (#0x0000000E)
-  0x0041: 0x40000000   JMP.b 0x0000000000000063
-  0x0043: 0x0358BC00   MOV.w -(A7), A6
-  0x0044: 0x035C5800   MOV.w A6, A7
-  0x0045: 0x255C005C   SUB.w #0x00000000, A7
-  0x0047: 0x03E02000   MOV.w D0, (#0x0000000E)
-  0x0049: 0x03585C00   MOV.w A7, A6
-  0x004A: 0x039C5800   MOV.w A6, (A7)+
-  0x004B: 0x44000000   RET.b
-  0x004C: 0x0358BC00   MOV.w -(A7), A6
-  0x004D: 0x035C5800   MOV.w A6, A7
-  0x004E: 0x255C005C   SUB.w #0x00000000, A7
-  0x0050: 0x02E02000   MOV.b D0, (#0x0000000F)
-  0x0052: 0x03585C00   MOV.w A7, A6
-  0x0053: 0x039C5800   MOV.w A6, (A7)+
-  0x0054: 0x44000000   RET.b
-  0x0055: 0x0358BC00   MOV.w -(A7), A6
-  0x0056: 0x035C5800   MOV.w A6, A7
-  0x0057: 0x255C005C   SUB.w #0x00000000, A7
-  0x0059: 0x03585C00   MOV.w A7, A6
-  0x005A: 0x039C5800   MOV.w A6, (A7)+
-  0x005B: 0x44000000   RET.b
-  0x005C: 0x0358BC00   MOV.w -(A7), A6
-  0x005D: 0x035C5800   MOV.w A6, A7
-  0x005E: 0x255C005C   SUB.w #0x00000000, A7
-  0x0060: 0x03585C00   MOV.w A7, A6
-  0x0061: 0x039C5800   MOV.w A6, (A7)+
-  0x0062: 0x44000000   RET.b
-  0x0063: 0x05E0D800   CMP.w (A6:#0xFFFFFFFE), (#0x00000010)
-  0x0066: 0x68000000   BLT.b 0x000000000000006C
-  0x0068: 0x03002400   MOV.w D1, #0x00000000
-  0x006A: 0x40000000   JMP.b 0x000000000000006E
-  0x006C: 0x03002400   MOV.w D1, #0x00000001
-  0x006E: 0x04240000   CMP.b #0x00000001, D1
-  0x0070: 0x60000000   BEQ.b 0x0000000000000074
-  0x0072: 0x40000000   JMP.b 0x0000000000000083
-  0x0074: 0x03D84000   MOV.w A0, (A6:#0xFFFFFFFF)
-  0x0076: 0x03D82400   MOV.w D1, (A6:#0xFFFFFFFE)
-  0x0078: 0x03243400   MOV.w D5, D1
-  0x0079: 0x02C12800   MOV.b D2, (A0:D5)
-  0x007A: 0xA2052800   OUT.b #5, D2
-  0x007B: 0x03D82400   MOV.w D1, (A6:#0xFFFFFFFE)
-  0x007D: 0x2124E028   ADD.w (#0x00000011), D1
-  0x007F: 0x0328D800   MOV.w (A6:#0xFFFFFFFE), D2
-  0x0081: 0x40000000   JMP.b 0x0000000000000063
-  0x0083: 0x03585C00   MOV.w A7, A6
-  0x0084: 0x039C5800   MOV.w A6, (A7)+
-  0x0085: 0x44000000   RET.b
+  0x0000 | 03005C00 0001869F                   | MOV.l #99999, A7                    | A7 <- 99999
+  0x0002 | 03005400 000003E8                   | MOV.l #1000, A5                     | A5 <- 1000
+  0x0004 | 42000000 00000007                   | CALL 0x7                            | MEM[--A7] <- PC + 1; PC <- 0x7
+  0x0006 | 00000000                            | HLT                                 | Остановка выполнения процессора
+  0x0007 | 0358BC00                            | MOV.l A6, -(A7)                     | MEM[--A7] <- A6
+  0x0008 | 035C5800                            | MOV.l A7, A6                        | A6 <- A7
+  0x0009 | 255C005C 00000002                   | SUB.l A7, #2, A7                    | A7 <- A7 - 2
+  0x000B | 21540054 00000003                   | ADD.l A5, #3, A5                    | A5 <- A5 + 3
+  0x000D | 2D540054 FFFFFFFC                   | AND.l A5, #-4, A5                   | A5 <- A5 & -4
+  0x000F | 03544000                            | MOV.l A5, A0                        | A0 <- A5
+  0x0010 | 21540054 0000000E                   | ADD.l A5, #14, A5                   | A5 <- A5 + 14
+  0x0012 | 02E0C000 00000000 00000000          | MOV.b (#0), (A0:#0)                 | MEM[A0 + 0] <- MEM[0]
+  0x0015 | 02E0C000 00000001 00000001          | MOV.b (#1), (A0:#1)                 | MEM[A0 + 1] <- MEM[1]
+  0x0018 | 02E0C000 00000002 00000002          | MOV.b (#2), (A0:#2)                 | MEM[A0 + 2] <- MEM[2]
+  0x001B | 02E0C000 00000003 00000003          | MOV.b (#3), (A0:#3)                 | MEM[A0 + 3] <- MEM[3]
+  0x001E | 02E0C000 00000004 00000004          | MOV.b (#4), (A0:#4)                 | MEM[A0 + 4] <- MEM[4]
+  0x0021 | 02E0C000 00000005 00000005          | MOV.b (#5), (A0:#5)                 | MEM[A0 + 5] <- MEM[5]
+  0x0024 | 02E0C000 00000006 00000006          | MOV.b (#6), (A0:#6)                 | MEM[A0 + 6] <- MEM[6]
+  0x0027 | 02E0C000 00000007 00000007          | MOV.b (#7), (A0:#7)                 | MEM[A0 + 7] <- MEM[7]
+  0x002A | 02E0C000 00000008 00000008          | MOV.b (#8), (A0:#8)                 | MEM[A0 + 8] <- MEM[8]
+  0x002D | 02E0C000 00000009 00000009          | MOV.b (#9), (A0:#9)                 | MEM[A0 + 9] <- MEM[9]
+  0x0030 | 02E0C000 0000000A 0000000A          | MOV.b (#10), (A0:#10)               | MEM[A0 + 10] <- MEM[10]
+  0x0033 | 02E0C000 0000000B 0000000B          | MOV.b (#11), (A0:#11)               | MEM[A0 + 11] <- MEM[11]
+  0x0036 | 02E0C000 0000000C 0000000C          | MOV.b (#12), (A0:#12)               | MEM[A0 + 12] <- MEM[12]
+  0x0039 | 02E0C000 0000000D 0000000D          | MOV.b (#13), (A0:#13)               | MEM[A0 + 13] <- MEM[13]
+  0x003C | 0340D800 FFFFFFFF                   | MOV.l A0, (A6:#-1)                  | MEM[A6 + -1] <- A0
+  0x003E | 03E0D800 0000000E FFFFFFFE          | MOV.l (#14), (A6:#-2)               | MEM[A6 + -2] <- MEM[14]
+  0x0041 | 40000000 00000063                   | JMP 0x63                            | PC <- 0x63
+  0x0043 | 0358BC00                            | MOV.l A6, -(A7)                     | MEM[--A7] <- A6
+  0x0044 | 035C5800                            | MOV.l A7, A6                        | A6 <- A7
+  0x0045 | 255C005C 00000000                   | SUB.l A7, #0, A7                    | A7 <- A7 - 0
+  0x0047 | 03E02000 0000000E                   | MOV.l (#14), D0                     | D0 <- MEM[14]
+  0x0049 | 03585C00                            | MOV.l A6, A7                        | A7 <- A6
+  0x004A | 039C5800                            | MOV.l (A7)+, A6                     | A6 <- MEM[A7++]
+  0x004B | 44000000                            | RET                                 | PC <- MEM[A7++]
+  0x004C | 0358BC00                            | MOV.l A6, -(A7)                     | MEM[--A7] <- A6
+  0x004D | 035C5800                            | MOV.l A7, A6                        | A6 <- A7
+  0x004E | 255C005C 00000000                   | SUB.l A7, #0, A7                    | A7 <- A7 - 0
+  0x0050 | 02E02000 0000000F                   | MOV.b (#15), D0                     | D0 <- MEM[15]
+  0x0052 | 03585C00                            | MOV.l A6, A7                        | A7 <- A6
+  0x0053 | 039C5800                            | MOV.l (A7)+, A6                     | A6 <- MEM[A7++]
+  0x0054 | 44000000                            | RET                                 | PC <- MEM[A7++]
+  0x0055 | 0358BC00                            | MOV.l A6, -(A7)                     | MEM[--A7] <- A6
+  0x0056 | 035C5800                            | MOV.l A7, A6                        | A6 <- A7
+  0x0057 | 255C005C 00000000                   | SUB.l A7, #0, A7                    | A7 <- A7 - 0
+  0x0059 | 03585C00                            | MOV.l A6, A7                        | A7 <- A6
+  0x005A | 039C5800                            | MOV.l (A7)+, A6                     | A6 <- MEM[A7++]
+  0x005B | 44000000                            | RET                                 | PC <- MEM[A7++]
+  0x005C | 0358BC00                            | MOV.l A6, -(A7)                     | MEM[--A7] <- A6
+  0x005D | 035C5800                            | MOV.l A7, A6                        | A6 <- A7
+  0x005E | 255C005C 00000000                   | SUB.l A7, #0, A7                    | A7 <- A7 - 0
+  0x0060 | 03585C00                            | MOV.l A6, A7                        | A7 <- A6
+  0x0061 | 039C5800                            | MOV.l (A7)+, A6                     | A6 <- MEM[A7++]
+  0x0062 | 44000000                            | RET                                 | PC <- MEM[A7++]
+  0x0063 | 05E0D800 00000010 FFFFFFFE          | CMP.l (#16), (A6:#-2)               | NZCV <- MEM[16] - MEM[A6 + -2]
+  0x0066 | 68000000 0000006C                   | BLT 0x6C                            | if N == 1 then PC <- 0x6C
+  0x0068 | 03002400 00000000                   | MOV.l #0, D1                        | D1 <- 0
+  0x006A | 40000000 0000006E                   | JMP 0x6E                            | PC <- 0x6E
+  0x006C | 03002400 00000001                   | MOV.l #1, D1                        | D1 <- 1
+  0x006E | 04240000 00000001                   | CMP.b D1, #1                        | NZCV <- D1 - 1
+  0x0070 | 60000000 00000074                   | BEQ 0x74                            | if Z == 1 then PC <- 0x74
+  0x0072 | 40000000 00000083                   | JMP 0x83                            | PC <- 0x83
+  0x0074 | 03D84000 FFFFFFFF                   | MOV.l (A6:#-1), A0                  | A0 <- MEM[A6 + -1]
+  0x0076 | 03D82400 FFFFFFFE                   | MOV.l (A6:#-2), D1                  | D1 <- MEM[A6 + -2]
+  0x0078 | 03243400                            | MOV.l D1, D5                        | D5 <- D1
+  0x0079 | 02C12800                            | MOV.b (A0:D5), D2                   | D2 <- MEM[A0 + D5]
+  0x007A | A2052800                            | OUT #5, D2                          | IO[5] <- D2
+  0x007B | 03D82400 FFFFFFFE                   | MOV.l (A6:#-2), D1                  | D1 <- MEM[A6 + -2]
+  0x007D | 2124E028 00000011                   | ADD.l D1, (#17), D2                 | D2 <- D1 + MEM[17]
+  0x007F | 0328D800 FFFFFFFE                   | MOV.l D2, (A6:#-2)                  | MEM[A6 + -2] <- D2
+  0x0081 | 40000000 00000063                   | JMP 0x63                            | PC <- 0x63
+  0x0083 | 03585C00                            | MOV.l A6, A7                        | A7 <- A6
+  0x0084 | 039C5800                            | MOV.l (A7)+, A6                     | A6 <- MEM[A7++]
+  0x0085 | 44000000                            | RET                                 | PC <- MEM[A7++]
 log: |2-
-   INFO TICK 0 | PC=0 | MOV.w
-   INFO TICK 1 | #99999
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 0, 0, 99999]
-   INFO TICK 2 | PC=2 | MOV.w
-   INFO TICK 3 | #1000
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 0, 99999]
-   INFO TICK 4 | PC=4 | CALL.b
-   INFO TICK 5
-   INFO TICK 6
-   INFO TICK 7
-   INFO TICK 8
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 0, 99998]
-   INFO TICK 9 | PC=7 | MOV.w
-   INFO TICK 10 | A6
-   INFO TICK 11 | -(A7)
-   INFO TICK 12 | Load (#99997) = 0
-   INFO TICK 13 | Store (#99997) = 0
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 0, 99997]
-   INFO TICK 14 | PC=8 | MOV.w
-   INFO TICK 15 | A7
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99997, 99997]
-   INFO TICK 16 | PC=9 | SUB.w
-   INFO TICK 17 | A7 | #2
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99997, 99995]
-   INFO TICK 18 | PC=11 | ADD.w
-   INFO TICK 19 | A5 | #3
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1003, 99997, 99995]
-   INFO TICK 20 | PC=13 | AND.w
-   INFO TICK 21 | A5 | #4294967292
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99997, 99995]
-   INFO TICK 22 | PC=15 | MOV.w
-   INFO TICK 23 | A5
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1000, 99997, 99995]
-   INFO TICK 24 | PC=16 | ADD.w
-   INFO TICK 25 | A5 | #14
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 26 | PC=18 | MOV.b
-   INFO TICK 27 | (#0)
-   INFO TICK 28 | Load (#0) = 72
-   INFO TICK 29 | (A0:#0)
-   INFO TICK 30 | Load (#1000) = 0
-   INFO TICK 31 | Store (#1000) = 72
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 32 | PC=21 | MOV.b
-   INFO TICK 33 | (#1)
-   INFO TICK 34 | Load (#1) = 101
-   INFO TICK 35 | (A0:#1)
-   INFO TICK 36 | Load (#1001) = 0
-   INFO TICK 37 | Store (#1001) = 101
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 38 | PC=24 | MOV.b
-   INFO TICK 39 | (#2)
-   INFO TICK 40 | Load (#2) = 108
-   INFO TICK 41 | (A0:#2)
-   INFO TICK 42 | Load (#1002) = 0
-   INFO TICK 43 | Store (#1002) = 108
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 44 | PC=27 | MOV.b
-   INFO TICK 45 | (#3)
-   INFO TICK 46 | Load (#3) = 108
-   INFO TICK 47 | (A0:#3)
-   INFO TICK 48 | Load (#1003) = 0
-   INFO TICK 49 | Store (#1003) = 108
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 50 | PC=30 | MOV.b
-   INFO TICK 51 | (#4)
-   INFO TICK 52 | Load (#4) = 111
-   INFO TICK 53 | (A0:#4)
-   INFO TICK 54 | Load (#1004) = 0
-   INFO TICK 55 | Store (#1004) = 111
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 56 | PC=33 | MOV.b
-   INFO TICK 57 | (#5)
-   INFO TICK 58 | Load (#5) = 44
-   INFO TICK 59 | (A0:#5)
-   INFO TICK 60 | Load (#1005) = 0
-   INFO TICK 61 | Store (#1005) = 44
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 62 | PC=36 | MOV.b
-   INFO TICK 63 | (#6)
-   INFO TICK 64 | Load (#6) = 32
-   INFO TICK 65 | (A0:#6)
-   INFO TICK 66 | Load (#1006) = 0
-   INFO TICK 67 | Store (#1006) = 32
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 68 | PC=39 | MOV.b
-   INFO TICK 69 | (#7)
-   INFO TICK 70 | Load (#7) = 87
-   INFO TICK 71 | (A0:#7)
-   INFO TICK 72 | Load (#1007) = 0
-   INFO TICK 73 | Store (#1007) = 87
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 74 | PC=42 | MOV.b
-   INFO TICK 75 | (#8)
-   INFO TICK 76 | Load (#8) = 111
-   INFO TICK 77 | (A0:#8)
-   INFO TICK 78 | Load (#1008) = 0
-   INFO TICK 79 | Store (#1008) = 111
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 80 | PC=45 | MOV.b
-   INFO TICK 81 | (#9)
-   INFO TICK 82 | Load (#9) = 114
-   INFO TICK 83 | (A0:#9)
-   INFO TICK 84 | Load (#1009) = 0
-   INFO TICK 85 | Store (#1009) = 114
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 86 | PC=48 | MOV.b
-   INFO TICK 87 | (#10)
-   INFO TICK 88 | Load (#10) = 108
-   INFO TICK 89 | (A0:#10)
-   INFO TICK 90 | Load (#1010) = 0
-   INFO TICK 91 | Store (#1010) = 108
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 92 | PC=51 | MOV.b
-   INFO TICK 93 | (#11)
-   INFO TICK 94 | Load (#11) = 100
-   INFO TICK 95 | (A0:#11)
-   INFO TICK 96 | Load (#1011) = 0
-   INFO TICK 97 | Store (#1011) = 100
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 98 | PC=54 | MOV.b
-   INFO TICK 99 | (#12)
-   INFO TICK 100 | Load (#12) = 33
-   INFO TICK 101 | (A0:#12)
-   INFO TICK 102 | Load (#1012) = 0
-   INFO TICK 103 | Store (#1012) = 33
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 104 | PC=57 | MOV.b
-   INFO TICK 105 | (#13)
-   INFO TICK 106 | Load (#13) = 0
-   INFO TICK 107 | (A0:#13)
-   INFO TICK 108 | Load (#1013) = 0
-   INFO TICK 109 | Store (#1013) = 0
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 110 | PC=60 | MOV.w
-   INFO TICK 111 | A0
-   INFO TICK 112 | (A6:#4294967295)
-   INFO TICK 113 | Load (#99996) = 0
-   INFO TICK 114 | Store (#99996) = 1000
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 115 | PC=62 | MOV.w
-   INFO TICK 116 | (#14)
-   INFO TICK 117 | Load (#14) = 0
-   INFO TICK 118 | (A6:#4294967294)
-   INFO TICK 119 | Load (#99995) = 0
-   INFO TICK 120 | Store (#99995) = 0
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 121 | PC=65 | JMP.b
-   INFO TICK 122
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 123 | PC=99 | CMP.w
-   INFO TICK 124 | (#16)
-   INFO TICK 125 | Load (#16) = 14
-   INFO TICK 126 | (A6:#4294967294)
-   INFO TICK 127 | Load (#99995) = 0
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 128 | PC=102 | BLT.b
-   INFO TICK 129
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 130 | PC=108 | MOV.w
-   INFO TICK 131 | #1
-  DEBUG D [0, 1, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 132 | PC=110 | CMP.b
-   INFO TICK 133 | D1
-   INFO TICK 134 | #1
-  DEBUG D [0, 1, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 135 | PC=112 | BEQ.b
-   INFO TICK 136
-  DEBUG D [0, 1, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 137 | PC=116 | MOV.w
-   INFO TICK 138 | (A6:#4294967295)
-   INFO TICK 139 | Load (#99996) = 1000
-   INFO TICK 140
-  DEBUG D [0, 1, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 141 | PC=118 | MOV.w
-   INFO TICK 142 | (A6:#4294967294)
-   INFO TICK 143 | Load (#99995) = 0
-   INFO TICK 144
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 145 | PC=120 | MOV.w
-   INFO TICK 146 | D1
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 147 | PC=121 | MOV.b
-   INFO TICK 148 | (A0:D5)
-   INFO TICK 149 | Load (#1000) = 72
-   INFO TICK 150
-  DEBUG D [0, 0, 72, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 151 | PC=122 | OUT.b
-   INFO TICK 152 | D2
-  DEBUG D [0, 0, 72, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 153 | PC=123 | MOV.w
-   INFO TICK 154 | (A6:#4294967294)
-   INFO TICK 155 | Load (#99995) = 0
-   INFO TICK 156
-  DEBUG D [0, 0, 72, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 157 | PC=125 | ADD.w
-   INFO TICK 158 | D1
-   INFO TICK 159 | (#17)
-   INFO TICK 160 | Load (#17) = 1
-   INFO TICK 161
-  DEBUG D [0, 0, 1, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 162 | PC=127 | MOV.w
-   INFO TICK 163 | D2
-   INFO TICK 164 | (A6:#4294967294)
-   INFO TICK 165 | Load (#99995) = 0
-   INFO TICK 166 | Store (#99995) = 1
-  DEBUG D [0, 0, 1, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 167 | PC=129 | JMP.b
-   INFO TICK 168
-  DEBUG D [0, 0, 1, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 169 | PC=99 | CMP.w
-   INFO TICK 170 | (#16)
-   INFO TICK 171 | Load (#16) = 14
-   INFO TICK 172 | (A6:#4294967294)
-   INFO TICK 173 | Load (#99995) = 1
-  DEBUG D [0, 0, 1, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 174 | PC=102 | BLT.b
-   INFO TICK 175
-  DEBUG D [0, 0, 1, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 176 | PC=108 | MOV.w
-   INFO TICK 177 | #1
-  DEBUG D [0, 1, 1, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 178 | PC=110 | CMP.b
-   INFO TICK 179 | D1
-   INFO TICK 180 | #1
-  DEBUG D [0, 1, 1, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 181 | PC=112 | BEQ.b
-   INFO TICK 182
-  DEBUG D [0, 1, 1, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 183 | PC=116 | MOV.w
-   INFO TICK 184 | (A6:#4294967295)
-   INFO TICK 185 | Load (#99996) = 1000
-   INFO TICK 186
-  DEBUG D [0, 1, 1, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 187 | PC=118 | MOV.w
-   INFO TICK 188 | (A6:#4294967294)
-   INFO TICK 189 | Load (#99995) = 1
-   INFO TICK 190
-  DEBUG D [0, 1, 1, 0, 0, 0, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 191 | PC=120 | MOV.w
-   INFO TICK 192 | D1
-  DEBUG D [0, 1, 1, 0, 0, 1, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 193 | PC=121 | MOV.b
-   INFO TICK 194 | (A0:D5)
-   INFO TICK 195 | Load (#1001) = 101
-   INFO TICK 196
-  DEBUG D [0, 1, 101, 0, 0, 1, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 197 | PC=122 | OUT.b
-   INFO TICK 198 | D2
-  DEBUG D [0, 1, 101, 0, 0, 1, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 199 | PC=123 | MOV.w
-   INFO TICK 200 | (A6:#4294967294)
-   INFO TICK 201 | Load (#99995) = 1
-   INFO TICK 202
-  DEBUG D [0, 1, 101, 0, 0, 1, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 203 | PC=125 | ADD.w
-   INFO TICK 204 | D1
-   INFO TICK 205 | (#17)
-   INFO TICK 206 | Load (#17) = 1
-   INFO TICK 207
-  DEBUG D [0, 1, 2, 0, 0, 1, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 208 | PC=127 | MOV.w
-   INFO TICK 209 | D2
-   INFO TICK 210 | (A6:#4294967294)
-   INFO TICK 211 | Load (#99995) = 1
-   INFO TICK 212 | Store (#99995) = 2
-  DEBUG D [0, 1, 2, 0, 0, 1, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 213 | PC=129 | JMP.b
-   INFO TICK 214
-  DEBUG D [0, 1, 2, 0, 0, 1, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 215 | PC=99 | CMP.w
-   INFO TICK 216 | (#16)
-   INFO TICK 217 | Load (#16) = 14
-   INFO TICK 218 | (A6:#4294967294)
-   INFO TICK 219 | Load (#99995) = 2
-  DEBUG D [0, 1, 2, 0, 0, 1, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 220 | PC=102 | BLT.b
-   INFO TICK 221
-  DEBUG D [0, 1, 2, 0, 0, 1, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 222 | PC=108 | MOV.w
-   INFO TICK 223 | #1
-  DEBUG D [0, 1, 2, 0, 0, 1, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 224 | PC=110 | CMP.b
-   INFO TICK 225 | D1
-   INFO TICK 226 | #1
-  DEBUG D [0, 1, 2, 0, 0, 1, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 227 | PC=112 | BEQ.b
-   INFO TICK 228
-  DEBUG D [0, 1, 2, 0, 0, 1, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 229 | PC=116 | MOV.w
-   INFO TICK 230 | (A6:#4294967295)
-   INFO TICK 231 | Load (#99996) = 1000
-   INFO TICK 232
-  DEBUG D [0, 1, 2, 0, 0, 1, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 233 | PC=118 | MOV.w
-   INFO TICK 234 | (A6:#4294967294)
-   INFO TICK 235 | Load (#99995) = 2
-   INFO TICK 236
-  DEBUG D [0, 2, 2, 0, 0, 1, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 237 | PC=120 | MOV.w
-   INFO TICK 238 | D1
-  DEBUG D [0, 2, 2, 0, 0, 2, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 239 | PC=121 | MOV.b
-   INFO TICK 240 | (A0:D5)
-   INFO TICK 241 | Load (#1002) = 108
-   INFO TICK 242
-  DEBUG D [0, 2, 108, 0, 0, 2, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 243 | PC=122 | OUT.b
-   INFO TICK 244 | D2
-  DEBUG D [0, 2, 108, 0, 0, 2, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 245 | PC=123 | MOV.w
-   INFO TICK 246 | (A6:#4294967294)
-   INFO TICK 247 | Load (#99995) = 2
-   INFO TICK 248
-  DEBUG D [0, 2, 108, 0, 0, 2, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 249 | PC=125 | ADD.w
-   INFO TICK 250 | D1
-   INFO TICK 251 | (#17)
-   INFO TICK 252 | Load (#17) = 1
-   INFO TICK 253
-  DEBUG D [0, 2, 3, 0, 0, 2, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 254 | PC=127 | MOV.w
-   INFO TICK 255 | D2
-   INFO TICK 256 | (A6:#4294967294)
-   INFO TICK 257 | Load (#99995) = 2
-   INFO TICK 258 | Store (#99995) = 3
-  DEBUG D [0, 2, 3, 0, 0, 2, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 259 | PC=129 | JMP.b
-   INFO TICK 260
-  DEBUG D [0, 2, 3, 0, 0, 2, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 261 | PC=99 | CMP.w
-   INFO TICK 262 | (#16)
-   INFO TICK 263 | Load (#16) = 14
-   INFO TICK 264 | (A6:#4294967294)
-   INFO TICK 265 | Load (#99995) = 3
-  DEBUG D [0, 2, 3, 0, 0, 2, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 266 | PC=102 | BLT.b
-   INFO TICK 267
-  DEBUG D [0, 2, 3, 0, 0, 2, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 268 | PC=108 | MOV.w
-   INFO TICK 269 | #1
-  DEBUG D [0, 1, 3, 0, 0, 2, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 270 | PC=110 | CMP.b
-   INFO TICK 271 | D1
-   INFO TICK 272 | #1
-  DEBUG D [0, 1, 3, 0, 0, 2, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 273 | PC=112 | BEQ.b
-   INFO TICK 274
-  DEBUG D [0, 1, 3, 0, 0, 2, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 275 | PC=116 | MOV.w
-   INFO TICK 276 | (A6:#4294967295)
-   INFO TICK 277 | Load (#99996) = 1000
-   INFO TICK 278
-  DEBUG D [0, 1, 3, 0, 0, 2, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 279 | PC=118 | MOV.w
-   INFO TICK 280 | (A6:#4294967294)
-   INFO TICK 281 | Load (#99995) = 3
-   INFO TICK 282
-  DEBUG D [0, 3, 3, 0, 0, 2, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 283 | PC=120 | MOV.w
-   INFO TICK 284 | D1
-  DEBUG D [0, 3, 3, 0, 0, 3, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 285 | PC=121 | MOV.b
-   INFO TICK 286 | (A0:D5)
-   INFO TICK 287 | Load (#1003) = 108
-   INFO TICK 288
-  DEBUG D [0, 3, 108, 0, 0, 3, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 289 | PC=122 | OUT.b
-   INFO TICK 290 | D2
-  DEBUG D [0, 3, 108, 0, 0, 3, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 291 | PC=123 | MOV.w
-   INFO TICK 292 | (A6:#4294967294)
-   INFO TICK 293 | Load (#99995) = 3
-   INFO TICK 294
-  DEBUG D [0, 3, 108, 0, 0, 3, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 295 | PC=125 | ADD.w
-   INFO TICK 296 | D1
-   INFO TICK 297 | (#17)
-   INFO TICK 298 | Load (#17) = 1
-   INFO TICK 299
-  DEBUG D [0, 3, 4, 0, 0, 3, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 300 | PC=127 | MOV.w
-   INFO TICK 301 | D2
-   INFO TICK 302 | (A6:#4294967294)
-   INFO TICK 303 | Load (#99995) = 3
-   INFO TICK 304 | Store (#99995) = 4
-  DEBUG D [0, 3, 4, 0, 0, 3, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 305 | PC=129 | JMP.b
-   INFO TICK 306
-  DEBUG D [0, 3, 4, 0, 0, 3, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 307 | PC=99 | CMP.w
-   INFO TICK 308 | (#16)
-   INFO TICK 309 | Load (#16) = 14
-   INFO TICK 310 | (A6:#4294967294)
-   INFO TICK 311 | Load (#99995) = 4
-  DEBUG D [0, 3, 4, 0, 0, 3, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 312 | PC=102 | BLT.b
-   INFO TICK 313
-  DEBUG D [0, 3, 4, 0, 0, 3, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 314 | PC=108 | MOV.w
-   INFO TICK 315 | #1
-  DEBUG D [0, 1, 4, 0, 0, 3, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 316 | PC=110 | CMP.b
-   INFO TICK 317 | D1
-   INFO TICK 318 | #1
-  DEBUG D [0, 1, 4, 0, 0, 3, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 319 | PC=112 | BEQ.b
-   INFO TICK 320
-  DEBUG D [0, 1, 4, 0, 0, 3, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 321 | PC=116 | MOV.w
-   INFO TICK 322 | (A6:#4294967295)
-   INFO TICK 323 | Load (#99996) = 1000
-   INFO TICK 324
-  DEBUG D [0, 1, 4, 0, 0, 3, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 325 | PC=118 | MOV.w
-   INFO TICK 326 | (A6:#4294967294)
-   INFO TICK 327 | Load (#99995) = 4
-   INFO TICK 328
-  DEBUG D [0, 4, 4, 0, 0, 3, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 329 | PC=120 | MOV.w
-   INFO TICK 330 | D1
-  DEBUG D [0, 4, 4, 0, 0, 4, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 331 | PC=121 | MOV.b
-   INFO TICK 332 | (A0:D5)
-   INFO TICK 333 | Load (#1004) = 111
-   INFO TICK 334
-  DEBUG D [0, 4, 111, 0, 0, 4, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 335 | PC=122 | OUT.b
-   INFO TICK 336 | D2
-  DEBUG D [0, 4, 111, 0, 0, 4, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 337 | PC=123 | MOV.w
-   INFO TICK 338 | (A6:#4294967294)
-   INFO TICK 339 | Load (#99995) = 4
-   INFO TICK 340
-  DEBUG D [0, 4, 111, 0, 0, 4, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 341 | PC=125 | ADD.w
-   INFO TICK 342 | D1
-   INFO TICK 343 | (#17)
-   INFO TICK 344 | Load (#17) = 1
-   INFO TICK 345
-  DEBUG D [0, 4, 5, 0, 0, 4, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 346 | PC=127 | MOV.w
-   INFO TICK 347 | D2
-   INFO TICK 348 | (A6:#4294967294)
-   INFO TICK 349 | Load (#99995) = 4
-   INFO TICK 350 | Store (#99995) = 5
-  DEBUG D [0, 4, 5, 0, 0, 4, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 351 | PC=129 | JMP.b
-   INFO TICK 352
-  DEBUG D [0, 4, 5, 0, 0, 4, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 353 | PC=99 | CMP.w
-   INFO TICK 354 | (#16)
-   INFO TICK 355 | Load (#16) = 14
-   INFO TICK 356 | (A6:#4294967294)
-   INFO TICK 357 | Load (#99995) = 5
-  DEBUG D [0, 4, 5, 0, 0, 4, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 358 | PC=102 | BLT.b
-   INFO TICK 359
-  DEBUG D [0, 4, 5, 0, 0, 4, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 360 | PC=108 | MOV.w
-   INFO TICK 361 | #1
-  DEBUG D [0, 1, 5, 0, 0, 4, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 362 | PC=110 | CMP.b
-   INFO TICK 363 | D1
-   INFO TICK 364 | #1
-  DEBUG D [0, 1, 5, 0, 0, 4, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 365 | PC=112 | BEQ.b
-   INFO TICK 366
-  DEBUG D [0, 1, 5, 0, 0, 4, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 367 | PC=116 | MOV.w
-   INFO TICK 368 | (A6:#4294967295)
-   INFO TICK 369 | Load (#99996) = 1000
-   INFO TICK 370
-  DEBUG D [0, 1, 5, 0, 0, 4, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 371 | PC=118 | MOV.w
-   INFO TICK 372 | (A6:#4294967294)
-   INFO TICK 373 | Load (#99995) = 5
-   INFO TICK 374
-  DEBUG D [0, 5, 5, 0, 0, 4, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 375 | PC=120 | MOV.w
-   INFO TICK 376 | D1
-  DEBUG D [0, 5, 5, 0, 0, 5, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 377 | PC=121 | MOV.b
-   INFO TICK 378 | (A0:D5)
-   INFO TICK 379 | Load (#1005) = 44
-   INFO TICK 380
-  DEBUG D [0, 5, 44, 0, 0, 5, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 381 | PC=122 | OUT.b
-   INFO TICK 382 | D2
-  DEBUG D [0, 5, 44, 0, 0, 5, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 383 | PC=123 | MOV.w
-   INFO TICK 384 | (A6:#4294967294)
-   INFO TICK 385 | Load (#99995) = 5
-   INFO TICK 386
-  DEBUG D [0, 5, 44, 0, 0, 5, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 387 | PC=125 | ADD.w
-   INFO TICK 388 | D1
-   INFO TICK 389 | (#17)
-   INFO TICK 390 | Load (#17) = 1
-   INFO TICK 391
-  DEBUG D [0, 5, 6, 0, 0, 5, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 392 | PC=127 | MOV.w
-   INFO TICK 393 | D2
-   INFO TICK 394 | (A6:#4294967294)
-   INFO TICK 395 | Load (#99995) = 5
-   INFO TICK 396 | Store (#99995) = 6
-  DEBUG D [0, 5, 6, 0, 0, 5, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 397 | PC=129 | JMP.b
-   INFO TICK 398
-  DEBUG D [0, 5, 6, 0, 0, 5, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 399 | PC=99 | CMP.w
-   INFO TICK 400 | (#16)
-   INFO TICK 401 | Load (#16) = 14
-   INFO TICK 402 | (A6:#4294967294)
-   INFO TICK 403 | Load (#99995) = 6
-  DEBUG D [0, 5, 6, 0, 0, 5, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 404 | PC=102 | BLT.b
-   INFO TICK 405
-  DEBUG D [0, 5, 6, 0, 0, 5, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 406 | PC=108 | MOV.w
-   INFO TICK 407 | #1
-  DEBUG D [0, 1, 6, 0, 0, 5, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 408 | PC=110 | CMP.b
-   INFO TICK 409 | D1
-   INFO TICK 410 | #1
-  DEBUG D [0, 1, 6, 0, 0, 5, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 411 | PC=112 | BEQ.b
-   INFO TICK 412
-  DEBUG D [0, 1, 6, 0, 0, 5, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 413 | PC=116 | MOV.w
-   INFO TICK 414 | (A6:#4294967295)
-   INFO TICK 415 | Load (#99996) = 1000
-   INFO TICK 416
-  DEBUG D [0, 1, 6, 0, 0, 5, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 417 | PC=118 | MOV.w
-   INFO TICK 418 | (A6:#4294967294)
-   INFO TICK 419 | Load (#99995) = 6
-   INFO TICK 420
-  DEBUG D [0, 6, 6, 0, 0, 5, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 421 | PC=120 | MOV.w
-   INFO TICK 422 | D1
-  DEBUG D [0, 6, 6, 0, 0, 6, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 423 | PC=121 | MOV.b
-   INFO TICK 424 | (A0:D5)
-   INFO TICK 425 | Load (#1006) = 32
-   INFO TICK 426
-  DEBUG D [0, 6, 32, 0, 0, 6, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 427 | PC=122 | OUT.b
-   INFO TICK 428 | D2
-  DEBUG D [0, 6, 32, 0, 0, 6, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 429 | PC=123 | MOV.w
-   INFO TICK 430 | (A6:#4294967294)
-   INFO TICK 431 | Load (#99995) = 6
-   INFO TICK 432
-  DEBUG D [0, 6, 32, 0, 0, 6, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 433 | PC=125 | ADD.w
-   INFO TICK 434 | D1
-   INFO TICK 435 | (#17)
-   INFO TICK 436 | Load (#17) = 1
-   INFO TICK 437
-  DEBUG D [0, 6, 7, 0, 0, 6, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 438 | PC=127 | MOV.w
-   INFO TICK 439 | D2
-   INFO TICK 440 | (A6:#4294967294)
-   INFO TICK 441 | Load (#99995) = 6
-   INFO TICK 442 | Store (#99995) = 7
-  DEBUG D [0, 6, 7, 0, 0, 6, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 443 | PC=129 | JMP.b
-   INFO TICK 444
-  DEBUG D [0, 6, 7, 0, 0, 6, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 445 | PC=99 | CMP.w
-   INFO TICK 446 | (#16)
-   INFO TICK 447 | Load (#16) = 14
-   INFO TICK 448 | (A6:#4294967294)
-   INFO TICK 449 | Load (#99995) = 7
-  DEBUG D [0, 6, 7, 0, 0, 6, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 450 | PC=102 | BLT.b
-   INFO TICK 451
-  DEBUG D [0, 6, 7, 0, 0, 6, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 452 | PC=108 | MOV.w
-   INFO TICK 453 | #1
-  DEBUG D [0, 1, 7, 0, 0, 6, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 454 | PC=110 | CMP.b
-   INFO TICK 455 | D1
-   INFO TICK 456 | #1
-  DEBUG D [0, 1, 7, 0, 0, 6, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 457 | PC=112 | BEQ.b
-   INFO TICK 458
-  DEBUG D [0, 1, 7, 0, 0, 6, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 459 | PC=116 | MOV.w
-   INFO TICK 460 | (A6:#4294967295)
-   INFO TICK 461 | Load (#99996) = 1000
-   INFO TICK 462
-  DEBUG D [0, 1, 7, 0, 0, 6, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 463 | PC=118 | MOV.w
-   INFO TICK 464 | (A6:#4294967294)
-   INFO TICK 465 | Load (#99995) = 7
-   INFO TICK 466
-  DEBUG D [0, 7, 7, 0, 0, 6, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 467 | PC=120 | MOV.w
-   INFO TICK 468 | D1
-  DEBUG D [0, 7, 7, 0, 0, 7, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 469 | PC=121 | MOV.b
-   INFO TICK 470 | (A0:D5)
-   INFO TICK 471 | Load (#1007) = 87
-   INFO TICK 472
-  DEBUG D [0, 7, 87, 0, 0, 7, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 473 | PC=122 | OUT.b
-   INFO TICK 474 | D2
-  DEBUG D [0, 7, 87, 0, 0, 7, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 475 | PC=123 | MOV.w
-   INFO TICK 476 | (A6:#4294967294)
-   INFO TICK 477 | Load (#99995) = 7
-   INFO TICK 478
-  DEBUG D [0, 7, 87, 0, 0, 7, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 479 | PC=125 | ADD.w
-   INFO TICK 480 | D1
-   INFO TICK 481 | (#17)
-   INFO TICK 482 | Load (#17) = 1
-   INFO TICK 483
-  DEBUG D [0, 7, 8, 0, 0, 7, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 484 | PC=127 | MOV.w
-   INFO TICK 485 | D2
-   INFO TICK 486 | (A6:#4294967294)
-   INFO TICK 487 | Load (#99995) = 7
-   INFO TICK 488 | Store (#99995) = 8
-  DEBUG D [0, 7, 8, 0, 0, 7, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 489 | PC=129 | JMP.b
-   INFO TICK 490
-  DEBUG D [0, 7, 8, 0, 0, 7, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 491 | PC=99 | CMP.w
-   INFO TICK 492 | (#16)
-   INFO TICK 493 | Load (#16) = 14
-   INFO TICK 494 | (A6:#4294967294)
-   INFO TICK 495 | Load (#99995) = 8
-  DEBUG D [0, 7, 8, 0, 0, 7, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 496 | PC=102 | BLT.b
-   INFO TICK 497
-  DEBUG D [0, 7, 8, 0, 0, 7, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 498 | PC=108 | MOV.w
-   INFO TICK 499 | #1
-  DEBUG D [0, 1, 8, 0, 0, 7, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 500 | PC=110 | CMP.b
-   INFO TICK 501 | D1
-   INFO TICK 502 | #1
-  DEBUG D [0, 1, 8, 0, 0, 7, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 503 | PC=112 | BEQ.b
-   INFO TICK 504
-  DEBUG D [0, 1, 8, 0, 0, 7, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 505 | PC=116 | MOV.w
-   INFO TICK 506 | (A6:#4294967295)
-   INFO TICK 507 | Load (#99996) = 1000
-   INFO TICK 508
-  DEBUG D [0, 1, 8, 0, 0, 7, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 509 | PC=118 | MOV.w
-   INFO TICK 510 | (A6:#4294967294)
-   INFO TICK 511 | Load (#99995) = 8
-   INFO TICK 512
-  DEBUG D [0, 8, 8, 0, 0, 7, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 513 | PC=120 | MOV.w
-   INFO TICK 514 | D1
-  DEBUG D [0, 8, 8, 0, 0, 8, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 515 | PC=121 | MOV.b
-   INFO TICK 516 | (A0:D5)
-   INFO TICK 517 | Load (#1008) = 111
-   INFO TICK 518
-  DEBUG D [0, 8, 111, 0, 0, 8, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 519 | PC=122 | OUT.b
-   INFO TICK 520 | D2
-  DEBUG D [0, 8, 111, 0, 0, 8, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 521 | PC=123 | MOV.w
-   INFO TICK 522 | (A6:#4294967294)
-   INFO TICK 523 | Load (#99995) = 8
-   INFO TICK 524
-  DEBUG D [0, 8, 111, 0, 0, 8, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 525 | PC=125 | ADD.w
-   INFO TICK 526 | D1
-   INFO TICK 527 | (#17)
-   INFO TICK 528 | Load (#17) = 1
-   INFO TICK 529
-  DEBUG D [0, 8, 9, 0, 0, 8, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 530 | PC=127 | MOV.w
-   INFO TICK 531 | D2
-   INFO TICK 532 | (A6:#4294967294)
-   INFO TICK 533 | Load (#99995) = 8
-   INFO TICK 534 | Store (#99995) = 9
-  DEBUG D [0, 8, 9, 0, 0, 8, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 535 | PC=129 | JMP.b
-   INFO TICK 536
-  DEBUG D [0, 8, 9, 0, 0, 8, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 537 | PC=99 | CMP.w
-   INFO TICK 538 | (#16)
-   INFO TICK 539 | Load (#16) = 14
-   INFO TICK 540 | (A6:#4294967294)
-   INFO TICK 541 | Load (#99995) = 9
-  DEBUG D [0, 8, 9, 0, 0, 8, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 542 | PC=102 | BLT.b
-   INFO TICK 543
-  DEBUG D [0, 8, 9, 0, 0, 8, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 544 | PC=108 | MOV.w
-   INFO TICK 545 | #1
-  DEBUG D [0, 1, 9, 0, 0, 8, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 546 | PC=110 | CMP.b
-   INFO TICK 547 | D1
-   INFO TICK 548 | #1
-  DEBUG D [0, 1, 9, 0, 0, 8, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 549 | PC=112 | BEQ.b
-   INFO TICK 550
-  DEBUG D [0, 1, 9, 0, 0, 8, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 551 | PC=116 | MOV.w
-   INFO TICK 552 | (A6:#4294967295)
-   INFO TICK 553 | Load (#99996) = 1000
-   INFO TICK 554
-  DEBUG D [0, 1, 9, 0, 0, 8, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 555 | PC=118 | MOV.w
-   INFO TICK 556 | (A6:#4294967294)
-   INFO TICK 557 | Load (#99995) = 9
-   INFO TICK 558
-  DEBUG D [0, 9, 9, 0, 0, 8, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 559 | PC=120 | MOV.w
-   INFO TICK 560 | D1
-  DEBUG D [0, 9, 9, 0, 0, 9, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 561 | PC=121 | MOV.b
-   INFO TICK 562 | (A0:D5)
-   INFO TICK 563 | Load (#1009) = 114
-   INFO TICK 564
-  DEBUG D [0, 9, 114, 0, 0, 9, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 565 | PC=122 | OUT.b
-   INFO TICK 566 | D2
-  DEBUG D [0, 9, 114, 0, 0, 9, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 567 | PC=123 | MOV.w
-   INFO TICK 568 | (A6:#4294967294)
-   INFO TICK 569 | Load (#99995) = 9
-   INFO TICK 570
-  DEBUG D [0, 9, 114, 0, 0, 9, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 571 | PC=125 | ADD.w
-   INFO TICK 572 | D1
-   INFO TICK 573 | (#17)
-   INFO TICK 574 | Load (#17) = 1
-   INFO TICK 575
-  DEBUG D [0, 9, 10, 0, 0, 9, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 576 | PC=127 | MOV.w
-   INFO TICK 577 | D2
-   INFO TICK 578 | (A6:#4294967294)
-   INFO TICK 579 | Load (#99995) = 9
-   INFO TICK 580 | Store (#99995) = 10
-  DEBUG D [0, 9, 10, 0, 0, 9, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 581 | PC=129 | JMP.b
-   INFO TICK 582
-  DEBUG D [0, 9, 10, 0, 0, 9, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 583 | PC=99 | CMP.w
-   INFO TICK 584 | (#16)
-   INFO TICK 585 | Load (#16) = 14
-   INFO TICK 586 | (A6:#4294967294)
-   INFO TICK 587 | Load (#99995) = 10
-  DEBUG D [0, 9, 10, 0, 0, 9, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 588 | PC=102 | BLT.b
-   INFO TICK 589
-  DEBUG D [0, 9, 10, 0, 0, 9, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 590 | PC=108 | MOV.w
-   INFO TICK 591 | #1
-  DEBUG D [0, 1, 10, 0, 0, 9, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 592 | PC=110 | CMP.b
-   INFO TICK 593 | D1
-   INFO TICK 594 | #1
-  DEBUG D [0, 1, 10, 0, 0, 9, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 595 | PC=112 | BEQ.b
-   INFO TICK 596
-  DEBUG D [0, 1, 10, 0, 0, 9, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 597 | PC=116 | MOV.w
-   INFO TICK 598 | (A6:#4294967295)
-   INFO TICK 599 | Load (#99996) = 1000
-   INFO TICK 600
-  DEBUG D [0, 1, 10, 0, 0, 9, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 601 | PC=118 | MOV.w
-   INFO TICK 602 | (A6:#4294967294)
-   INFO TICK 603 | Load (#99995) = 10
-   INFO TICK 604
-  DEBUG D [0, 10, 10, 0, 0, 9, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 605 | PC=120 | MOV.w
-   INFO TICK 606 | D1
-  DEBUG D [0, 10, 10, 0, 0, 10, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 607 | PC=121 | MOV.b
-   INFO TICK 608 | (A0:D5)
-   INFO TICK 609 | Load (#1010) = 108
-   INFO TICK 610
-  DEBUG D [0, 10, 108, 0, 0, 10, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 611 | PC=122 | OUT.b
-   INFO TICK 612 | D2
-  DEBUG D [0, 10, 108, 0, 0, 10, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 613 | PC=123 | MOV.w
-   INFO TICK 614 | (A6:#4294967294)
-   INFO TICK 615 | Load (#99995) = 10
-   INFO TICK 616
-  DEBUG D [0, 10, 108, 0, 0, 10, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 617 | PC=125 | ADD.w
-   INFO TICK 618 | D1
-   INFO TICK 619 | (#17)
-   INFO TICK 620 | Load (#17) = 1
-   INFO TICK 621
-  DEBUG D [0, 10, 11, 0, 0, 10, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 622 | PC=127 | MOV.w
-   INFO TICK 623 | D2
-   INFO TICK 624 | (A6:#4294967294)
-   INFO TICK 625 | Load (#99995) = 10
-   INFO TICK 626 | Store (#99995) = 11
-  DEBUG D [0, 10, 11, 0, 0, 10, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 627 | PC=129 | JMP.b
-   INFO TICK 628
-  DEBUG D [0, 10, 11, 0, 0, 10, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 629 | PC=99 | CMP.w
-   INFO TICK 630 | (#16)
-   INFO TICK 631 | Load (#16) = 14
-   INFO TICK 632 | (A6:#4294967294)
-   INFO TICK 633 | Load (#99995) = 11
-  DEBUG D [0, 10, 11, 0, 0, 10, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 634 | PC=102 | BLT.b
-   INFO TICK 635
-  DEBUG D [0, 10, 11, 0, 0, 10, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 636 | PC=108 | MOV.w
-   INFO TICK 637 | #1
-  DEBUG D [0, 1, 11, 0, 0, 10, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 638 | PC=110 | CMP.b
-   INFO TICK 639 | D1
-   INFO TICK 640 | #1
-  DEBUG D [0, 1, 11, 0, 0, 10, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 641 | PC=112 | BEQ.b
-   INFO TICK 642
-  DEBUG D [0, 1, 11, 0, 0, 10, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 643 | PC=116 | MOV.w
-   INFO TICK 644 | (A6:#4294967295)
-   INFO TICK 645 | Load (#99996) = 1000
-   INFO TICK 646
-  DEBUG D [0, 1, 11, 0, 0, 10, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 647 | PC=118 | MOV.w
-   INFO TICK 648 | (A6:#4294967294)
-   INFO TICK 649 | Load (#99995) = 11
-   INFO TICK 650
-  DEBUG D [0, 11, 11, 0, 0, 10, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 651 | PC=120 | MOV.w
-   INFO TICK 652 | D1
-  DEBUG D [0, 11, 11, 0, 0, 11, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 653 | PC=121 | MOV.b
-   INFO TICK 654 | (A0:D5)
-   INFO TICK 655 | Load (#1011) = 100
-   INFO TICK 656
-  DEBUG D [0, 11, 100, 0, 0, 11, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 657 | PC=122 | OUT.b
-   INFO TICK 658 | D2
-  DEBUG D [0, 11, 100, 0, 0, 11, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 659 | PC=123 | MOV.w
-   INFO TICK 660 | (A6:#4294967294)
-   INFO TICK 661 | Load (#99995) = 11
-   INFO TICK 662
-  DEBUG D [0, 11, 100, 0, 0, 11, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 663 | PC=125 | ADD.w
-   INFO TICK 664 | D1
-   INFO TICK 665 | (#17)
-   INFO TICK 666 | Load (#17) = 1
-   INFO TICK 667
-  DEBUG D [0, 11, 12, 0, 0, 11, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 668 | PC=127 | MOV.w
-   INFO TICK 669 | D2
-   INFO TICK 670 | (A6:#4294967294)
-   INFO TICK 671 | Load (#99995) = 11
-   INFO TICK 672 | Store (#99995) = 12
-  DEBUG D [0, 11, 12, 0, 0, 11, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 673 | PC=129 | JMP.b
-   INFO TICK 674
-  DEBUG D [0, 11, 12, 0, 0, 11, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 675 | PC=99 | CMP.w
-   INFO TICK 676 | (#16)
-   INFO TICK 677 | Load (#16) = 14
-   INFO TICK 678 | (A6:#4294967294)
-   INFO TICK 679 | Load (#99995) = 12
-  DEBUG D [0, 11, 12, 0, 0, 11, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 680 | PC=102 | BLT.b
-   INFO TICK 681
-  DEBUG D [0, 11, 12, 0, 0, 11, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 682 | PC=108 | MOV.w
-   INFO TICK 683 | #1
-  DEBUG D [0, 1, 12, 0, 0, 11, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 684 | PC=110 | CMP.b
-   INFO TICK 685 | D1
-   INFO TICK 686 | #1
-  DEBUG D [0, 1, 12, 0, 0, 11, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 687 | PC=112 | BEQ.b
-   INFO TICK 688
-  DEBUG D [0, 1, 12, 0, 0, 11, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 689 | PC=116 | MOV.w
-   INFO TICK 690 | (A6:#4294967295)
-   INFO TICK 691 | Load (#99996) = 1000
-   INFO TICK 692
-  DEBUG D [0, 1, 12, 0, 0, 11, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 693 | PC=118 | MOV.w
-   INFO TICK 694 | (A6:#4294967294)
-   INFO TICK 695 | Load (#99995) = 12
-   INFO TICK 696
-  DEBUG D [0, 12, 12, 0, 0, 11, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 697 | PC=120 | MOV.w
-   INFO TICK 698 | D1
-  DEBUG D [0, 12, 12, 0, 0, 12, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 699 | PC=121 | MOV.b
-   INFO TICK 700 | (A0:D5)
-   INFO TICK 701 | Load (#1012) = 33
-   INFO TICK 702
-  DEBUG D [0, 12, 33, 0, 0, 12, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 703 | PC=122 | OUT.b
-   INFO TICK 704 | D2
-  DEBUG D [0, 12, 33, 0, 0, 12, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 705 | PC=123 | MOV.w
-   INFO TICK 706 | (A6:#4294967294)
-   INFO TICK 707 | Load (#99995) = 12
-   INFO TICK 708
-  DEBUG D [0, 12, 33, 0, 0, 12, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 709 | PC=125 | ADD.w
-   INFO TICK 710 | D1
-   INFO TICK 711 | (#17)
-   INFO TICK 712 | Load (#17) = 1
-   INFO TICK 713
-  DEBUG D [0, 12, 13, 0, 0, 12, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 714 | PC=127 | MOV.w
-   INFO TICK 715 | D2
-   INFO TICK 716 | (A6:#4294967294)
-   INFO TICK 717 | Load (#99995) = 12
-   INFO TICK 718 | Store (#99995) = 13
-  DEBUG D [0, 12, 13, 0, 0, 12, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 719 | PC=129 | JMP.b
-   INFO TICK 720
-  DEBUG D [0, 12, 13, 0, 0, 12, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 721 | PC=99 | CMP.w
-   INFO TICK 722 | (#16)
-   INFO TICK 723 | Load (#16) = 14
-   INFO TICK 724 | (A6:#4294967294)
-   INFO TICK 725 | Load (#99995) = 13
-  DEBUG D [0, 12, 13, 0, 0, 12, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 726 | PC=102 | BLT.b
-   INFO TICK 727
-  DEBUG D [0, 12, 13, 0, 0, 12, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 728 | PC=108 | MOV.w
-   INFO TICK 729 | #1
-  DEBUG D [0, 1, 13, 0, 0, 12, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 730 | PC=110 | CMP.b
-   INFO TICK 731 | D1
-   INFO TICK 732 | #1
-  DEBUG D [0, 1, 13, 0, 0, 12, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 733 | PC=112 | BEQ.b
-   INFO TICK 734
-  DEBUG D [0, 1, 13, 0, 0, 12, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 735 | PC=116 | MOV.w
-   INFO TICK 736 | (A6:#4294967295)
-   INFO TICK 737 | Load (#99996) = 1000
-   INFO TICK 738
-  DEBUG D [0, 1, 13, 0, 0, 12, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 739 | PC=118 | MOV.w
-   INFO TICK 740 | (A6:#4294967294)
-   INFO TICK 741 | Load (#99995) = 13
-   INFO TICK 742
-  DEBUG D [0, 13, 13, 0, 0, 12, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 743 | PC=120 | MOV.w
-   INFO TICK 744 | D1
-  DEBUG D [0, 13, 13, 0, 0, 13, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 745 | PC=121 | MOV.b
-   INFO TICK 746 | (A0:D5)
-   INFO TICK 747 | Load (#1013) = 0
-   INFO TICK 748
-  DEBUG D [0, 13, 0, 0, 0, 13, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 749 | PC=122 | OUT.b
-   INFO TICK 750 | D2
-  DEBUG D [0, 13, 0, 0, 0, 13, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 751 | PC=123 | MOV.w
-   INFO TICK 752 | (A6:#4294967294)
-   INFO TICK 753 | Load (#99995) = 13
-   INFO TICK 754
-  DEBUG D [0, 13, 0, 0, 0, 13, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 755 | PC=125 | ADD.w
-   INFO TICK 756 | D1
-   INFO TICK 757 | (#17)
-   INFO TICK 758 | Load (#17) = 1
-   INFO TICK 759
-  DEBUG D [0, 13, 14, 0, 0, 13, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 760 | PC=127 | MOV.w
-   INFO TICK 761 | D2
-   INFO TICK 762 | (A6:#4294967294)
-   INFO TICK 763 | Load (#99995) = 13
-   INFO TICK 764 | Store (#99995) = 14
-  DEBUG D [0, 13, 14, 0, 0, 13, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 765 | PC=129 | JMP.b
-   INFO TICK 766
-  DEBUG D [0, 13, 14, 0, 0, 13, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 767 | PC=99 | CMP.w
-   INFO TICK 768 | (#16)
-   INFO TICK 769 | Load (#16) = 14
-   INFO TICK 770 | (A6:#4294967294)
-   INFO TICK 771 | Load (#99995) = 14
-  DEBUG D [0, 13, 14, 0, 0, 13, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 772 | PC=102 | BLT.b
-   INFO TICK 773
-  DEBUG D [0, 13, 14, 0, 0, 13, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 774 | PC=104 | MOV.w
-   INFO TICK 775 | #0
-  DEBUG D [0, 0, 14, 0, 0, 13, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 776 | PC=106 | JMP.b
-   INFO TICK 777
-  DEBUG D [0, 0, 14, 0, 0, 13, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 778 | PC=110 | CMP.b
-   INFO TICK 779 | D1
-   INFO TICK 780 | #1
-  DEBUG D [0, 0, 14, 0, 0, 13, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 781 | PC=112 | BEQ.b
-   INFO TICK 782
-  DEBUG D [0, 0, 14, 0, 0, 13, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 783 | PC=114 | JMP.b
-   INFO TICK 784
-  DEBUG D [0, 0, 14, 0, 0, 13, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99995]
-   INFO TICK 785 | PC=131 | MOV.w
-   INFO TICK 786 | A6
-  DEBUG D [0, 0, 14, 0, 0, 13, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 99997, 99997]
-   INFO TICK 787 | PC=132 | MOV.w
-   INFO TICK 788 | (A7)+
-   INFO TICK 789 | Load (#99997) = 0
-   INFO TICK 790
-  DEBUG D [0, 0, 14, 0, 0, 13, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 0, 99998]
-   INFO TICK 791 | PC=133 | RET.b
-   INFO TICK 792
-   INFO TICK 793
-  DEBUG D [0, 0, 14, 0, 0, 13, 0, 0]
-  DEBUG A [1000, 0, 0, 0, 0, 1014, 0, 99999]
-   INFO TICK 794 | PC=6 | HLT.b
-   INFO TICK 795 | Result : 0
+   INFO [PC: 0   ] MOV.l #99999, A7          (Ticks: 1 -> 2)
+   INFO   └─ [T2] Write to A7: Value = 99999
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 0, 0, 99999]]
+   INFO [PC: 2   ] MOV.l #1000, A5           (Ticks: 3 -> 4)
+   INFO   └─ [T4] Write to A5: Value = 1000
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 0, 99999]]
+   INFO [PC: 4   ] CALL.b 7                  (Ticks: 5 -> 9)
+   INFO   └─ [T9] Write: MEM[99998] = 6
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 0, 99998]]
+   INFO [PC: 7   ] MOV.l A6, -(A7)           (Ticks: 10 -> 14)
+   INFO   └─ [T13] Read: MEM[99997] = 0
+   INFO   └─ [T14] Write: MEM[99997] = 0
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 0, 99997]]
+   INFO [PC: 8   ] MOV.l A7, A6              (Ticks: 15 -> 16)
+   INFO   └─ [T16] Write to A6: Value = 99997
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 99997, 99997]]
+   INFO [PC: 9   ] SUB.l A7, #2, A7          (Ticks: 17 -> 18)
+   INFO   └─ [T18] Write to A7: Value = 99995
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 99997, 99995]]
+   INFO [PC: 11  ] ADD.l A5, #3, A5          (Ticks: 19 -> 20)
+   INFO   └─ [T20] Write to A5: Value = 1003
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1003, 99997, 99995]]
+   INFO [PC: 13  ] AND.l A5, #-4, A5         (Ticks: 21 -> 22)
+   INFO   └─ [T22] Write to A5: Value = 1000
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 99997, 99995]]
+   INFO [PC: 15  ] MOV.l A5, A0              (Ticks: 23 -> 24)
+   INFO   └─ [T24] Write to A0: Value = 1000
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1000, 99997, 99995]]
+   INFO [PC: 16  ] ADD.l A5, #14, A5         (Ticks: 25 -> 26)
+   INFO   └─ [T26] Write to A5: Value = 1014
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 18  ] MOV.b (0), (A0, #0)       (Ticks: 27 -> 32)
+   INFO   └─ [T29] Read: MEM[0] = 72
+   INFO   └─ [T31] Read: MEM[1000] = 0
+   INFO   └─ [T32] Write: MEM[1000] = 72
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 21  ] MOV.b (1), (A0, #1)       (Ticks: 33 -> 38)
+   INFO   └─ [T35] Read: MEM[1] = 101
+   INFO   └─ [T37] Read: MEM[1001] = 0
+   INFO   └─ [T38] Write: MEM[1001] = 101
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 24  ] MOV.b (2), (A0, #2)       (Ticks: 39 -> 44)
+   INFO   └─ [T41] Read: MEM[2] = 108
+   INFO   └─ [T43] Read: MEM[1002] = 0
+   INFO   └─ [T44] Write: MEM[1002] = 108
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 27  ] MOV.b (3), (A0, #3)       (Ticks: 45 -> 50)
+   INFO   └─ [T47] Read: MEM[3] = 108
+   INFO   └─ [T49] Read: MEM[1003] = 0
+   INFO   └─ [T50] Write: MEM[1003] = 108
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 30  ] MOV.b (4), (A0, #4)       (Ticks: 51 -> 56)
+   INFO   └─ [T53] Read: MEM[4] = 111
+   INFO   └─ [T55] Read: MEM[1004] = 0
+   INFO   └─ [T56] Write: MEM[1004] = 111
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 33  ] MOV.b (5), (A0, #5)       (Ticks: 57 -> 62)
+   INFO   └─ [T59] Read: MEM[5] = 44
+   INFO   └─ [T61] Read: MEM[1005] = 0
+   INFO   └─ [T62] Write: MEM[1005] = 44
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 36  ] MOV.b (6), (A0, #6)       (Ticks: 63 -> 68)
+   INFO   └─ [T65] Read: MEM[6] = 32
+   INFO   └─ [T67] Read: MEM[1006] = 0
+   INFO   └─ [T68] Write: MEM[1006] = 32
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 39  ] MOV.b (7), (A0, #7)       (Ticks: 69 -> 74)
+   INFO   └─ [T71] Read: MEM[7] = 87
+   INFO   └─ [T73] Read: MEM[1007] = 0
+   INFO   └─ [T74] Write: MEM[1007] = 87
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 42  ] MOV.b (8), (A0, #8)       (Ticks: 75 -> 80)
+   INFO   └─ [T77] Read: MEM[8] = 111
+   INFO   └─ [T79] Read: MEM[1008] = 0
+   INFO   └─ [T80] Write: MEM[1008] = 111
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 45  ] MOV.b (9), (A0, #9)       (Ticks: 81 -> 86)
+   INFO   └─ [T83] Read: MEM[9] = 114
+   INFO   └─ [T85] Read: MEM[1009] = 0
+   INFO   └─ [T86] Write: MEM[1009] = 114
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 48  ] MOV.b (10), (A0, #10)     (Ticks: 87 -> 92)
+   INFO   └─ [T89] Read: MEM[10] = 108
+   INFO   └─ [T91] Read: MEM[1010] = 0
+   INFO   └─ [T92] Write: MEM[1010] = 108
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 51  ] MOV.b (11), (A0, #11)     (Ticks: 93 -> 98)
+   INFO   └─ [T95] Read: MEM[11] = 100
+   INFO   └─ [T97] Read: MEM[1011] = 0
+   INFO   └─ [T98] Write: MEM[1011] = 100
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 54  ] MOV.b (12), (A0, #12)     (Ticks: 99 -> 104)
+   INFO   └─ [T101] Read: MEM[12] = 33
+   INFO   └─ [T103] Read: MEM[1012] = 0
+   INFO   └─ [T104] Write: MEM[1012] = 33
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 57  ] MOV.b (13), (A0, #13)     (Ticks: 105 -> 110)
+   INFO   └─ [T107] Read: MEM[13] = 0
+   INFO   └─ [T109] Read: MEM[1013] = 0
+   INFO   └─ [T110] Write: MEM[1013] = 0
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 60  ] MOV.l A0, (A6, #-1)       (Ticks: 111 -> 115)
+   INFO   └─ [T114] Read: MEM[99996] = 0
+   INFO   └─ [T115] Write: MEM[99996] = 1000
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 62  ] MOV.l (14), (A6, #-2)     (Ticks: 116 -> 121)
+   INFO   └─ [T118] Read: MEM[14] = 0
+   INFO   └─ [T120] Read: MEM[99995] = 0
+   INFO   └─ [T121] Write: MEM[99995] = 0
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 65  ] JMP.b 99                  (Ticks: 122 -> 123)
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 99  ] CMP.l (16), (A6, #-2)     (Ticks: 124 -> 128)
+   INFO   └─ [T126] Read: MEM[16] = 14
+   INFO   └─ [T128] Read: MEM[99995] = 0
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 102 ] BLT.b 108                 (Ticks: 129 -> 130)
+   INFO   └─ [T130] Branch taken
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 131 -> 132)
+   INFO   └─ [T132] Write to D1: Value = 1
+  DEBUG D: [[0, 1, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 133 -> 135)
+  DEBUG D: [[0, 1, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 112 ] BEQ.b 116                 (Ticks: 136 -> 137)
+   INFO   └─ [T137] Branch taken
+  DEBUG D: [[0, 1, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 138 -> 141)
+   INFO   └─ [T140] Read: MEM[99996] = 1000
+   INFO   └─ [T141] Write to A0: Value = 1000
+  DEBUG D: [[0, 1, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 142 -> 145)
+   INFO   └─ [T144] Read: MEM[99995] = 0
+   INFO   └─ [T145] Write to D1: Value = 0
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 146 -> 147)
+   INFO   └─ [T147] Write to D5: Value = 0
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 148 -> 151)
+   INFO   └─ [T150] Read: MEM[1000] = 72
+   INFO   └─ [T151] Write to D2: Value = 72
+  DEBUG D: [[0, 0, 72, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 152 -> 153)
+   INFO   └─ [T153] OUT to port #5: Value = 72
+  DEBUG D: [[0, 0, 72, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 154 -> 157)
+   INFO   └─ [T156] Read: MEM[99995] = 0
+   INFO   └─ [T157] Write to D1: Value = 0
+  DEBUG D: [[0, 0, 72, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 158 -> 162)
+   INFO   └─ [T161] Read: MEM[17] = 1
+   INFO   └─ [T162] Write to D2: Value = 1
+  DEBUG D: [[0, 0, 1, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 163 -> 167)
+   INFO   └─ [T166] Read: MEM[99995] = 0
+   INFO   └─ [T167] Write: MEM[99995] = 1
+  DEBUG D: [[0, 0, 1, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 129 ] JMP.b 99                  (Ticks: 168 -> 169)
+  DEBUG D: [[0, 0, 1, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 99  ] CMP.l (16), (A6, #-2)     (Ticks: 170 -> 174)
+   INFO   └─ [T172] Read: MEM[16] = 14
+   INFO   └─ [T174] Read: MEM[99995] = 1
+  DEBUG D: [[0, 0, 1, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 102 ] BLT.b 108                 (Ticks: 175 -> 176)
+   INFO   └─ [T176] Branch taken
+  DEBUG D: [[0, 0, 1, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 177 -> 178)
+   INFO   └─ [T178] Write to D1: Value = 1
+  DEBUG D: [[0, 1, 1, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 179 -> 181)
+  DEBUG D: [[0, 1, 1, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 112 ] BEQ.b 116                 (Ticks: 182 -> 183)
+   INFO   └─ [T183] Branch taken
+  DEBUG D: [[0, 1, 1, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 184 -> 187)
+   INFO   └─ [T186] Read: MEM[99996] = 1000
+   INFO   └─ [T187] Write to A0: Value = 1000
+  DEBUG D: [[0, 1, 1, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 188 -> 191)
+   INFO   └─ [T190] Read: MEM[99995] = 1
+   INFO   └─ [T191] Write to D1: Value = 1
+  DEBUG D: [[0, 1, 1, 0, 0, 0, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 192 -> 193)
+   INFO   └─ [T193] Write to D5: Value = 1
+  DEBUG D: [[0, 1, 1, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 194 -> 197)
+   INFO   └─ [T196] Read: MEM[1001] = 101
+   INFO   └─ [T197] Write to D2: Value = 101
+  DEBUG D: [[0, 1, 101, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 198 -> 199)
+   INFO   └─ [T199] OUT to port #5: Value = 101
+  DEBUG D: [[0, 1, 101, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 200 -> 203)
+   INFO   └─ [T202] Read: MEM[99995] = 1
+   INFO   └─ [T203] Write to D1: Value = 1
+  DEBUG D: [[0, 1, 101, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 204 -> 208)
+   INFO   └─ [T207] Read: MEM[17] = 1
+   INFO   └─ [T208] Write to D2: Value = 2
+  DEBUG D: [[0, 1, 2, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 209 -> 213)
+   INFO   └─ [T212] Read: MEM[99995] = 1
+   INFO   └─ [T213] Write: MEM[99995] = 2
+  DEBUG D: [[0, 1, 2, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 129 ] JMP.b 99                  (Ticks: 214 -> 215)
+  DEBUG D: [[0, 1, 2, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 99  ] CMP.l (16), (A6, #-2)     (Ticks: 216 -> 220)
+   INFO   └─ [T218] Read: MEM[16] = 14
+   INFO   └─ [T220] Read: MEM[99995] = 2
+  DEBUG D: [[0, 1, 2, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 102 ] BLT.b 108                 (Ticks: 221 -> 222)
+   INFO   └─ [T222] Branch taken
+  DEBUG D: [[0, 1, 2, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 223 -> 224)
+   INFO   └─ [T224] Write to D1: Value = 1
+  DEBUG D: [[0, 1, 2, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 225 -> 227)
+  DEBUG D: [[0, 1, 2, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 112 ] BEQ.b 116                 (Ticks: 228 -> 229)
+   INFO   └─ [T229] Branch taken
+  DEBUG D: [[0, 1, 2, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 230 -> 233)
+   INFO   └─ [T232] Read: MEM[99996] = 1000
+   INFO   └─ [T233] Write to A0: Value = 1000
+  DEBUG D: [[0, 1, 2, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 234 -> 237)
+   INFO   └─ [T236] Read: MEM[99995] = 2
+   INFO   └─ [T237] Write to D1: Value = 2
+  DEBUG D: [[0, 2, 2, 0, 0, 1, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 238 -> 239)
+   INFO   └─ [T239] Write to D5: Value = 2
+  DEBUG D: [[0, 2, 2, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 240 -> 243)
+   INFO   └─ [T242] Read: MEM[1002] = 108
+   INFO   └─ [T243] Write to D2: Value = 108
+  DEBUG D: [[0, 2, 108, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 244 -> 245)
+   INFO   └─ [T245] OUT to port #5: Value = 108
+  DEBUG D: [[0, 2, 108, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 246 -> 249)
+   INFO   └─ [T248] Read: MEM[99995] = 2
+   INFO   └─ [T249] Write to D1: Value = 2
+  DEBUG D: [[0, 2, 108, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 250 -> 254)
+   INFO   └─ [T253] Read: MEM[17] = 1
+   INFO   └─ [T254] Write to D2: Value = 3
+  DEBUG D: [[0, 2, 3, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 255 -> 259)
+   INFO   └─ [T258] Read: MEM[99995] = 2
+   INFO   └─ [T259] Write: MEM[99995] = 3
+  DEBUG D: [[0, 2, 3, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 129 ] JMP.b 99                  (Ticks: 260 -> 261)
+  DEBUG D: [[0, 2, 3, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 99  ] CMP.l (16), (A6, #-2)     (Ticks: 262 -> 266)
+   INFO   └─ [T264] Read: MEM[16] = 14
+   INFO   └─ [T266] Read: MEM[99995] = 3
+  DEBUG D: [[0, 2, 3, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 102 ] BLT.b 108                 (Ticks: 267 -> 268)
+   INFO   └─ [T268] Branch taken
+  DEBUG D: [[0, 2, 3, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 269 -> 270)
+   INFO   └─ [T270] Write to D1: Value = 1
+  DEBUG D: [[0, 1, 3, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 271 -> 273)
+  DEBUG D: [[0, 1, 3, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 112 ] BEQ.b 116                 (Ticks: 274 -> 275)
+   INFO   └─ [T275] Branch taken
+  DEBUG D: [[0, 1, 3, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 276 -> 279)
+   INFO   └─ [T278] Read: MEM[99996] = 1000
+   INFO   └─ [T279] Write to A0: Value = 1000
+  DEBUG D: [[0, 1, 3, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 280 -> 283)
+   INFO   └─ [T282] Read: MEM[99995] = 3
+   INFO   └─ [T283] Write to D1: Value = 3
+  DEBUG D: [[0, 3, 3, 0, 0, 2, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 284 -> 285)
+   INFO   └─ [T285] Write to D5: Value = 3
+  DEBUG D: [[0, 3, 3, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 286 -> 289)
+   INFO   └─ [T288] Read: MEM[1003] = 108
+   INFO   └─ [T289] Write to D2: Value = 108
+  DEBUG D: [[0, 3, 108, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 290 -> 291)
+   INFO   └─ [T291] OUT to port #5: Value = 108
+  DEBUG D: [[0, 3, 108, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 292 -> 295)
+   INFO   └─ [T294] Read: MEM[99995] = 3
+   INFO   └─ [T295] Write to D1: Value = 3
+  DEBUG D: [[0, 3, 108, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 296 -> 300)
+   INFO   └─ [T299] Read: MEM[17] = 1
+   INFO   └─ [T300] Write to D2: Value = 4
+  DEBUG D: [[0, 3, 4, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 301 -> 305)
+   INFO   └─ [T304] Read: MEM[99995] = 3
+   INFO   └─ [T305] Write: MEM[99995] = 4
+  DEBUG D: [[0, 3, 4, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 129 ] JMP.b 99                  (Ticks: 306 -> 307)
+  DEBUG D: [[0, 3, 4, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 99  ] CMP.l (16), (A6, #-2)     (Ticks: 308 -> 312)
+   INFO   └─ [T310] Read: MEM[16] = 14
+   INFO   └─ [T312] Read: MEM[99995] = 4
+  DEBUG D: [[0, 3, 4, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 102 ] BLT.b 108                 (Ticks: 313 -> 314)
+   INFO   └─ [T314] Branch taken
+  DEBUG D: [[0, 3, 4, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 315 -> 316)
+   INFO   └─ [T316] Write to D1: Value = 1
+  DEBUG D: [[0, 1, 4, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 317 -> 319)
+  DEBUG D: [[0, 1, 4, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 112 ] BEQ.b 116                 (Ticks: 320 -> 321)
+   INFO   └─ [T321] Branch taken
+  DEBUG D: [[0, 1, 4, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 322 -> 325)
+   INFO   └─ [T324] Read: MEM[99996] = 1000
+   INFO   └─ [T325] Write to A0: Value = 1000
+  DEBUG D: [[0, 1, 4, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 326 -> 329)
+   INFO   └─ [T328] Read: MEM[99995] = 4
+   INFO   └─ [T329] Write to D1: Value = 4
+  DEBUG D: [[0, 4, 4, 0, 0, 3, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 330 -> 331)
+   INFO   └─ [T331] Write to D5: Value = 4
+  DEBUG D: [[0, 4, 4, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 332 -> 335)
+   INFO   └─ [T334] Read: MEM[1004] = 111
+   INFO   └─ [T335] Write to D2: Value = 111
+  DEBUG D: [[0, 4, 111, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 336 -> 337)
+   INFO   └─ [T337] OUT to port #5: Value = 111
+  DEBUG D: [[0, 4, 111, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 338 -> 341)
+   INFO   └─ [T340] Read: MEM[99995] = 4
+   INFO   └─ [T341] Write to D1: Value = 4
+  DEBUG D: [[0, 4, 111, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 342 -> 346)
+   INFO   └─ [T345] Read: MEM[17] = 1
+   INFO   └─ [T346] Write to D2: Value = 5
+  DEBUG D: [[0, 4, 5, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 347 -> 351)
+   INFO   └─ [T350] Read: MEM[99995] = 4
+   INFO   └─ [T351] Write: MEM[99995] = 5
+  DEBUG D: [[0, 4, 5, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 129 ] JMP.b 99                  (Ticks: 352 -> 353)
+  DEBUG D: [[0, 4, 5, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 99  ] CMP.l (16), (A6, #-2)     (Ticks: 354 -> 358)
+   INFO   └─ [T356] Read: MEM[16] = 14
+   INFO   └─ [T358] Read: MEM[99995] = 5
+  DEBUG D: [[0, 4, 5, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 102 ] BLT.b 108                 (Ticks: 359 -> 360)
+   INFO   └─ [T360] Branch taken
+  DEBUG D: [[0, 4, 5, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 361 -> 362)
+   INFO   └─ [T362] Write to D1: Value = 1
+  DEBUG D: [[0, 1, 5, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 363 -> 365)
+  DEBUG D: [[0, 1, 5, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 112 ] BEQ.b 116                 (Ticks: 366 -> 367)
+   INFO   └─ [T367] Branch taken
+  DEBUG D: [[0, 1, 5, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 368 -> 371)
+   INFO   └─ [T370] Read: MEM[99996] = 1000
+   INFO   └─ [T371] Write to A0: Value = 1000
+  DEBUG D: [[0, 1, 5, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 372 -> 375)
+   INFO   └─ [T374] Read: MEM[99995] = 5
+   INFO   └─ [T375] Write to D1: Value = 5
+  DEBUG D: [[0, 5, 5, 0, 0, 4, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 376 -> 377)
+   INFO   └─ [T377] Write to D5: Value = 5
+  DEBUG D: [[0, 5, 5, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 378 -> 381)
+   INFO   └─ [T380] Read: MEM[1005] = 44
+   INFO   └─ [T381] Write to D2: Value = 44
+  DEBUG D: [[0, 5, 44, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 382 -> 383)
+   INFO   └─ [T383] OUT to port #5: Value = 44
+  DEBUG D: [[0, 5, 44, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 384 -> 387)
+   INFO   └─ [T386] Read: MEM[99995] = 5
+   INFO   └─ [T387] Write to D1: Value = 5
+  DEBUG D: [[0, 5, 44, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 388 -> 392)
+   INFO   └─ [T391] Read: MEM[17] = 1
+   INFO   └─ [T392] Write to D2: Value = 6
+  DEBUG D: [[0, 5, 6, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 393 -> 397)
+   INFO   └─ [T396] Read: MEM[99995] = 5
+   INFO   └─ [T397] Write: MEM[99995] = 6
+  DEBUG D: [[0, 5, 6, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 129 ] JMP.b 99                  (Ticks: 398 -> 399)
+  DEBUG D: [[0, 5, 6, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 99  ] CMP.l (16), (A6, #-2)     (Ticks: 400 -> 404)
+   INFO   └─ [T402] Read: MEM[16] = 14
+   INFO   └─ [T404] Read: MEM[99995] = 6
+  DEBUG D: [[0, 5, 6, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 102 ] BLT.b 108                 (Ticks: 405 -> 406)
+   INFO   └─ [T406] Branch taken
+  DEBUG D: [[0, 5, 6, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 407 -> 408)
+   INFO   └─ [T408] Write to D1: Value = 1
+  DEBUG D: [[0, 1, 6, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 409 -> 411)
+  DEBUG D: [[0, 1, 6, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 112 ] BEQ.b 116                 (Ticks: 412 -> 413)
+   INFO   └─ [T413] Branch taken
+  DEBUG D: [[0, 1, 6, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 414 -> 417)
+   INFO   └─ [T416] Read: MEM[99996] = 1000
+   INFO   └─ [T417] Write to A0: Value = 1000
+  DEBUG D: [[0, 1, 6, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 418 -> 421)
+   INFO   └─ [T420] Read: MEM[99995] = 6
+   INFO   └─ [T421] Write to D1: Value = 6
+  DEBUG D: [[0, 6, 6, 0, 0, 5, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 422 -> 423)
+   INFO   └─ [T423] Write to D5: Value = 6
+  DEBUG D: [[0, 6, 6, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 424 -> 427)
+   INFO   └─ [T426] Read: MEM[1006] = 32
+   INFO   └─ [T427] Write to D2: Value = 32
+  DEBUG D: [[0, 6, 32, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 428 -> 429)
+   INFO   └─ [T429] OUT to port #5: Value = 32
+  DEBUG D: [[0, 6, 32, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 430 -> 433)
+   INFO   └─ [T432] Read: MEM[99995] = 6
+   INFO   └─ [T433] Write to D1: Value = 6
+  DEBUG D: [[0, 6, 32, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 434 -> 438)
+   INFO   └─ [T437] Read: MEM[17] = 1
+   INFO   └─ [T438] Write to D2: Value = 7
+  DEBUG D: [[0, 6, 7, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 439 -> 443)
+   INFO   └─ [T442] Read: MEM[99995] = 6
+   INFO   └─ [T443] Write: MEM[99995] = 7
+  DEBUG D: [[0, 6, 7, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 129 ] JMP.b 99                  (Ticks: 444 -> 445)
+  DEBUG D: [[0, 6, 7, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 99  ] CMP.l (16), (A6, #-2)     (Ticks: 446 -> 450)
+   INFO   └─ [T448] Read: MEM[16] = 14
+   INFO   └─ [T450] Read: MEM[99995] = 7
+  DEBUG D: [[0, 6, 7, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 102 ] BLT.b 108                 (Ticks: 451 -> 452)
+   INFO   └─ [T452] Branch taken
+  DEBUG D: [[0, 6, 7, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 453 -> 454)
+   INFO   └─ [T454] Write to D1: Value = 1
+  DEBUG D: [[0, 1, 7, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 455 -> 457)
+  DEBUG D: [[0, 1, 7, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 112 ] BEQ.b 116                 (Ticks: 458 -> 459)
+   INFO   └─ [T459] Branch taken
+  DEBUG D: [[0, 1, 7, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 460 -> 463)
+   INFO   └─ [T462] Read: MEM[99996] = 1000
+   INFO   └─ [T463] Write to A0: Value = 1000
+  DEBUG D: [[0, 1, 7, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 464 -> 467)
+   INFO   └─ [T466] Read: MEM[99995] = 7
+   INFO   └─ [T467] Write to D1: Value = 7
+  DEBUG D: [[0, 7, 7, 0, 0, 6, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 468 -> 469)
+   INFO   └─ [T469] Write to D5: Value = 7
+  DEBUG D: [[0, 7, 7, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 470 -> 473)
+   INFO   └─ [T472] Read: MEM[1007] = 87
+   INFO   └─ [T473] Write to D2: Value = 87
+  DEBUG D: [[0, 7, 87, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 474 -> 475)
+   INFO   └─ [T475] OUT to port #5: Value = 87
+  DEBUG D: [[0, 7, 87, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 476 -> 479)
+   INFO   └─ [T478] Read: MEM[99995] = 7
+   INFO   └─ [T479] Write to D1: Value = 7
+  DEBUG D: [[0, 7, 87, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 480 -> 484)
+   INFO   └─ [T483] Read: MEM[17] = 1
+   INFO   └─ [T484] Write to D2: Value = 8
+  DEBUG D: [[0, 7, 8, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 485 -> 489)
+   INFO   └─ [T488] Read: MEM[99995] = 7
+   INFO   └─ [T489] Write: MEM[99995] = 8
+  DEBUG D: [[0, 7, 8, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 129 ] JMP.b 99                  (Ticks: 490 -> 491)
+  DEBUG D: [[0, 7, 8, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 99  ] CMP.l (16), (A6, #-2)     (Ticks: 492 -> 496)
+   INFO   └─ [T494] Read: MEM[16] = 14
+   INFO   └─ [T496] Read: MEM[99995] = 8
+  DEBUG D: [[0, 7, 8, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 102 ] BLT.b 108                 (Ticks: 497 -> 498)
+   INFO   └─ [T498] Branch taken
+  DEBUG D: [[0, 7, 8, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 499 -> 500)
+   INFO   └─ [T500] Write to D1: Value = 1
+  DEBUG D: [[0, 1, 8, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 501 -> 503)
+  DEBUG D: [[0, 1, 8, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 112 ] BEQ.b 116                 (Ticks: 504 -> 505)
+   INFO   └─ [T505] Branch taken
+  DEBUG D: [[0, 1, 8, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 506 -> 509)
+   INFO   └─ [T508] Read: MEM[99996] = 1000
+   INFO   └─ [T509] Write to A0: Value = 1000
+  DEBUG D: [[0, 1, 8, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 510 -> 513)
+   INFO   └─ [T512] Read: MEM[99995] = 8
+   INFO   └─ [T513] Write to D1: Value = 8
+  DEBUG D: [[0, 8, 8, 0, 0, 7, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 514 -> 515)
+   INFO   └─ [T515] Write to D5: Value = 8
+  DEBUG D: [[0, 8, 8, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 516 -> 519)
+   INFO   └─ [T518] Read: MEM[1008] = 111
+   INFO   └─ [T519] Write to D2: Value = 111
+  DEBUG D: [[0, 8, 111, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 520 -> 521)
+   INFO   └─ [T521] OUT to port #5: Value = 111
+  DEBUG D: [[0, 8, 111, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 522 -> 525)
+   INFO   └─ [T524] Read: MEM[99995] = 8
+   INFO   └─ [T525] Write to D1: Value = 8
+  DEBUG D: [[0, 8, 111, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 526 -> 530)
+   INFO   └─ [T529] Read: MEM[17] = 1
+   INFO   └─ [T530] Write to D2: Value = 9
+  DEBUG D: [[0, 8, 9, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 531 -> 535)
+   INFO   └─ [T534] Read: MEM[99995] = 8
+   INFO   └─ [T535] Write: MEM[99995] = 9
+  DEBUG D: [[0, 8, 9, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 129 ] JMP.b 99                  (Ticks: 536 -> 537)
+  DEBUG D: [[0, 8, 9, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 99  ] CMP.l (16), (A6, #-2)     (Ticks: 538 -> 542)
+   INFO   └─ [T540] Read: MEM[16] = 14
+   INFO   └─ [T542] Read: MEM[99995] = 9
+  DEBUG D: [[0, 8, 9, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 102 ] BLT.b 108                 (Ticks: 543 -> 544)
+   INFO   └─ [T544] Branch taken
+  DEBUG D: [[0, 8, 9, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 545 -> 546)
+   INFO   └─ [T546] Write to D1: Value = 1
+  DEBUG D: [[0, 1, 9, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 547 -> 549)
+  DEBUG D: [[0, 1, 9, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 112 ] BEQ.b 116                 (Ticks: 550 -> 551)
+   INFO   └─ [T551] Branch taken
+  DEBUG D: [[0, 1, 9, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 552 -> 555)
+   INFO   └─ [T554] Read: MEM[99996] = 1000
+   INFO   └─ [T555] Write to A0: Value = 1000
+  DEBUG D: [[0, 1, 9, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 556 -> 559)
+   INFO   └─ [T558] Read: MEM[99995] = 9
+   INFO   └─ [T559] Write to D1: Value = 9
+  DEBUG D: [[0, 9, 9, 0, 0, 8, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 560 -> 561)
+   INFO   └─ [T561] Write to D5: Value = 9
+  DEBUG D: [[0, 9, 9, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 562 -> 565)
+   INFO   └─ [T564] Read: MEM[1009] = 114
+   INFO   └─ [T565] Write to D2: Value = 114
+  DEBUG D: [[0, 9, 114, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 566 -> 567)
+   INFO   └─ [T567] OUT to port #5: Value = 114
+  DEBUG D: [[0, 9, 114, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 568 -> 571)
+   INFO   └─ [T570] Read: MEM[99995] = 9
+   INFO   └─ [T571] Write to D1: Value = 9
+  DEBUG D: [[0, 9, 114, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 572 -> 576)
+   INFO   └─ [T575] Read: MEM[17] = 1
+   INFO   └─ [T576] Write to D2: Value = 10
+  DEBUG D: [[0, 9, 10, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 577 -> 581)
+   INFO   └─ [T580] Read: MEM[99995] = 9
+   INFO   └─ [T581] Write: MEM[99995] = 10
+  DEBUG D: [[0, 9, 10, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 129 ] JMP.b 99                  (Ticks: 582 -> 583)
+  DEBUG D: [[0, 9, 10, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 99  ] CMP.l (16), (A6, #-2)     (Ticks: 584 -> 588)
+   INFO   └─ [T586] Read: MEM[16] = 14
+   INFO   └─ [T588] Read: MEM[99995] = 10
+  DEBUG D: [[0, 9, 10, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 102 ] BLT.b 108                 (Ticks: 589 -> 590)
+   INFO   └─ [T590] Branch taken
+  DEBUG D: [[0, 9, 10, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 591 -> 592)
+   INFO   └─ [T592] Write to D1: Value = 1
+  DEBUG D: [[0, 1, 10, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 593 -> 595)
+  DEBUG D: [[0, 1, 10, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 112 ] BEQ.b 116                 (Ticks: 596 -> 597)
+   INFO   └─ [T597] Branch taken
+  DEBUG D: [[0, 1, 10, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 598 -> 601)
+   INFO   └─ [T600] Read: MEM[99996] = 1000
+   INFO   └─ [T601] Write to A0: Value = 1000
+  DEBUG D: [[0, 1, 10, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 602 -> 605)
+   INFO   └─ [T604] Read: MEM[99995] = 10
+   INFO   └─ [T605] Write to D1: Value = 10
+  DEBUG D: [[0, 10, 10, 0, 0, 9, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 606 -> 607)
+   INFO   └─ [T607] Write to D5: Value = 10
+  DEBUG D: [[0, 10, 10, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 608 -> 611)
+   INFO   └─ [T610] Read: MEM[1010] = 108
+   INFO   └─ [T611] Write to D2: Value = 108
+  DEBUG D: [[0, 10, 108, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 612 -> 613)
+   INFO   └─ [T613] OUT to port #5: Value = 108
+  DEBUG D: [[0, 10, 108, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 614 -> 617)
+   INFO   └─ [T616] Read: MEM[99995] = 10
+   INFO   └─ [T617] Write to D1: Value = 10
+  DEBUG D: [[0, 10, 108, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 618 -> 622)
+   INFO   └─ [T621] Read: MEM[17] = 1
+   INFO   └─ [T622] Write to D2: Value = 11
+  DEBUG D: [[0, 10, 11, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 623 -> 627)
+   INFO   └─ [T626] Read: MEM[99995] = 10
+   INFO   └─ [T627] Write: MEM[99995] = 11
+  DEBUG D: [[0, 10, 11, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 129 ] JMP.b 99                  (Ticks: 628 -> 629)
+  DEBUG D: [[0, 10, 11, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 99  ] CMP.l (16), (A6, #-2)     (Ticks: 630 -> 634)
+   INFO   └─ [T632] Read: MEM[16] = 14
+   INFO   └─ [T634] Read: MEM[99995] = 11
+  DEBUG D: [[0, 10, 11, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 102 ] BLT.b 108                 (Ticks: 635 -> 636)
+   INFO   └─ [T636] Branch taken
+  DEBUG D: [[0, 10, 11, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 637 -> 638)
+   INFO   └─ [T638] Write to D1: Value = 1
+  DEBUG D: [[0, 1, 11, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 639 -> 641)
+  DEBUG D: [[0, 1, 11, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 112 ] BEQ.b 116                 (Ticks: 642 -> 643)
+   INFO   └─ [T643] Branch taken
+  DEBUG D: [[0, 1, 11, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 644 -> 647)
+   INFO   └─ [T646] Read: MEM[99996] = 1000
+   INFO   └─ [T647] Write to A0: Value = 1000
+  DEBUG D: [[0, 1, 11, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 648 -> 651)
+   INFO   └─ [T650] Read: MEM[99995] = 11
+   INFO   └─ [T651] Write to D1: Value = 11
+  DEBUG D: [[0, 11, 11, 0, 0, 10, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 652 -> 653)
+   INFO   └─ [T653] Write to D5: Value = 11
+  DEBUG D: [[0, 11, 11, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 654 -> 657)
+   INFO   └─ [T656] Read: MEM[1011] = 100
+   INFO   └─ [T657] Write to D2: Value = 100
+  DEBUG D: [[0, 11, 100, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 658 -> 659)
+   INFO   └─ [T659] OUT to port #5: Value = 100
+  DEBUG D: [[0, 11, 100, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 660 -> 663)
+   INFO   └─ [T662] Read: MEM[99995] = 11
+   INFO   └─ [T663] Write to D1: Value = 11
+  DEBUG D: [[0, 11, 100, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 664 -> 668)
+   INFO   └─ [T667] Read: MEM[17] = 1
+   INFO   └─ [T668] Write to D2: Value = 12
+  DEBUG D: [[0, 11, 12, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 669 -> 673)
+   INFO   └─ [T672] Read: MEM[99995] = 11
+   INFO   └─ [T673] Write: MEM[99995] = 12
+  DEBUG D: [[0, 11, 12, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 129 ] JMP.b 99                  (Ticks: 674 -> 675)
+  DEBUG D: [[0, 11, 12, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 99  ] CMP.l (16), (A6, #-2)     (Ticks: 676 -> 680)
+   INFO   └─ [T678] Read: MEM[16] = 14
+   INFO   └─ [T680] Read: MEM[99995] = 12
+  DEBUG D: [[0, 11, 12, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 102 ] BLT.b 108                 (Ticks: 681 -> 682)
+   INFO   └─ [T682] Branch taken
+  DEBUG D: [[0, 11, 12, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 683 -> 684)
+   INFO   └─ [T684] Write to D1: Value = 1
+  DEBUG D: [[0, 1, 12, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 685 -> 687)
+  DEBUG D: [[0, 1, 12, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 112 ] BEQ.b 116                 (Ticks: 688 -> 689)
+   INFO   └─ [T689] Branch taken
+  DEBUG D: [[0, 1, 12, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 690 -> 693)
+   INFO   └─ [T692] Read: MEM[99996] = 1000
+   INFO   └─ [T693] Write to A0: Value = 1000
+  DEBUG D: [[0, 1, 12, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 694 -> 697)
+   INFO   └─ [T696] Read: MEM[99995] = 12
+   INFO   └─ [T697] Write to D1: Value = 12
+  DEBUG D: [[0, 12, 12, 0, 0, 11, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 698 -> 699)
+   INFO   └─ [T699] Write to D5: Value = 12
+  DEBUG D: [[0, 12, 12, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 700 -> 703)
+   INFO   └─ [T702] Read: MEM[1012] = 33
+   INFO   └─ [T703] Write to D2: Value = 33
+  DEBUG D: [[0, 12, 33, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 704 -> 705)
+   INFO   └─ [T705] OUT to port #5: Value = 33
+  DEBUG D: [[0, 12, 33, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 706 -> 709)
+   INFO   └─ [T708] Read: MEM[99995] = 12
+   INFO   └─ [T709] Write to D1: Value = 12
+  DEBUG D: [[0, 12, 33, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 710 -> 714)
+   INFO   └─ [T713] Read: MEM[17] = 1
+   INFO   └─ [T714] Write to D2: Value = 13
+  DEBUG D: [[0, 12, 13, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 715 -> 719)
+   INFO   └─ [T718] Read: MEM[99995] = 12
+   INFO   └─ [T719] Write: MEM[99995] = 13
+  DEBUG D: [[0, 12, 13, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 129 ] JMP.b 99                  (Ticks: 720 -> 721)
+  DEBUG D: [[0, 12, 13, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 99  ] CMP.l (16), (A6, #-2)     (Ticks: 722 -> 726)
+   INFO   └─ [T724] Read: MEM[16] = 14
+   INFO   └─ [T726] Read: MEM[99995] = 13
+  DEBUG D: [[0, 12, 13, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 102 ] BLT.b 108                 (Ticks: 727 -> 728)
+   INFO   └─ [T728] Branch taken
+  DEBUG D: [[0, 12, 13, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 108 ] MOV.l #1, D1              (Ticks: 729 -> 730)
+   INFO   └─ [T730] Write to D1: Value = 1
+  DEBUG D: [[0, 1, 13, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 731 -> 733)
+  DEBUG D: [[0, 1, 13, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 112 ] BEQ.b 116                 (Ticks: 734 -> 735)
+   INFO   └─ [T735] Branch taken
+  DEBUG D: [[0, 1, 13, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 116 ] MOV.l (A6, #-1), A0       (Ticks: 736 -> 739)
+   INFO   └─ [T738] Read: MEM[99996] = 1000
+   INFO   └─ [T739] Write to A0: Value = 1000
+  DEBUG D: [[0, 1, 13, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 118 ] MOV.l (A6, #-2), D1       (Ticks: 740 -> 743)
+   INFO   └─ [T742] Read: MEM[99995] = 13
+   INFO   └─ [T743] Write to D1: Value = 13
+  DEBUG D: [[0, 13, 13, 0, 0, 12, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 120 ] MOV.l D1, D5              (Ticks: 744 -> 745)
+   INFO   └─ [T745] Write to D5: Value = 13
+  DEBUG D: [[0, 13, 13, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 121 ] MOV.b (A0, D5), D2        (Ticks: 746 -> 749)
+   INFO   └─ [T748] Read: MEM[1013] = 0
+   INFO   └─ [T749] Write to D2: Value = 0
+  DEBUG D: [[0, 13, 0, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 122 ] OUT.b #5, D2              (Ticks: 750 -> 751)
+   INFO   └─ [T751] OUT to port #5: Value = 0
+  DEBUG D: [[0, 13, 0, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 123 ] MOV.l (A6, #-2), D1       (Ticks: 752 -> 755)
+   INFO   └─ [T754] Read: MEM[99995] = 13
+   INFO   └─ [T755] Write to D1: Value = 13
+  DEBUG D: [[0, 13, 0, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 125 ] ADD.l D1, (17), D2        (Ticks: 756 -> 760)
+   INFO   └─ [T759] Read: MEM[17] = 1
+   INFO   └─ [T760] Write to D2: Value = 14
+  DEBUG D: [[0, 13, 14, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 127 ] MOV.l D2, (A6, #-2)       (Ticks: 761 -> 765)
+   INFO   └─ [T764] Read: MEM[99995] = 13
+   INFO   └─ [T765] Write: MEM[99995] = 14
+  DEBUG D: [[0, 13, 14, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 129 ] JMP.b 99                  (Ticks: 766 -> 767)
+  DEBUG D: [[0, 13, 14, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 99  ] CMP.l (16), (A6, #-2)     (Ticks: 768 -> 772)
+   INFO   └─ [T770] Read: MEM[16] = 14
+   INFO   └─ [T772] Read: MEM[99995] = 14
+  DEBUG D: [[0, 13, 14, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 102 ] BLT.b 108                 (Ticks: 773 -> 774)
+   INFO   └─ [T774] Branch skipped
+  DEBUG D: [[0, 13, 14, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 104 ] MOV.l #0, D1              (Ticks: 775 -> 776)
+   INFO   └─ [T776] Write to D1: Value = 0
+  DEBUG D: [[0, 0, 14, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 106 ] JMP.b 110                 (Ticks: 777 -> 778)
+  DEBUG D: [[0, 0, 14, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 110 ] CMP.b D1, #1              (Ticks: 779 -> 781)
+  DEBUG D: [[0, 0, 14, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 112 ] BEQ.b 116                 (Ticks: 782 -> 783)
+   INFO   └─ [T783] Branch skipped
+  DEBUG D: [[0, 0, 14, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 114 ] JMP.b 131                 (Ticks: 784 -> 785)
+  DEBUG D: [[0, 0, 14, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99995]]
+   INFO [PC: 131 ] MOV.l A6, A7              (Ticks: 786 -> 787)
+   INFO   └─ [T787] Write to A7: Value = 99997
+  DEBUG D: [[0, 0, 14, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 99997, 99997]]
+   INFO [PC: 132 ] MOV.l (A7)+, A6           (Ticks: 788 -> 791)
+   INFO   └─ [T790] Read: MEM[99997] = 0
+   INFO   └─ [T791] Write to A6: Value = 0
+  DEBUG D: [[0, 0, 14, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 0, 99998]]
+   INFO [PC: 133 ] RET.b                     (Ticks: 792 -> 794)
+   INFO   └─ [T794] Read: MEM[99998] = 6
+   INFO   └─ [T794] Returning to 6
+  DEBUG D: [[0, 0, 14, 0, 0, 13, 0, 0]] | A: [[1000, 0, 0, 0, 0, 1014, 0, 99999]]
+   INFO Result: D0 = 0

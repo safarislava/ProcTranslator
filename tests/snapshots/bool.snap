@@ -17,128 +17,100 @@ data_section:
 - 0
 - 48
 machine_code: |-
-  0x0000: 0x03005C00   MOV.w A7, #0x0001869F
-  0x0002: 0x03005400   MOV.w A5, #0x000003E8
-  0x0004: 0x42000000   CALL.b 0x0000000000000007
-  0x0006: 0x00000000   HLT.b
-  0x0007: 0x0358BC00   MOV.w -(A7), A6
-  0x0008: 0x035C5800   MOV.w A6, A7
-  0x0009: 0x255C005C   SUB.w #0x00000000, A7
-  0x000B: 0x27E0E024   MUL.w (#0x00000001), (#0x00000000)
-  0x000E: 0x2B24E028   REM.w (#0x00000002), D1
-  0x0010: 0x05E02800   CMP.w D2, (#0x00000003)
-  0x0012: 0x60000000   BEQ.b 0x0000000000000018
-  0x0014: 0x03002400   MOV.w D1, #0x00000000
-  0x0016: 0x40000000   JMP.b 0x000000000000001A
-  0x0018: 0x03002400   MOV.w D1, #0x00000001
-  0x001A: 0x02242000   MOV.b D0, D1
-  0x001B: 0x03585C00   MOV.w A7, A6
-  0x001C: 0x039C5800   MOV.w A6, (A7)+
-  0x001D: 0x44000000   RET.b
-  0x001E: 0x0358BC00   MOV.w -(A7), A6
-  0x001F: 0x035C5800   MOV.w A6, A7
-  0x0020: 0x255C005C   SUB.w #0x00000000, A7
-  0x0022: 0x03E02000   MOV.w D0, (#0x00000003)
-  0x0024: 0x03585C00   MOV.w A7, A6
-  0x0025: 0x039C5800   MOV.w A6, (A7)+
-  0x0026: 0x44000000   RET.b
-  0x0027: 0x0358BC00   MOV.w -(A7), A6
-  0x0028: 0x035C5800   MOV.w A6, A7
-  0x0029: 0x255C005C   SUB.w #0x00000000, A7
-  0x002B: 0x02E02000   MOV.b D0, (#0x00000004)
-  0x002D: 0x03585C00   MOV.w A7, A6
-  0x002E: 0x039C5800   MOV.w A6, (A7)+
-  0x002F: 0x44000000   RET.b
-  0x0030: 0x0358BC00   MOV.w -(A7), A6
-  0x0031: 0x035C5800   MOV.w A6, A7
-  0x0032: 0x255C005C   SUB.w #0x00000000, A7
-  0x0034: 0x03585C00   MOV.w A7, A6
-  0x0035: 0x039C5800   MOV.w A6, (A7)+
-  0x0036: 0x44000000   RET.b
-  0x0037: 0x0358BC00   MOV.w -(A7), A6
-  0x0038: 0x035C5800   MOV.w A6, A7
-  0x0039: 0x255C005C   SUB.w #0x00000000, A7
-  0x003B: 0x03585C00   MOV.w A7, A6
-  0x003C: 0x039C5800   MOV.w A6, (A7)+
-  0x003D: 0x44000000   RET.b
+  0x0000 | 03005C00 0001869F                   | MOV.l #99999, A7                    | A7 <- 99999
+  0x0002 | 03005400 000003E8                   | MOV.l #1000, A5                     | A5 <- 1000
+  0x0004 | 42000000 00000007                   | CALL 0x7                            | MEM[--A7] <- PC + 1; PC <- 0x7
+  0x0006 | 00000000                            | HLT                                 | Остановка выполнения процессора
+  0x0007 | 0358BC00                            | MOV.l A6, -(A7)                     | MEM[--A7] <- A6
+  0x0008 | 035C5800                            | MOV.l A7, A6                        | A6 <- A7
+  0x0009 | 255C005C 00000000                   | SUB.l A7, #0, A7                    | A7 <- A7 - 0
+  0x000B | 27E0E024 00000000 00000001          | MUL.l (#0), (#1), D1                | D1 <- MEM[0] * MEM[1]
+  0x000E | 2B24E028 00000002                   | REM.l D1, (#2), D2                  | D2 <- D1 % MEM[2]
+  0x0010 | 05E02800 00000003                   | CMP.l (#3), D2                      | NZCV <- MEM[3] - D2
+  0x0012 | 60000000 00000018                   | BEQ 0x18                            | if Z == 1 then PC <- 0x18
+  0x0014 | 03002400 00000000                   | MOV.l #0, D1                        | D1 <- 0
+  0x0016 | 40000000 0000001A                   | JMP 0x1A                            | PC <- 0x1A
+  0x0018 | 03002400 00000001                   | MOV.l #1, D1                        | D1 <- 1
+  0x001A | 02242000                            | MOV.b D1, D0                        | D0 <- D1
+  0x001B | 03585C00                            | MOV.l A6, A7                        | A7 <- A6
+  0x001C | 039C5800                            | MOV.l (A7)+, A6                     | A6 <- MEM[A7++]
+  0x001D | 44000000                            | RET                                 | PC <- MEM[A7++]
+  0x001E | 0358BC00                            | MOV.l A6, -(A7)                     | MEM[--A7] <- A6
+  0x001F | 035C5800                            | MOV.l A7, A6                        | A6 <- A7
+  0x0020 | 255C005C 00000000                   | SUB.l A7, #0, A7                    | A7 <- A7 - 0
+  0x0022 | 03E02000 00000003                   | MOV.l (#3), D0                      | D0 <- MEM[3]
+  0x0024 | 03585C00                            | MOV.l A6, A7                        | A7 <- A6
+  0x0025 | 039C5800                            | MOV.l (A7)+, A6                     | A6 <- MEM[A7++]
+  0x0026 | 44000000                            | RET                                 | PC <- MEM[A7++]
+  0x0027 | 0358BC00                            | MOV.l A6, -(A7)                     | MEM[--A7] <- A6
+  0x0028 | 035C5800                            | MOV.l A7, A6                        | A6 <- A7
+  0x0029 | 255C005C 00000000                   | SUB.l A7, #0, A7                    | A7 <- A7 - 0
+  0x002B | 02E02000 00000004                   | MOV.b (#4), D0                      | D0 <- MEM[4]
+  0x002D | 03585C00                            | MOV.l A6, A7                        | A7 <- A6
+  0x002E | 039C5800                            | MOV.l (A7)+, A6                     | A6 <- MEM[A7++]
+  0x002F | 44000000                            | RET                                 | PC <- MEM[A7++]
+  0x0030 | 0358BC00                            | MOV.l A6, -(A7)                     | MEM[--A7] <- A6
+  0x0031 | 035C5800                            | MOV.l A7, A6                        | A6 <- A7
+  0x0032 | 255C005C 00000000                   | SUB.l A7, #0, A7                    | A7 <- A7 - 0
+  0x0034 | 03585C00                            | MOV.l A6, A7                        | A7 <- A6
+  0x0035 | 039C5800                            | MOV.l (A7)+, A6                     | A6 <- MEM[A7++]
+  0x0036 | 44000000                            | RET                                 | PC <- MEM[A7++]
+  0x0037 | 0358BC00                            | MOV.l A6, -(A7)                     | MEM[--A7] <- A6
+  0x0038 | 035C5800                            | MOV.l A7, A6                        | A6 <- A7
+  0x0039 | 255C005C 00000000                   | SUB.l A7, #0, A7                    | A7 <- A7 - 0
+  0x003B | 03585C00                            | MOV.l A6, A7                        | A7 <- A6
+  0x003C | 039C5800                            | MOV.l (A7)+, A6                     | A6 <- MEM[A7++]
+  0x003D | 44000000                            | RET                                 | PC <- MEM[A7++]
 log: |2-
-   INFO TICK 0 | PC=0 | MOV.w
-   INFO TICK 1 | #99999
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 0, 0, 99999]
-   INFO TICK 2 | PC=2 | MOV.w
-   INFO TICK 3 | #1000
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 0, 99999]
-   INFO TICK 4 | PC=4 | CALL.b
-   INFO TICK 5
-   INFO TICK 6
-   INFO TICK 7
-   INFO TICK 8
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 0, 99998]
-   INFO TICK 9 | PC=7 | MOV.w
-   INFO TICK 10 | A6
-   INFO TICK 11 | -(A7)
-   INFO TICK 12 | Load (#99997) = 0
-   INFO TICK 13 | Store (#99997) = 0
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 0, 99997]
-   INFO TICK 14 | PC=8 | MOV.w
-   INFO TICK 15 | A7
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99997, 99997]
-   INFO TICK 16 | PC=9 | SUB.w
-   INFO TICK 17 | A7 | #0
-  DEBUG D [0, 0, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99997, 99997]
-   INFO TICK 18 | PC=11 | MUL.w
-   INFO TICK 19 | (#0)
-   INFO TICK 20 | Load (#0) = 23
-   INFO TICK 21 | (#1)
-   INFO TICK 22 | Load (#1) = 44
-   INFO TICK 23
-  DEBUG D [0, 1012, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99997, 99997]
-   INFO TICK 24 | PC=14 | REM.w
-   INFO TICK 25 | D1
-   INFO TICK 26 | (#2)
-   INFO TICK 27 | Load (#2) = 2
-   INFO TICK 28
-  DEBUG D [0, 1012, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99997, 99997]
-   INFO TICK 29 | PC=16 | CMP.w
-   INFO TICK 30 | (#3)
-   INFO TICK 31 | Load (#3) = 0
-   INFO TICK 32 | D2
-  DEBUG D [0, 1012, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99997, 99997]
-   INFO TICK 33 | PC=18 | BEQ.b
-   INFO TICK 34
-  DEBUG D [0, 1012, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99997, 99997]
-   INFO TICK 35 | PC=24 | MOV.w
-   INFO TICK 36 | #1
-  DEBUG D [0, 1, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99997, 99997]
-   INFO TICK 37 | PC=26 | MOV.b
-   INFO TICK 38 | D1
-  DEBUG D [1, 1, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99997, 99997]
-   INFO TICK 39 | PC=27 | MOV.w
-   INFO TICK 40 | A6
-  DEBUG D [1, 1, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 99997, 99997]
-   INFO TICK 41 | PC=28 | MOV.w
-   INFO TICK 42 | (A7)+
-   INFO TICK 43 | Load (#99997) = 0
-   INFO TICK 44
-  DEBUG D [1, 1, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 0, 99998]
-   INFO TICK 45 | PC=29 | RET.b
-   INFO TICK 46
-   INFO TICK 47
-  DEBUG D [1, 1, 0, 0, 0, 0, 0, 0]
-  DEBUG A [0, 0, 0, 0, 0, 1000, 0, 99999]
-   INFO TICK 48 | PC=6 | HLT.b
-   INFO TICK 49 | Result : 1
+   INFO [PC: 0   ] MOV.l #99999, A7          (Ticks: 1 -> 2)
+   INFO   └─ [T2] Write to A7: Value = 99999
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 0, 0, 99999]]
+   INFO [PC: 2   ] MOV.l #1000, A5           (Ticks: 3 -> 4)
+   INFO   └─ [T4] Write to A5: Value = 1000
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 0, 99999]]
+   INFO [PC: 4   ] CALL.b 7                  (Ticks: 5 -> 9)
+   INFO   └─ [T9] Write: MEM[99998] = 6
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 0, 99998]]
+   INFO [PC: 7   ] MOV.l A6, -(A7)           (Ticks: 10 -> 14)
+   INFO   └─ [T13] Read: MEM[99997] = 0
+   INFO   └─ [T14] Write: MEM[99997] = 0
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 0, 99997]]
+   INFO [PC: 8   ] MOV.l A7, A6              (Ticks: 15 -> 16)
+   INFO   └─ [T16] Write to A6: Value = 99997
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 99997, 99997]]
+   INFO [PC: 9   ] SUB.l A7, #0, A7          (Ticks: 17 -> 18)
+   INFO   └─ [T18] Write to A7: Value = 99997
+  DEBUG D: [[0, 0, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 99997, 99997]]
+   INFO [PC: 11  ] MUL.l (0), (1), D1        (Ticks: 19 -> 24)
+   INFO   └─ [T21] Read: MEM[0] = 23
+   INFO   └─ [T23] Read: MEM[1] = 44
+   INFO   └─ [T24] Write to D1: Value = 1012
+  DEBUG D: [[0, 1012, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 99997, 99997]]
+   INFO [PC: 14  ] REM.l D1, (2), D2         (Ticks: 25 -> 29)
+   INFO   └─ [T28] Read: MEM[2] = 2
+   INFO   └─ [T29] Write to D2: Value = 0
+  DEBUG D: [[0, 1012, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 99997, 99997]]
+   INFO [PC: 16  ] CMP.l (3), D2             (Ticks: 30 -> 33)
+   INFO   └─ [T32] Read: MEM[3] = 0
+  DEBUG D: [[0, 1012, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 99997, 99997]]
+   INFO [PC: 18  ] BEQ.b 24                  (Ticks: 34 -> 35)
+   INFO   └─ [T35] Branch taken
+  DEBUG D: [[0, 1012, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 99997, 99997]]
+   INFO [PC: 24  ] MOV.l #1, D1              (Ticks: 36 -> 37)
+   INFO   └─ [T37] Write to D1: Value = 1
+  DEBUG D: [[0, 1, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 99997, 99997]]
+   INFO [PC: 26  ] MOV.b D1, D0              (Ticks: 38 -> 39)
+   INFO   └─ [T39] Write to D0: Value = 1
+  DEBUG D: [[1, 1, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 99997, 99997]]
+   INFO [PC: 27  ] MOV.l A6, A7              (Ticks: 40 -> 41)
+   INFO   └─ [T41] Write to A7: Value = 99997
+  DEBUG D: [[1, 1, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 99997, 99997]]
+   INFO [PC: 28  ] MOV.l (A7)+, A6           (Ticks: 42 -> 45)
+   INFO   └─ [T44] Read: MEM[99997] = 0
+   INFO   └─ [T45] Write to A6: Value = 0
+  DEBUG D: [[1, 1, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 0, 99998]]
+   INFO [PC: 29  ] RET.b                     (Ticks: 46 -> 48)
+   INFO   └─ [T48] Read: MEM[99998] = 6
+   INFO   └─ [T48] Returning to 6
+  DEBUG D: [[1, 1, 0, 0, 0, 0, 0, 0]] | A: [[0, 0, 0, 0, 0, 1000, 0, 99999]]
+   INFO Result: D0 = 1
